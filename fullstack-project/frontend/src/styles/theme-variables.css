@@ -1,0 +1,336 @@
+/**
+ * Global Theme System
+ * CSS Custom Properties for Multi-Society White-Label Theming
+ * 
+ * This file contains CSS variables that dynamically load from the society theme
+ * stored in the database. The values are set via JavaScript after fetching the theme.
+ * 
+ * Usage: Add to the <html> tag or root element via JavaScript
+ */
+
+:root {
+  /* ========================================
+     DEFAULT THEME VARIABLES
+     ======================================== */
+
+  /* Primary Colors */
+  --color-primary: #0f766e;
+  --color-primary-light: #14b8a6;
+  --color-primary-dark: #0d5e54;
+  --color-primary-50: #f0fdfa;
+  --color-primary-100: #ccfbf1;
+  --color-primary-200: #99f6e4;
+  --color-primary-300: #5eead4;
+  --color-primary-400: #2dd4bf;
+  --color-primary-500: #14b8a6;
+  --color-primary-600: #0d9488;
+  --color-primary-700: #0f766e;
+  --color-primary-800: #115e59;
+  --color-primary-900: #134e4a;
+
+  /* Secondary Colors */
+  --color-secondary: #2563eb;
+  --color-secondary-light: #60a5fa;
+  --color-secondary-dark: #1e40af;
+  --color-secondary-50: #eff6ff;
+  --color-secondary-100: #dbeafe;
+  --color-secondary-200: #bfdbfe;
+  --color-secondary-300: #93c5fd;
+  --color-secondary-400: #60a5fa;
+  --color-secondary-500: #3b82f6;
+  --color-secondary-600: #2563eb;
+  --color-secondary-700: #1d4ed8;
+  --color-secondary-800: #1e40af;
+  --color-secondary-900: #1e3a8a;
+
+  /* Accent Colors */
+  --color-accent: #14b8a6;
+  --color-accent-light: #2dd4bf;
+  --color-accent-dark: #0d9488;
+
+  /* Background & Surface Colors */
+  --color-bg: #ffffff;
+  --color-bg-secondary: #f9fafb;
+  --color-bg-tertiary: #f3f4f6;
+  --color-surface: #ffffff;
+  --color-surface-variant: #f3f4f6;
+  --color-surface-dim: #e5e7eb;
+
+  /* Text Colors */
+  --color-text-primary: #111827;
+  --color-text-secondary: #6b7280;
+  --color-text-tertiary: #9ca3af;
+  --color-text-inverse: #ffffff;
+
+  /* UI Elements */
+  --color-border: #e5e7eb;
+  --color-border-light: #f3f4f6;
+  --color-border-dark: #d1d5db;
+  --color-divider: #f3f4f6;
+
+  /* Status Colors */
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
+  --color-info: #3b82f6;
+
+  /* Shadow Scales */
+  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+
+  /* Spacing Scale */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  --spacing-2xl: 3rem;
+  --spacing-3xl: 4rem;
+
+  /* Border Radius */
+  --radius-none: 0;
+  --radius-sm: 0.25rem;
+  --radius-md: 0.375rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+  --radius-2xl: 1rem;
+  --radius-3xl: 1.5rem;
+  --radius-full: 9999px;
+
+  /* Font Family */
+  --font-family: "Inter", system-ui, -apple-system, sans-serif;
+  --font-family-mono: "Fira Code", monospace;
+
+  /* Font Sizes */
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 1.875rem;
+  --text-4xl: 2.25rem;
+  --text-5xl: 3rem;
+
+  /* Line Heights */
+  --line-height-tight: 1.25;
+  --line-height-snug: 1.375;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.625;
+  --line-height-loose: 2;
+
+  /* Z-Index Scale */
+  --z-index-hide: -1;
+  --z-index-base: 0;
+  --z-index-dropdown: 10;
+  --z-index-sticky: 20;
+  --z-index-fixed: 30;
+  --z-index-modal-backdrop: 40;
+  --z-index-modal: 50;
+  --z-index-toast: 60;
+  --z-index-tooltip: 70;
+
+  /* Transitions */
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* ========================================
+     COMPONENT SPECIFIC TOKENS
+     ======================================== */
+
+  /* Button Styles */
+  --button-border-radius: var(--radius-lg);
+  --button-padding-x: 1rem;
+  --button-padding-y: 0.625rem;
+  --button-font-size: var(--text-sm);
+  --button-font-weight: 600;
+  --button-transition: var(--transition-fast);
+
+  /* Input Styles */
+  --input-border-radius: var(--radius-md);
+  --input-padding-x: 0.75rem;
+  --input-padding-y: 0.625rem;
+  --input-font-size: var(--text-sm);
+  --input-border-color: var(--color-border);
+  --input-bg-color: var(--color-surface);
+  --input-text-color: var(--color-text-primary);
+
+  /* Card Styles */
+  --card-border-radius: var(--radius-lg);
+  --card-padding: 1.5rem;
+  --card-shadow: var(--shadow-sm);
+  --card-bg-color: var(--color-surface);
+  --card-border-color: var(--color-border-light);
+
+  /* Sidebar Styles */
+  --sidebar-width: 16rem;
+  --sidebar-bg-color: var(--color-surface);
+  --sidebar-text-color: var(--color-text-primary);
+  --sidebar-border-color: var(--color-border);
+
+  /* Navbar Styles */
+  --navbar-height: 3.5rem;
+  --navbar-bg-color: var(--color-surface);
+  --navbar-text-color: var(--color-text-primary);
+  --navbar-shadow: var(--shadow-md);
+
+  /* ========================================
+     BRAND IDENTITY
+     ======================================== */
+  --brand-name: "Smart Society";
+  --brand-tagline: "Intelligent Community Management";
+  --brand-logo-url: "";
+  --brand-favicon-url: "";
+
+  /* ========================================
+     THEME MODE
+     ======================================== */
+  --theme-mode: "light";
+  --theme-gradient-style: "default";
+  --sidebar-style: "light";
+  --button-style: "rounded";
+  --accent-radius: "lg";
+}
+
+/* ========================================
+   DARK MODE THEME VARIABLES
+   ======================================== */
+
+[data-theme-mode="dark"],
+[data-color-scheme="dark"],
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg: #1a1a1a;
+    --color-bg-secondary: #252525;
+    --color-bg-tertiary: #303030;
+    --color-surface: #1f1f1f;
+    --color-surface-variant: #2a2a2a;
+    --color-surface-dim: #0f0f0f;
+
+    --color-text-primary: #ffffff;
+    --color-text-secondary: #b0b0b0;
+    --color-text-tertiary: #808080;
+    --color-text-inverse: #1a1a1a;
+
+    --color-border: #404040;
+    --color-border-light: #303030;
+    --color-border-dark: #505050;
+    --color-divider: #2a2a2a;
+
+    --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+    --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.4), 0 1px 2px -1px rgba(0, 0, 0, 0.4);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -4px rgba(0, 0, 0, 0.4);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.4);
+
+    --card-bg-color: #1f1f1f;
+    --card-border-color: #303030;
+    --input-bg-color: #252525;
+    --input-border-color: #404040;
+    --input-text-color: #ffffff;
+  }
+}
+
+/* ========================================
+   COLORED SIDEBAR VARIANT
+   ======================================== */
+
+[data-sidebar-style="colored"] {
+  --sidebar-bg-color: var(--color-primary);
+  --sidebar-text-color: #ffffff;
+  --sidebar-border-color: var(--color-primary-dark);
+}
+
+[data-sidebar-style="dark"] {
+  --sidebar-bg-color: #1f2937;
+  --sidebar-text-color: #ffffff;
+  --sidebar-border-color: #111827;
+}
+
+/* ========================================
+   BUTTON STYLE VARIANTS
+   ======================================== */
+
+[data-button-style="square"] {
+  --button-border-radius: 0;
+}
+
+[data-button-style="pill"] {
+  --button-border-radius: var(--radius-full);
+}
+
+[data-button-style="rounded"] {
+  --button-border-radius: var(--radius-lg);
+}
+
+/* ========================================
+   GRADIENT STYLES
+   ======================================== */
+
+[data-gradient-style="emerald-to-white"] {
+  --gradient-from: var(--color-primary);
+  --gradient-to: #ffffff;
+  --gradient: linear-gradient(135deg, var(--gradient-from), var(--gradient-to));
+}
+
+[data-gradient-style="gold-to-black"] {
+  --gradient-from: #fbbf24;
+  --gradient-to: #1f2937;
+  --gradient: linear-gradient(135deg, var(--gradient-from), var(--gradient-to));
+}
+
+[data-gradient-style="blue-to-silver"] {
+  --gradient-from: var(--color-secondary);
+  --gradient-to: #e2e8f0;
+  --gradient: linear-gradient(135deg, var(--gradient-from), var(--gradient-to));
+}
+
+[data-gradient-style="cyan-to-navy"] {
+  --gradient-from: #06b6d4;
+  --gradient-to: #001f3f;
+  --gradient: linear-gradient(135deg, var(--gradient-from), var(--gradient-to));
+}
+
+[data-gradient-style="orange-to-purple"] {
+  --gradient-from: #ea580c;
+  --gradient-to: #7c3aed;
+  --gradient: linear-gradient(135deg, var(--gradient-from), var(--gradient-to));
+}
+
+/* ========================================
+   ACCESSIBILITY
+   ======================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --transition-fast: 0ms;
+    --transition-base: 0ms;
+    --transition-slow: 0ms;
+  }
+}
+
+@media (prefers-high-contrast: more) {
+  :root {
+    --color-border: var(--color-text-primary);
+    --color-border-light: var(--color-text-primary);
+    --color-border-dark: var(--color-text-primary);
+  }
+}
+
+/* ========================================
+   PRINT STYLES
+   ======================================== */
+
+@media print {
+  :root {
+    --shadow-xs: none;
+    --shadow-sm: none;
+    --shadow-md: none;
+    --shadow-lg: none;
+    --shadow-xl: none;
+  }
+}

@@ -1,0 +1,32 @@
+export const societyPresets = [
+  {
+    id: "skyline",
+    name: "Skyline theme",
+    label: "Luxury living OS",
+    accentRgb: "20 184 166",
+    heroStart: "#0f766e",
+    heroEnd: "#2563eb",
+    summary: "Premium theme for modern gated communities.",
+    stat: "Custom community theme",
+  },
+  {
+    id: "orchard",
+    name: "Orchard theme",
+    label: "Green community mesh",
+    accentRgb: "34 197 94",
+    heroStart: "#166534",
+    heroEnd: "#0ea5e9",
+    summary: "Fresh theme for family-oriented societies.",
+    stat: "Custom community theme",
+  },
+  {
+    id: "nova",
+    name: "Nova theme",
+    label: "Corporate campus control",
+    accentRgb: "249 115 22",
+    heroStart: "#9a3412",
+    heroEnd: "#7c3aed",
+    summary: "Bold theme for business campuses and offices.",
+    stat: "Custom community theme",
+  },
+];

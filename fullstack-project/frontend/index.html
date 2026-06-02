@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>frontend</title>
+    <script>
+      (function () {
+        try {
+          var storageKey = 'society_theme_engine_v2';
+          var raw = localStorage.getItem(storageKey);
+          var systemTheme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+          var preferences = raw ? JSON.parse(raw) : {};
+          var theme = preferences.themeMode || systemTheme;
+          var density = preferences.density || 'comfortable';
+          var layout = preferences.layoutMode || 'glass';
+          var accent = preferences.accentColor || '79 70 229';
+          var primary = preferences.primaryColor || '#4f46e5';
+          var secondary = preferences.secondaryColor || '#2563eb';
+          var isDark = theme === 'dark';
+          var bg = isDark ? '2 6 23' : '248 250 252';
+          var surface = isDark ? '15 23 42' : '255 255 255';
+          var surfaceMuted = isDark ? '30 41 59' : '241 245 249';
+          var border = isDark ? '51 65 85' : '226 232 240';
+          var text = isDark ? '226 232 240' : '15 23 42';
+          var textMuted = isDark ? '148 163 184' : '71 85 105';
+
+          document.documentElement.style.setProperty('--app-accent-rgb', accent);
+          document.documentElement.style.setProperty('--app-primary-rgb', primary === '#4f46e5' ? '79 70 229' : accent);
+          document.documentElement.style.setProperty('--app-secondary-rgb', secondary === '#2563eb' ? '37 99 235' : accent);
+          document.documentElement.style.setProperty('--app-bg-rgb', bg);
+          document.documentElement.style.setProperty('--app-surface-rgb', surface);
+          document.documentElement.style.setProperty('--app-surface-muted-rgb', surfaceMuted);
+          document.documentElement.style.setProperty('--app-border-rgb', border);
+          document.documentElement.style.setProperty('--app-text-rgb', text);
+          document.documentElement.style.setProperty('--app-text-muted-rgb', textMuted);
+          document.documentElement.style.setProperty('--app-card-rgb', surface);
+          document.documentElement.style.setProperty('--app-radius', '24px');
+          document.documentElement.dataset.theme = theme;
+          document.documentElement.dataset.density = density;
+          document.documentElement.dataset.layout = layout;
+          document.documentElement.style.colorScheme = theme;
+
+          if (document.body) {
+            document.body.dataset.theme = theme;
+            document.body.dataset.density = density;
+            document.body.dataset.layout = layout;
+          }
+        } catch (error) {
+          // Best effort only.
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

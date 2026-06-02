@@ -1,0 +1,10 @@
+{
+  "name": "Society Mobile",
+  "displayName": "Society Mobile",
+  "expo": {
+    "name": "Society Mobile",
+    "slug": "society-mobile",
+    "platforms": ["android", "ios"],
+    "jsEngine": "hermes"
+  }
+}

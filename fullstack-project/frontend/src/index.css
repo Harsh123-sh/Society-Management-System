@@ -1,0 +1,1232 @@
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ==========================================
+   GLOBAL THEME SYSTEM - LIGHT MODE (DEFAULT)
+   ========================================== */
+:root {
+  /* PRIMARY THEME PALETTE - LIGHT */
+  --background: #F8FAFC;
+  --surface: #FFFFFF;
+  --surface-muted: #F1F5F9;
+  --surface-subtle: #F8FAFC;
+  --card: #FFFFFF;
+  --card-elevated: #FFFFFF;
+  --sidebar-bg: #FFFFFF;
+  --sidebar-card: #F1F5F9;
+  --navbar-bg: #FFFFFF;
+  --hero-bg: linear-gradient(135deg, #FFFFFF 0%, #F0F9FF 50%, #DBEAFE 100%);
+  
+  /* TEXT & SEMANTIC */
+  --text: #0F172A;
+  --text-primary: #0F172A;
+  --text-muted: #475569;
+  --text-subtle: #64748B;
+  --text-disabled: #94A3B8;
+  
+  /* INTERACTIVE */
+  --border: #E2E8F0;
+  --border-subtle: #CBD5E1;
+  --border-dark: #94A3B8;
+  --input-bg: #FFFFFF;
+  --input-border: #E2E8F0;
+  --input-placeholder: #94A3B8;
+  --button-hover: rgba(15, 23, 42, 0.08);
+  --button-active: rgba(15, 23, 42, 0.12);
+  
+  /* SHADOWS */
+  --shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.04);
+  --shadow-md: 0 4px 16px rgba(15, 23, 42, 0.06);
+  --shadow-lg: 0 10px 32px rgba(15, 23, 42, 0.08);
+  --shadow-elevated: 0 20px 60px rgba(15, 23, 42, 0.12);
+  
+  /* COLORS */
+  --primary: #06B6D4;
+  --primary-dark: #0891B2;
+  --secondary: #4F46E5;
+  --accent: #10B981;
+  --success: #16A34A;
+  --warning: #D97706;
+  --error: #DC2626;
+  --danger: #DC2626;
+  --info: #0EA5E9;
+
+  /* LEGACY COMPATIBILITY */
+  --bg-background: #f8fafc;
+  --bg-surface: #ffffff;
+  --bg-main: var(--background);
+  --bg-card: var(--card);
+  --bg-sidebar: var(--sidebar-bg);
+  --bg-header: var(--navbar-bg);
+  --border-color: var(--border);
+  --border-soft: rgba(15, 23, 42, 0.08);
+  --button-bg: var(--surface);
+  --button-text: var(--text);
+  --surface-strong: rgba(255, 255, 255, 0.9);
+  --border-default: rgba(15, 23, 42, 0.08);
+  --primary-50: #ecfeff;
+  --primary-100: #cffafe;
+  --primary-200: #a5f3fc;
+  --primary-300: #67e8f9;
+
+  /* ACCESSIBILITY */
+  --focus-ring: 3px;
+  --focus-color: rgba(6, 182, 212, 0.12);
+}
+
+/* ==========================================
+   DARK MODE THEME
+   ========================================== */
+[data-theme="dark"],
+:root.dark {
+  /* PRIMARY THEME PALETTE - DARK */
+  --background: #020617;
+  --surface: #1E293B;
+  --surface-muted: #334155;
+  --surface-subtle: #0F172A;
+  --card: #0F172A;
+  --card-elevated: #1E293B;
+  --sidebar-bg: #0F172A;
+  --sidebar-card: #1E293B;
+  --navbar-bg: #1E293B;
+  --hero-bg: linear-gradient(135deg, #0F172A 0%, #1E3A4C 50%, #164E63 100%);
+  
+  /* TEXT & SEMANTIC */
+  --text: #F8FAFC;
+  --text-primary: #F8FAFC;
+  --text-muted: #CBD5E1;
+  --text-subtle: #94A3B8;
+  --text-disabled: #64748B;
+  
+  /* INTERACTIVE */
+  --border: #334155;
+  --border-subtle: #475569;
+  --border-dark: #0F172A;
+  --input-bg: #0F172A;
+  --input-border: #334155;
+  --input-placeholder: #64748B;
+  --button-hover: rgba(255, 255, 255, 0.08);
+  --button-active: rgba(255, 255, 255, 0.12);
+  
+  /* SHADOWS */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 32px rgba(0, 0, 0, 0.5);
+  --shadow-elevated: 0 20px 60px rgba(0, 0, 0, 0.6);
+  
+  /* COLORS */
+  --primary: #06B6D4;
+  --primary-dark: #0891B2;
+  --secondary: #818CF8;
+  --accent: #34D399;
+  --success: #34D399;
+  --warning: #FBBF24;
+  --error: #FB7185;
+  --danger: #FB7185;
+  --info: #06B6D4;
+
+  /* LEGACY COMPATIBILITY */
+  --bg-background: #020617;
+  --bg-surface: #1E293B;
+  --bg-main: var(--background);
+  --bg-card: var(--card);
+  --bg-sidebar: var(--sidebar-bg);
+  --bg-header: var(--navbar-bg);
+  --border-color: var(--border);
+  --button-bg: var(--surface);
+  --button-text: var(--text);
+  --surface-strong: rgba(8, 15, 28, 0.86);
+  --border-soft: rgba(255, 255, 255, 0.08);
+  --border-default: rgba(255, 255, 255, 0.08);
+  --primary-50: #ecfeff;
+  --primary-100: #cffafe;
+  --primary-200: #a5f3fc;
+  --primary-300: #67e8f9;
+
+  /* ACCESSIBILITY */
+  --focus-ring: 3px;
+  --focus-color: rgba(6, 182, 212, 0.25);
+}
+
+/* ==========================================
+   BASE HTML & BODY STYLES
+   ========================================== */
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+html[data-theme="light"] {
+  min-height: 100%;
+  background:
+    radial-gradient(circle at top left, rgba(15, 118, 110, 0.08), transparent 32%),
+    radial-gradient(circle at top right, rgba(2, 132, 199, 0.08), transparent 28%),
+    linear-gradient(180deg, #f8fafc 0%, #eff6ff 38%, #f8fafc 100%);
+}
+
+html[data-theme="dark"] {
+  min-height: 100%;
+  background: linear-gradient(180deg, #020617 0%, #0f172a 50%, #020617 100%);
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: "Manrope", "Space Grotesk", "Segoe UI", sans-serif;
+  color: var(--text);
+  background-color: var(--background);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  transition: background-color 250ms ease, color 250ms ease;
+}
+
+button,
+input,
+select,
+textarea {
+  transition: background-color 200ms ease, border-color 200ms ease, color 200ms ease, box-shadow 200ms ease;
+}
+
+button {
+  background-color: var(--button-bg);
+  color: var(--button-text);
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  padding: 0.9rem 1.25rem;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: var(--button-hover);
+}
+
+button:active {
+  background-color: var(--button-active);
+}
+
+button:focus-visible {
+  outline: var(--focus-ring) solid var(--focus-color);
+  outline-offset: 3px;
+}
+
+input,
+select,
+textarea {
+  background-color: var(--input-bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  padding: 0.9rem 1rem;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--input-placeholder);
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.12);
+  outline: none;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  color: var(--text);
+}
+
+thead th,
+tbody td {
+  border: 1px solid var(--border);
+  padding: 1rem;
+}
+
+thead th {
+  text-align: left;
+  background-color: var(--surface-muted);
+  color: var(--text);
+}
+
+tbody tr:nth-child(even) {
+  background-color: var(--surface-subtle);
+}
+
+tbody tr:hover {
+  background-color: var(--surface-muted);
+}
+
+code,
+pre {
+  color: var(--text);
+}
+
+::selection {
+  background: rgba(6, 182, 212, 0.18);
+  color: var(--text);
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image: linear-gradient(rgba(15, 23, 42, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(15, 23, 42, 0.02) 1px, transparent 1px);
+  background-size: 28px 28px;
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.45), transparent 78%);
+  z-index: -1;
+}
+
+[data-theme="dark"] body::before {
+  background-image: linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  opacity: 0.4;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+::selection {
+  background: rgba(6, 182, 212, 0.18);
+  color: var(--text);
+}
+
+/* ==========================================
+   DASHBOARD SHELL STYLES - THEME AWARE
+   ========================================== */
+
+.dashboard-shell {
+  background-color: var(--background);
+  color: var(--text);
+  transition: background-color 250ms ease, color 250ms ease;
+}
+
+.dashboard-navbar {
+  background-color: var(--navbar-bg);
+  border-bottom: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  transition: background-color 250ms ease, border-color 250ms ease;
+}
+
+.dashboard-navbar h1 {
+  color: var(--text);
+}
+
+.dashboard-navbar p {
+  color: var(--text-muted);
+}
+
+.dashboard-sidebar {
+  background-color: var(--sidebar-bg);
+  border-right: 1px solid var(--border);
+  transition: background-color 250ms ease, border-color 250ms ease;
+}
+
+.surface-card {
+  background-color: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  box-shadow: var(--shadow-sm);
+  transition: background-color 250ms ease, border-color 250ms ease, box-shadow 250ms ease;
+}
+
+/* ==========================================
+   SIDEBAR COMPONENT THEME
+   ========================================== */
+
+aside[class*="sidebar"],
+aside[class*="nav"] {
+  background-color: var(--sidebar-bg) !important;
+  border-color: var(--border) !important;
+  color: var(--text) !important;
+  transition: background-color 250ms ease, border-color 250ms ease;
+}
+
+aside[class*="sidebar"] h2,
+aside[class*="sidebar"] h3,
+aside[class*="nav"] h2,
+aside[class*="nav"] h3 {
+  color: var(--text) !important;
+}
+
+aside[class*="sidebar"] p,
+aside[class*="nav"] p {
+  color: var(--text-muted) !important;
+}
+
+aside[class*="sidebar"] .rounded-2xl,
+aside[class*="nav"] .rounded-2xl {
+  background-color: var(--sidebar-card) !important;
+  border-color: var(--border-subtle) !important;
+  color: var(--text) !important;
+}
+
+/* Nav links in sidebar */
+aside[class*="sidebar"] a,
+aside[class*="nav"] a {
+  color: var(--text) !important;
+  border-color: var(--border) !important;
+  transition: all 250ms ease;
+}
+
+aside[class*="sidebar"] a:hover,
+aside[class*="nav"] a:hover {
+  background-color: var(--button-hover) !important;
+  border-color: var(--primary) !important;
+  color: var(--text) !important;
+}
+
+aside[class*="sidebar"] a.active,
+aside[class*="nav"] a.active {
+  background-color: var(--primary) !important;
+  border-color: var(--primary) !important;
+  color: #FFFFFF !important;
+}
+
+/* ==========================================
+   NAVBAR & HEADER THEME
+   ========================================== */
+
+header[class*="navbar"],
+header[class*="top"] {
+  background-color: var(--navbar-bg) !important;
+  border-color: var(--border) !important;
+  color: var(--text) !important;
+  transition: background-color 250ms ease, border-color 250ms ease;
+}
+
+header[class*="navbar"] h1,
+header[class*="top"] h1 {
+  color: var(--text) !important;
+}
+
+header[class*="navbar"] p,
+header[class*="top"] p {
+  color: var(--text-muted) !important;
+}
+
+header[class*="navbar"] button,
+header[class*="top"] button {
+  color: var(--text) !important;
+  border-color: var(--border) !important;
+}
+
+header[class*="navbar"] button:hover,
+header[class*="top"] button:hover {
+  background-color: var(--button-hover) !important;
+}
+
+/* ==========================================
+   CARD & CONTAINER THEME
+   ========================================== */
+
+.card,
+.glass-card,
+.glass-panel,
+.panel {
+  background-color: var(--card) !important;
+  border-color: var(--border) !important;
+  color: var(--text) !important;
+  transition: background-color 250ms ease, border-color 250ms ease;
+}
+
+.card h2, .card h3, .card h4,
+.glass-card h2, .glass-card h3, .glass-card h4,
+.panel h2, .panel h3, .panel h4 {
+  color: var(--text) !important;
+}
+
+.card p,
+.glass-card p,
+.panel p {
+  color: var(--text-muted) !important;
+}
+
+/* ==========================================
+   FORM INPUTS & CONTROLS THEME
+   ========================================== */
+
+input,
+textarea,
+select {
+  background-color: var(--input-bg) !important;
+  border-color: var(--input-border) !important;
+  color: var(--text) !important;
+  transition: all 250ms ease;
+}
+
+input::placeholder,
+textarea::placeholder,
+select::placeholder {
+  color: var(--input-placeholder) !important;
+}
+
+input:hover,
+textarea:hover,
+select:hover {
+  border-color: var(--primary) !important;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none !important;
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 0 3px var(--focus-color) !important;
+}
+
+/* ==========================================
+   BUTTON THEME
+   ========================================== */
+
+button,
+[role="button"] {
+  transition: all 250ms ease;
+}
+
+.btn,
+.button,
+button:not([class*="auth"]) {
+  background-color: var(--surface) !important;
+  color: var(--text) !important;
+  border-color: var(--border) !important;
+}
+
+button:hover,
+[role="button"]:hover {
+  background-color: var(--button-hover) !important;
+}
+
+button:active,
+[role="button"]:active {
+  background-color: var(--button-active) !important;
+}
+
+/* ==========================================
+   BADGE & CHIP THEME
+   ========================================== */
+
+.badge,
+.chip,
+[class*="badge"],
+[class*="chip"] {
+  background-color: var(--surface-muted) !important;
+  color: var(--text) !important;
+  border-color: var(--border) !important;
+  transition: all 250ms ease;
+}
+
+/* ==========================================
+   TEXT & UTILITY CLASSES
+   ========================================== */
+
+.text-theme { color: var(--text) !important; }
+.text-muted { color: var(--text-muted) !important; }
+.text-subtle { color: var(--text-subtle) !important; }
+.text-disabled { color: var(--text-disabled) !important; }
+.text-error { color: var(--error) !important; }
+.text-success { color: var(--success) !important; }
+.text-warning { color: var(--warning) !important; }
+.text-info { color: var(--info) !important; }
+
+.bg-theme { background-color: var(--background) !important; }
+.bg-surface { background-color: var(--surface) !important; }
+.bg-card { background-color: var(--card) !important; }
+.bg-muted { background-color: var(--surface-muted) !important; }
+
+.border-theme { border-color: var(--border) !important; }
+.border-subtle { border-color: var(--border-subtle) !important; }
+
+/* ==========================================
+   LEGACY COMPONENT STYLES
+   ========================================== */
+
+.app-shell {
+  position: relative;
+  width: min(1440px, calc(100% - 24px));
+  margin: 0 auto;
+  padding: 24px 0 40px;
+  color: var(--text);
+}
+
+.glass-panel,
+.glass-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-elevated);
+  backdrop-filter: blur(24px) saturate(150%);
+  -webkit-backdrop-filter: blur(24px) saturate(150%);
+  transition: all 250ms ease;
+}
+
+.glass-panel {
+  border-radius: 30px;
+}
+
+.glass-card {
+  border-radius: 24px;
+}
+
+.auth-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-elevated);
+  backdrop-filter: blur(12px);
+  transition: all 250ms ease;
+}
+
+.auth-input {
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  color: var(--text);
+  transition: all 250ms ease;
+}
+
+.auth-input::placeholder {
+  color: var(--input-placeholder);
+  opacity: 0.85;
+}
+
+.auth-label {
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.auth-chip {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  transition: all 250ms ease;
+}
+
+.auth-chip.is-active {
+  background: linear-gradient(90deg, rgba(6,182,212,0.12), rgba(34,197,94,0.06));
+  border-color: var(--primary);
+  transform: translateY(-1px);
+}
+
+.auth-chip:hover {
+  transform: translateY(-1px);
+  border-color: var(--primary);
+}
+
+.auth-panel {
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  border: 1px solid var(--border);
+  transition: all 250ms ease;
+}
+
+/* ==========================================
+   FORM ELEMENTS
+   ========================================== */
+
+.ui-input {
+  background: var(--input-bg) !important;
+  color: var(--text) !important;
+  border: 1px solid var(--input-border) !important;
+  border-radius: 0.75rem;
+  padding: 0.6rem 0.75rem;
+  transition: all 250ms ease;
+}
+
+.ui-input:focus {
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 0 3px var(--focus-color) !important;
+}
+
+select, option {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  color: var(--text) !important;
+  background: var(--input-bg) !important;
+  border-color: var(--input-border) !important;
+  transition: all 250ms ease;
+}
+
+option {
+  background: var(--surface) !important;
+  color: var(--text) !important;
+  padding: 8px 12px;
+}
+
+/* ==========================================
+   ANIMATIONS & TRANSITIONS
+   ========================================== */
+
+@keyframes blob {
+  0% { transform: translate(0px, 0px) scale(1); }
+  33% { transform: translate(20px, -10px) scale(1.05); }
+  66% { transform: translate(-20px, 10px) scale(0.95); }
+  100% { transform: translate(0px, 0px) scale(1); }
+}
+
+.animate-blob {
+  animation: blob 8s infinite;
+}
+
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+::selection {
+  background: rgba(var(--app-accent-rgb), 0.18);
+}
+
+:root[data-theme="dark"] {
+  /* DARK THEME TOKENS */
+  --background: #020617;
+  --surface: #0b1120;
+  --card: #0f172a;
+  --text: #f1f5f9;
+  --text-muted: #cbd5e1;
+  --border: #334155;
+  --input-bg: #0f172a;
+  --input-border: #334155;
+  --input-placeholder: #94a3b8;
+  
+  /* Legacy aliases for backward compatibility */
+  --bg-background: #040617;
+  --bg-surface: #07111f;
+  --bg-card: #0b1320;
+  --text-primary: #e6eef6;
+  --border-default: rgba(255,255,255,0.06);
+  
+  /* Colors */
+  --primary: #06b6d4;
+  --primary-600: #0891b2;
+  --secondary: #818cf8;
+  --accent: #34d399;
+  --success: #34d399;
+  --error: #fb7185;
+  --warning: #fbbf24;
+  --info: #06b6d4;
+  
+  /* Button states */
+  --button-hover: rgba(255,255,255,0.08);
+  --button-active: rgba(255,255,255,0.12);
+  
+  /* Shadow and backdrop */
+  --shadow-elevated: 0 10px 30px rgba(2,6,23,0.6);
+  --shadow-sm: 0 2px 8px rgba(2,6,23,0.3);
+  --shadow-md: 0 4px 16px rgba(2,6,23,0.4);
+
+  /* darker variants for UI surfaces */
+  --card-elevated: rgba(255,255,255,0.02);
+  --focus-color: rgba(6,182,212,0.25);
+}
+
+body[data-layout="compact"] {
+  letter-spacing: -0.015em;
+}
+
+
+body[data-theme="dark"]::before {
+  opacity: 0.4;
+}
+
+body[data-density="compact"] {
+  letter-spacing: -0.01em;
+}
+
+@keyframes blob {
+  0% { transform: translate(0px, 0px) scale(1); }
+  33% { transform: translate(20px, -10px) scale(1.05); }
+  66% { transform: translate(-20px, 10px) scale(0.95); }
+  100% { transform: translate(0px, 0px) scale(1); }
+}
+
+.animate-blob {
+  animation: blob 8s infinite;
+}
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+
+.auth-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-default);
+  box-shadow: var(--shadow-elevated);
+  backdrop-filter: blur(12px);
+}
+
+.auth-input {
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  color: var(--text-primary);
+}
+
+.auth-input::placeholder {
+  color: var(--text-muted);
+  opacity: 0.85;
+}
+
+.auth-label {
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.auth-chip {
+  border: 1px solid var(--border-default);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  transition: transform 180ms ease, border-color 180ms ease, background-color 180ms ease;
+}
+
+.auth-chip.is-active {
+  background: linear-gradient(90deg, rgba(6,182,212,0.12), rgba(34,197,94,0.06));
+  border-color: rgba(6,182,212,0.35);
+  transform: translateY(-1px);
+}
+
+.auth-chip:hover {
+  transform: translateY(-1px);
+}
+
+.auth-panel {
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  border: 1px solid var(--border-default);
+}
+
+.auth-decorator {
+  background: linear-gradient(90deg, var(--primary), var(--accent));
+}
+
+/* Native select fallbacks (improve dark mode native selects) */
+select, input[type="select"], input[type="email"], input[type="text"], textarea {
+  background: var(--input-bg);
+  color: var(--text);
+  border: 1px solid var(--input-border);
+  font-family: inherit;
+}
+
+select:hover, input:hover, textarea:hover {
+  border-color: var(--primary);
+}
+
+select:focus, input:focus, textarea:focus {
+  outline: none;
+  box-shadow: 0 0 0 var(--focus-ring) var(--focus-color);
+  border-color: var(--primary);
+}
+
+/* Option styling when using native select on platforms that support it */
+option {
+  background: var(--surface);
+  color: var(--text);
+  padding: 8px 12px;
+}
+
+/* Backwards-compatible utility for existing inputs/selects */
+.ui-input {
+  background: var(--input-bg) !important;
+  color: var(--text) !important;
+  border: 1px solid var(--input-border) !important;
+  border-radius: 0.75rem;
+  padding: 0.6rem 0.75rem;
+}
+
+.ui-input:focus {
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 0 3px var(--focus-color) !important;
+}
+
+select::placeholder, option::placeholder {
+  color: var(--input-placeholder);
+}
+
+select, option {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  color: var(--text);
+  background: var(--input-bg);
+}
+
+/* Global text utilities mapped to tokens */
+.text-theme { color: var(--text); }
+.text-muted { color: var(--text-muted); }
+.text-error { color: var(--error); }
+.text-success { color: var(--success); }
+.text-warning { color: var(--warning); }
+.text-info { color: var(--info); }
+
+/* Global background utilities */
+.bg-theme { background: var(--background); }
+.bg-surface { background: var(--surface); }
+.bg-card { background: var(--card); }
+
+/* Border utilities */
+.border-theme { border-color: var(--border); }
+.border-theme-subtle { border-color: rgba(0, 0, 0, 0.08); }
+
+:root[data-theme="dark"] .border-theme-subtle {
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+/* Headings */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--text);
+  margin: 0;
+}
+
+/* Paragraphs and text */
+p {
+  color: var(--text);
+  margin: 0;
+}
+
+/* Links */
+a {
+  color: var(--primary);
+  text-decoration: none;
+  transition: opacity 200ms ease;
+}
+
+a:hover {
+  opacity: 0.8;
+}
+
+a:focus {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* Code blocks */
+code, pre {
+  background: var(--card);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+/* Labels and form text */
+label {
+  color: var(--text);
+  font-weight: 500;
+}
+
+label.muted {
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+/* Dark-mode overrides for common Tailwind utility classes
+   These provide a safe global mapping so legacy hardcoded classes
+   don't break dark mode while we migrate markup to tokens. */
+body[data-theme="dark"] {
+  /* Text */
+  --tw-text-opacity: 1;
+}
+
+/* Emergency readability fixes for dark theme headings and body text */
+body[data-theme="dark"] h1,
+body[data-theme="dark"] h2,
+body[data-theme="dark"] h3,
+body[data-theme="dark"] h4,
+body[data-theme="dark"] h5,
+body[data-theme="dark"] h6 {
+  color: var(--text) !important;
+  opacity: 1 !important;
+}
+body[data-theme="dark"] p,
+body[data-theme="dark"] li,
+body[data-theme="dark"] a,
+body[data-theme="dark"] span,
+body[data-theme="dark"] strong {
+  color: var(--text-muted) !important;
+  opacity: 1 !important;
+}
+
+/* Ensure large display headings are fully opaque */
+body[data-theme="dark"] .display-heading,
+body[data-theme="dark"] .hero-title {
+  color: var(--text) !important;
+  opacity: 1 !important;
+}
+
+/* Stronger emergency overrides to fix very faint headings */
+body[data-theme="dark"] h1,
+body[data-theme="dark"] h2,
+body[data-theme="dark"] h3 {
+  color: var(--text) !important;
+  opacity: 1 !important;
+  mix-blend-mode: normal !important;
+  -webkit-background-clip: initial !important;
+  background-clip: initial !important;
+  background-image: none !important;
+  text-shadow: 0 1px 0 rgba(0,0,0,0.45) !important;
+  filter: none !important;
+  font-weight: 700 !important;
+}
+
+/* Prevent global opacity utility leakage in dark mode */
+body[data-theme="dark"] [class*="opacity-"] {
+  opacity: 1 !important;
+}
+
+/* Ensure paragraph and muted text are legible */
+body[data-theme="dark"] p,
+body[data-theme="dark"] .lead,
+body[data-theme="dark"] .muted {
+  color: var(--text-muted) !important;
+  opacity: 1 !important;
+  mix-blend-mode: normal !important;
+}
+
+/* Emergency: reset any opacity/filter/mix-blend-mode applied to ancestors
+   that can make text invisible. This is intentionally broad and should
+   be rolled back after migrating problematic components. */
+body[data-theme="dark"] * {
+  opacity: 1 !important;
+  filter: none !important;
+  mix-blend-mode: normal !important;
+  -webkit-text-fill-color: unset !important;
+}
+
+/* Light-mode overrides: fix components that accidentally use dark-only classes */
+body[data-theme="light"] [class*="text-white"] {
+  color: var(--text) !important;
+}
+body[data-theme="light"] [class*="text-slate-"] {
+  color: var(--text) !important;
+}
+body[data-theme="light"] [class*="bg-slate-900"],
+body[data-theme="light"] [class*="bg-black"],
+body[data-theme="light"] [class*="bg-slate-800"] {
+  background: var(--surface) !important;
+}
+body[data-theme="light"] [class*="bg-slate-50"],
+body[data-theme="light"] [class*="bg-slate-100"],
+body[data-theme="light"] [class*="bg-white"] {
+  background: var(--card) !important;
+}
+body[data-theme="light"] [class*="border-slate-"] {
+  border-color: var(--border) !important;
+}
+body[data-theme="light"] .button--ghost,
+body[data-theme="light"] [class*="button--ghost"] {
+  background: transparent !important;
+  color: var(--text) !important;
+  border-color: var(--border) !important;
+}
+
+/* Ensure placeholder legibility in light mode */
+body[data-theme="light"] input::placeholder,
+body[data-theme="light"] textarea::placeholder {
+  color: var(--input-placeholder) !important;
+  opacity: 1 !important;
+}
+
+/* Comprehensive Light-mode safety mapping
+   These rules map common Tailwind color utilities to the design tokens
+   so existing hardcoded classes render correctly in light mode.
+   This is a migration safety net and can be removed as markup is updated. */
+body[data-theme="light"] {
+  --tw-text-opacity: 1;
+}
+
+/* Headings and major text */
+body[data-theme="light"] h1,
+body[data-theme="light"] h2,
+body[data-theme="light"] h3,
+body[data-theme="light"] h4,
+body[data-theme="light"] h5,
+body[data-theme="light"] h6 {
+  color: var(--text) !important;
+  opacity: 1 !important;
+}
+
+/* Paragraphs and muted text */
+body[data-theme="light"] p,
+body[data-theme="light"] li,
+body[data-theme="light"] span,
+body[data-theme="light"] strong,
+body[data-theme="light"] a {
+  color: var(--text-muted) !important;
+}
+
+/* Replace common Tailwind utility color classes */
+body[data-theme="light"] [class*="text-white"] { color: var(--text) !important; }
+body[data-theme="light"] [class*="text-black"] { color: var(--text) !important; }
+body[data-theme="light"] [class*="text-slate-"] { color: var(--text) !important; }
+body[data-theme="light"] [class*="text-gray-"] { color: var(--text-muted) !important; }
+
+/* Backgrounds */
+body[data-theme="light"] [class*="bg-white"] { background: var(--card) !important; }
+body[data-theme="light"] [class*="bg-slate-50"] { background: var(--card) !important; }
+body[data-theme="light"] [class*="bg-slate-100"] { background: var(--card) !important; }
+body[data-theme="light"] [class*="bg-slate-900"] { background: var(--surface) !important; }
+
+/* Borders */
+body[data-theme="light"] [class*="border-slate-"] { border-color: var(--border) !important; }
+body[data-theme="light"] [class*="border-gray-"] { border-color: var(--border) !important; }
+
+/* Buttons */
+body[data-theme="light"] .button--primary,
+body[data-theme="light"] .btn-theme,
+body[data-theme="light"] .button.primary {
+  background: var(--primary) !important;
+  color: #ffffff !important;
+  border-color: transparent !important;
+}
+
+body[data-theme="light"] .button--ghost,
+body[data-theme="light"] .button--muted {
+  background: var(--surface) !important;
+  color: var(--text) !important;
+  border-color: var(--border) !important;
+}
+
+/* Inputs, selects, placeholders */
+body[data-theme="light"] input,
+body[data-theme="light"] textarea,
+body[data-theme="light"] select,
+body[data-theme="light"] .ui-input {
+  background: var(--input-bg) !important;
+  color: var(--text) !important;
+  border-color: var(--input-border) !important;
+}
+body[data-theme="light"] input::placeholder,
+body[data-theme="light"] textarea::placeholder,
+body[data-theme="light"] select::placeholder {
+  color: var(--input-placeholder) !important;
+  opacity: 1 !important;
+}
+
+/* Tables */
+body[data-theme="light"] table,
+body[data-theme="light"] th,
+body[data-theme="light"] td {
+  color: var(--text) !important;
+  border-color: var(--border) !important;
+}
+
+/* Utility: disable very low opacity on light mode content */
+body[data-theme="light"] [class*="opacity-"] {
+  opacity: 1 !important;
+}
+
+/* Avoid mixing in dark-only color classes */
+body[data-theme="light"] [class*="text-white/"],
+body[data-theme="light"] [class*="text-black/"] {
+  color: var(--text) !important;
+}
+
+/* Cards */
+body[data-theme="light"] .glass-card,
+body[data-theme="light"] .card-theme,
+body[data-theme="light"] .capability-card,
+body[data-theme="light"] .role-card,
+body[data-theme="light"] .mini-rail > div,
+body[data-theme="light"] .dashboard-grid article {
+  background: var(--card) !important;
+  color: var(--text) !important;
+  border-color: var(--border) !important;
+}
+
+/* Sidebar / nav */
+body[data-theme="light"] .sidebar,
+body[data-theme="light"] .topbar,
+body[data-theme="light"] .nav {
+  background: var(--surface) !important;
+  color: var(--text) !important;
+  border-color: var(--border) !important;
+}
+
+/* Feature: ensure headings inside components are using token */
+body[data-theme="light"] .section-header h2 { color: var(--text) !important; }
+
+
+body[data-theme="dark"] [class*="text-white"] {
+  color: var(--text) !important;
+}
+body[data-theme="dark"] [class*="text-gray-"] {
+  color: var(--text-muted) !important;
+}
+body[data-theme="dark"] [class*="text-slate-"] {
+  color: var(--text-muted) !important;
+}
+
+/* Backgrounds */
+body[data-theme="dark"] [class*="bg-white"] {
+  background: var(--card) !important;
+}
+body[data-theme="dark"] [class*="bg-slate-"] {
+  background: var(--surface) !important;
+}
+body[data-theme="dark"] [class*="bg-gray-"] {
+  background: var(--surface) !important;
+}
+
+/* Borders */
+body[data-theme="dark"] [class*="border-slate-"] {
+  border-color: var(--border) !important;
+}
+body[data-theme="dark"] [class*="border-gray-"] {
+  border-color: var(--border) !important;
+}
+
+/* Buttons using ghost/transparent backgrounds */
+body[data-theme="dark"] .button--ghost,
+body[data-theme="dark"] [class*="button--ghost"] {
+  background: transparent !important;
+  color: var(--text) !important;
+  border-color: var(--border) !important;
+}
+
+/* Placeholder colors */
+body[data-theme="dark"] input::placeholder,
+body[data-theme="dark"] textarea::placeholder {
+  color: var(--input-placeholder) !important;
+  opacity: 1 !important;
+}
+
+/* Force native select option visibility */
+body[data-theme="dark"] select,
+body[data-theme="dark"] option {
+  color: var(--text) !important;
+  background: var(--surface) !important;
+}
+
+/* Ensure links are readable */
+body[data-theme="dark"] a {
+  color: var(--primary) !important;
+}
+
+/* Utility to quickly theme existing inputs/selects */
+body[data-theme="dark"] .ui-input,
+body[data-theme="dark"] input,
+body[data-theme="dark"] textarea,
+body[data-theme="dark"] select {
+  background: var(--input-bg) !important;
+  color: var(--text) !important;
+  border-color: var(--input-border) !important;
+}
+
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+

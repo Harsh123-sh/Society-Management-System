@@ -1,0 +1,300 @@
+{
+  "common": {
+    "language": "Language",
+    "menu": "Menu",
+    "soon": "Soon",
+    "live": "Live",
+    "backToHome": "Back to Home",
+    "selectedSociety": "Selected society",
+    "code": "Code",
+    "chooseDifferentSociety": "Choose a different society",
+    "rememberMe": "Remember me",
+    "forgotPassword": "Forgot password?",
+    "role": "Role",
+    "mode": "Mode",
+    "signingIn": "Signing in...",
+    "yourDataEncrypted": "Your data is encrypted and secure.",
+    "noSocietiesAvailable": "No societies available yet.",
+    "loadingActiveSocieties": "Loading active societies...",
+    "loading": "Loading"
+  },
+  "brand": {
+    "eyebrow": "Multi-society SaaS",
+    "title": "Atlas Society Cloud"
+  },
+  "actions": {
+    "lightMode": "Light mode",
+    "darkMode": "Dark mode",
+    "signIn": "Sign in",
+    "startFreeTrial": "Start free trial",
+    "createAccount": "Create account",
+    "openPortal": "Open portal"
+  },
+  "hero": {
+    "eyebrow": "Enterprise multi-tenant platform",
+    "title": "Rebuild society operations with an AI-native command center for residents, staff, security, and super admins.",
+    "description": "Atlas Society Cloud blends modern SaaS UX, WhatsApp-style communication, automation, realtime updates, billing, analytics, and role-based dashboards into one scalable platform.",
+    "launchPlatform": "Launch platform",
+    "exploreArchitecture": "Explore architecture",
+    "health": "Society health",
+    "fetchingAnalytics": "Fetching society analytics...",
+    "realtime": "Realtime",
+    "assistant": "AI assistant",
+    "societySetupInProgress": "Society setup in progress.",
+    "paymentsCollected": "Payments collected",
+    "openComplaints": "Open complaints",
+    "todaysVisitors": "Today’s visitors",
+    "aiTasks": "AI tasks",
+    "brandPack": "Brand pack",
+    "flats": "Flats",
+    "brandSummary": "Separate tenant data, theme tokens, and dashboards per society.",
+    "liveLens": "Live society lens",
+    "residentsLabel": "residents",
+    "noResidents": "No residents added yet",
+    "noAiTasks": "No AI tasks yet",
+    "noPaymentRecords": "No payment records yet",
+    "noComplaintsFound": "No complaints found",
+    "noVisitorActivity": "No visitor activity"
+  },
+  "heroStats": [
+    { "value": "24/7", "label": "AI automation and alerts" },
+    { "value": "12x", "label": "Faster complaint routing" },
+    { "value": "99.95%", "label": "Realtime uptime target" },
+    { "value": "6", "label": "Role-specific dashboards" }
+  ],
+  "heroFeatures": [
+    "Multi-society branding",
+    "AI automation engine",
+    "Realtime notifications",
+    "Mobile-first dashboards"
+  ],
+  "capabilities": [
+    {
+      "title": "Multi-society tenancy",
+      "description": "One SaaS core, isolated society branding, permissions, data, and workflows."
+    },
+    {
+      "title": "AI assistant",
+      "description": "Society-aware chat that drafts notices, answers queries, and routes tasks."
+    },
+    {
+      "title": "WhatsApp-style chat",
+      "description": "Fast resident-to-admin messaging with attachments, typing, and delivery states."
+    },
+    {
+      "title": "Visitor management",
+      "description": "Gate approvals, QR passes, OCR identity capture, and live entry logs."
+    },
+    {
+      "title": "Billing & payments",
+      "description": "Invoices, dues, reminders, receipts, and payment reconciliation across societies."
+    },
+    {
+      "title": "Complaint intelligence",
+      "description": "Priority scoring, SLA tracking, auto-assignments, and escalation policies."
+    },
+    {
+      "title": "Realtime notifications",
+      "description": "Socket-driven updates for visitors, notices, bills, chats, and approvals."
+    },
+    {
+      "title": "Mobile-first access",
+      "description": "Android and iOS-ready experiences for residents, staff, and managers."
+    }
+  ],
+  "roleCards": [
+    {
+      "title": "Super admin SaaS panel",
+      "points": ["Society provisioning", "Subscription plans", "Global analytics", "Brand governance"]
+    },
+    {
+      "title": "Society admin dashboard",
+      "points": ["Member control", "Bills and collections", "Notice broadcasting", "Staff oversight"]
+    },
+    {
+      "title": "Secretary console",
+      "points": ["Approvals", "Events", "Documents", "Meeting records"]
+    },
+    {
+      "title": "Staff workspace",
+      "points": ["Task queue", "Attendance", "Work logs", "Escalations"]
+    },
+    {
+      "title": "Resident portal",
+      "points": ["Chat", "Payments", "Complaints", "Family management"]
+    },
+    {
+      "title": "Security station",
+      "points": ["Visitor approvals", "Gate logs", "Alert broadcast", "Incident reports"]
+    }
+  ],
+  "architectureTabs": [
+    {
+      "id": "frontend",
+      "title": "Frontend architecture",
+      "summary": "Next.js or React shell with Tailwind, motion, and a design-token theme engine.",
+      "signals": ["Responsive layouts", "Dark/light mode", "Role-aware navigation"],
+      "items": ["Design tokens", "Shared components", "Dashboard shells", "Mobile adapters"]
+    },
+    {
+      "id": "backend",
+      "title": "Backend architecture",
+      "summary": "Node.js or Django REST API with JWT auth, tenant scoping, and modular services.",
+      "signals": ["REST endpoints", "Secure auth", "Multi-tenant guards"],
+      "items": ["Auth service", "Tenant isolation", "Billing service", "Notification service"]
+    },
+    {
+      "id": "ai",
+      "title": "AI workflow",
+      "summary": "OpenAI-powered assistant, NLP routing, translation, and automation.",
+      "signals": ["OCR scans", "Translated messages", "Automation rules"],
+      "items": ["Prompt router", "Context memory", "Task generation", "Insight summarizer"]
+    },
+    {
+      "id": "realtime",
+      "title": "Realtime layer",
+      "summary": "Socket.io events keep chats, approvals, payments, and incidents instantly synced.",
+      "signals": ["Presence indicators", "Delivery receipts", "Live admin updates"],
+      "items": ["Socket channels", "Push queues", "Event stream", "Offline recovery"]
+    },
+    {
+      "id": "security",
+      "title": "Security model",
+      "summary": "Role-based access control, audit logs, encryption, and tenant-level permissions.",
+      "signals": ["RBAC policies", "Audit trails", "Signed uploads"],
+      "items": ["JWT sessions", "MFA ready", "Policy engine", "Rate limiting"]
+    },
+    {
+      "id": "cloud",
+      "title": "Cloud deployment",
+      "summary": "Render or AWS deployment with Cloudinary assets, Firebase notifications, and autoscaling.",
+      "signals": ["Managed storage", "CDN assets", "Horizontal scale"],
+      "items": ["Web app", "API service", "Worker jobs", "Database cluster"]
+    }
+  ],
+  "aiWorkflow": [
+    "Resident sends a complaint, bill query, or visitor request.",
+    "AI classifies intent, extracts details, and checks society context.",
+    "Automation routes the task to the right role and suggests a response.",
+    "Realtime notifications update everyone until the task is resolved."
+  ],
+  "mobile": {
+    "title": "What the product delivers",
+    "list": [
+      "Separate society branding, theme packs, and feature toggles.",
+      "Secure authentication with tenant-scoped access controls.",
+      "AI analytics, OCR extraction, translation, and automation workflows.",
+      "Android and iOS-ready architecture with realtime messaging."
+    ]
+  },
+  "cta": {
+    "eyebrow": "Ready to ship",
+    "title": "Launch the multi-society SaaS platform with a premium front door and enterprise spine.",
+    "description": "Use the login and dashboard routes already in the app to wire real user flows while keeping this new visual system as the public product experience.",
+    "createAccount": "Create account",
+    "openPortal": "Open portal"
+  },
+  "footer": {
+    "item1": "Multi-tenant architecture",
+    "item2": "Realtime-first communication",
+    "item3": "AI-powered operations",
+    "item4": "Mobile-ready dashboards"
+  },
+  "sections": {
+    "capabilities": {
+      "eyebrow": "Platform capabilities",
+      "title": "Built for modern societies, gated communities, and enterprise campuses.",
+      "description": "The platform unifies operations, communication, finance, and AI in one premium experience."
+    }
+  },
+  "dashboard": {
+    "title": "{{role}} Dashboard"
+  },
+  "role": {
+    "admin": "Chairman",
+    "secretary": "Secretary",
+    "super_admin": "Super Admin",
+    "staff": "Staff",
+    "security": "Security",
+    "resident": "Resident"
+  },
+  "residentType": {
+    "tenant": "Tenant",
+    "owner": "Owner"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "messages": "Messages",
+    "flats": "Flats",
+    "users": "Users",
+    "billing": "Billing",
+    "complaints": "Complaints",
+    "notices": "Notices",
+    "archiveCenter": "Archive Center",
+    "visitors": "Visitors",
+    "parking": "Parking",
+    "documents": "Documents",
+    "staff": "Staff",
+    "analytics": "Analytics",
+    "aiAssistant": "AI Assistant",
+    "settings": "Settings",
+    "theme": "Theme",
+    "tasks": "Tasks",
+    "attendance": "Attendance",
+    "workTracking": "Work Tracking",
+    "notifications": "Notifications",
+    "aiInsights": "AI Insights",
+    "profile": "Profile",
+    "tenant": "Tenants",
+    "payments": "Payments",
+    "community": "Community",
+    "securityLogs": "Security Logs",
+    "emergencySos": "Emergency SOS",
+    "maintenance": "Maintenance",
+    "residentPortal": "Resident Portal",
+    "securityOps": "Security Ops"
+  },
+  "sidebar": {
+    "tenantWorkspace": "Tenant Workspace",
+    "ownerWorkspace": "Owner Workspace",
+    "approvalCenter": "Approval and request center",
+    "propertyControl": "Property control and AI operations"
+  },
+  "security": {
+    "profileLoading": "Security profile loading...",
+    "onDuty": "● ON DUTY",
+    "qrOcr": "QR / OCR",
+    "aiAssistant": "AI Assistant",
+    "settings": "Settings",
+    "reports": "Reports",
+    "logout": "Logout",
+    "societyNotAssigned": "Society not assigned"
+  },
+  "authLayout": {
+    "sidebarEyebrow": "Designed for premium communities",
+    "sidebarTitle": "Secure auth with society-aware intelligence.",
+    "sidebarDescription": "One unified sign-in experience across login, registration, verification, and reset workflows.",
+    "authCardFeatureOne": "Modern AI-first auth",
+    "authCardFeatureTwo": "Role-aware registration",
+    "authHeroTitle": "Modern authentication for every society.",
+    "authHeroDescription": "Preserve brand continuity with glassmorphism, bold gradients, and a cohesive SaaS auth experience.",
+    "authHeroBadge": "AI-powered onboarding",
+    "authHeroCallout": "unified auth",
+    "authHeroPanelOne": "Society-aware signup flow",
+    "authHeroPanelTwo": "Consistent login, OTP, reset UX"
+  },
+  "login": {
+    "welcomeBack": "Welcome back",
+    "signInSubtitle": "Sign in to continue to your society workspace.",
+    "loginFailed": "Login failed",
+    "emailRequired": "Email is required",
+    "passwordRequired": "Password is required",
+    "societyCodeRequired": "Society code is required",
+    "invalidEmail": "Please enter a valid email address",
+    "passwordTooShort": "Password must be at least 8 characters",
+    "createAccountPrompt": "New to Society Pro?",
+    "forgotPassword": "Forgot password?",
+    "loginSuccessful": "Login successful",
+    "pendingApproval": "Your account is pending approval."
+  }
+}
