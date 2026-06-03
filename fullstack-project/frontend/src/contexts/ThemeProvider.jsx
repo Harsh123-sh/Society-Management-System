@@ -5,6 +5,7 @@
  */
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { getApiBaseUrl } from '../services/runtimeUrls';
 import { useParams } from 'react-router-dom';
 
 const ThemeContext = createContext();
@@ -129,7 +130,7 @@ export const ThemeProvider = ({ children, societyId: propSocietyId }) => {
       }
 
       // Fetch fresh theme from API
-      const response = await fetch(`/api/theme/society/${societyId}`, {
+      const response = await fetch(`${getApiBaseUrl()}/theme/society/${societyId}`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }

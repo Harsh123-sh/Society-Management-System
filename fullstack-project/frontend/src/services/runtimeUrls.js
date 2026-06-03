@@ -1,13 +1,9 @@
-function trimTrailingSlash(value) {
-  return String(value || "").replace(/\/+$/, "");
-}
+import { API_BASE_URL } from "../config/api";
 
 export function getApiBaseUrl() {
-  return trimTrailingSlash(
-    import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api"
-  );
+  return `${API_BASE_URL}/api`;
 }
 
 export function getBackendBaseUrl() {
-  return getApiBaseUrl().replace(/\/api$/, "") || "http://localhost:5000";
+  return API_BASE_URL;
 }

@@ -7,8 +7,9 @@ import {
   saveAuthSession,
 } from "../utils/session";
 import { getApiBaseUrl } from "./runtimeUrls";
+import { API_BASE_URL } from "../config/api";
 
-const API_BASE_URL = getApiBaseUrl();
+const API_URL = getApiBaseUrl();
 
 // Track if refresh is in progress to avoid multiple refreshes
 let isRefreshing = false;
@@ -16,14 +17,14 @@ let refreshSubscribers = [];
 
 // Create main API instance
 const api = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: API_URL,
   headers: {
     "Content-Type": "application/json",
   },
 });
 
 const superAdminApi = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: API_URL,
   headers: {
     "Content-Type": "application/json",
   },
@@ -176,7 +177,7 @@ function getApiMessage(error, fallback) {
   }
 
   if (!error?.response) {
-    return "Cannot reach server. Check backend is running on http://localhost:5000 and CORS allows this frontend origin.";
+    return `Cannot reach server. Check backend is running on ${API_BASE_URL} and CORS allows this frontend origin.`;
   }
 
   return error?.response?.data?.message || fallback;

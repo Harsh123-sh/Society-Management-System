@@ -26,6 +26,7 @@ import { initSocket, subscribe } from "../sockets/socketClient";
 import RealTimeFeed from "../components/RealTimeFeed";
 import AiCommandCenter from "../components/AiCommandCenter";
 import { getRoleHomePath, getStoredRole, getStoredUser } from "../utils/session";
+import { API_BASE_URL } from "../config/api";
 
 const OCCUPANCY_COLORS = ["#14f195", "#00f5ff", "#ff9f1a"];
 const CHART_COLORS = {
@@ -163,7 +164,7 @@ function AdminOverviewPage() {
       try {
         setLoading(true);
         console.log("[ChairmanDashboard] loading overview", {
-          apiUrl: `${import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api"}`,
+          apiUrl: `${API_BASE_URL}/api`,
           hasToken: Boolean(token),
           role,
           societyId: localStorage.getItem("societyId") || localStorage.getItem("selectedSocietyId") || null,
