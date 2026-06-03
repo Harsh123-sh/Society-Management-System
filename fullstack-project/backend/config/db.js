@@ -28,6 +28,38 @@ const pool = new Pool({
   max: 20,
 });
 
+const originalQuery = pool.query.bind(pool);
+
+function formatPostgresQuery(queryText, params = []) {
+  if (!params || params.length === 0 || !queryText.includes("?")) {
+    return { text: queryText, values: params };
+  }
+
+  let index = 0;
+  const formattedText = queryText.replace(/\?/g, () => {
+    index += 1;
+    return `$${index}`;
+  });
+
+  return { text: formattedText, values: params };
+}
+
+pool.query = async (queryText, params = []) => {
+  const { text, values } = formatPostgresQuery(queryText, params);
+
+  try {
+    return await originalQuery(text, values);
+  } catch (error) {
+    console.error("[DB] Query failed:", {
+      text,
+      values,
+      message: error.message,
+      stack: error.stack,
+    });
+    throw error;
+  }
+};
+
 pool.on("error", (error) => {
   console.error("Unexpected error on idle client", error);
 });

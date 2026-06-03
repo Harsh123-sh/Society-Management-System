@@ -418,8 +418,8 @@ async function login(req, res) {
       id: user.id,
       userId: user.id,
       email: user.email,
-      name: user.name,
-      userName: user.name,
+      name: user.name || user.full_name || null,
+      userName: user.name || user.full_name || null,
       role: user.role,
       resident_type: user.resident_type || null,
       status: user.status || null,
@@ -449,6 +449,12 @@ async function loginSuperAdmin(req, res) {
   try {
     const { email, password } = req.body;
 
+    console.log("[loginSuperAdmin] incoming request", {
+      email,
+      hasPassword: Boolean(password),
+      jwtSecretConfigured: Boolean(process.env.JWT_SECRET),
+    });
+
     if (!email || !password) {
       return res.status(400).json({
         success: false,
@@ -457,6 +463,14 @@ async function loginSuperAdmin(req, res) {
     }
 
     const user = await userModel.getUserByEmail(email);
+    console.log("[loginSuperAdmin] fetched user record", {
+      email,
+      userId: user?.id || null,
+      role: user?.role || null,
+      status: user?.status || null,
+      is_verified: user?.is_verified || null,
+    });
+
     if (!user || user.role !== "super_admin") {
       return res.status(401).json({
         success: false,
@@ -472,6 +486,11 @@ async function loginSuperAdmin(req, res) {
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
+    console.log("[loginSuperAdmin] password validation result", {
+      email,
+      isPasswordValid,
+    });
+
     if (!isPasswordValid) {
       return res.status(401).json({
         success: false,
@@ -492,10 +511,16 @@ async function loginSuperAdmin(req, res) {
     }
 
     const token = signToken(user);
+    console.log("[loginSuperAdmin] JWT generated", {
+      email,
+      tokenLength: token ? token.length : 0,
+      expiresIn: process.env.JWT_EXPIRES_IN || "1d",
+    });
+
     const userPayload = {
       id: user.id,
       email: user.email,
-      name: user.name,
+      name: user.name || user.full_name || null,
       role: user.role,
       resident_type: user.resident_type || null,
       status: user.status || null,
@@ -514,7 +539,16 @@ async function loginSuperAdmin(req, res) {
       data: userPayload,
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Internal server error" });
+    console.error("[loginSuperAdmin] unexpected error", {
+      email: req.body?.email,
+      message: error.message,
+      stack: error.stack,
+    });
+    res.status(500).json({
+      success: false,
+      message: "Internal server error. See backend logs for details.",
+      error: error.message,
+    });
   }
 }
 

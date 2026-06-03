@@ -132,17 +132,29 @@ async function ensureSchema() {
     await db.query(`
       CREATE TABLE IF NOT EXISTS users (
         id SERIAL PRIMARY KEY,
+        name VARCHAR(200),
+        full_name VARCHAR(200),
         email VARCHAR(150) NOT NULL UNIQUE,
         password VARCHAR(255),
         phone VARCHAR(20),
-        full_name VARCHAR(200),
-        role VARCHAR(50) DEFAULT 'member',
+        resident_type VARCHAR(50),
+        role VARCHAR(50) NOT NULL DEFAULT 'member',
+        status VARCHAR(50) NOT NULL DEFAULT 'active',
+        is_verified BOOLEAN NOT NULL DEFAULT false,
         society_id INT,
-        status VARCHAR(50) DEFAULT 'active',
+        flat_id INT,
+        flat_number VARCHAR(50),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
+
+    await db.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS name VARCHAR(200);`);
+    await db.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS full_name VARCHAR(200);`);
+    await db.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS resident_type VARCHAR(50);`);
+    await db.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS is_verified BOOLEAN NOT NULL DEFAULT false;`);
+    await db.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS flat_id INT;`);
+    await db.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS flat_number VARCHAR(50);`);
 
     console.log("✓ PostgreSQL schema initialized successfully");
   } catch (error) {

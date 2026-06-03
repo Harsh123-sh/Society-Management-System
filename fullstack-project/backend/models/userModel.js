@@ -8,13 +8,14 @@ async function getUserTableColumns() {
   if (!userTableColumnsCache) {
     userTableColumnsCache = (async () => {
       const { rows } = await db.query(
-        `SELECT COLUMN_NAME
-         FROM INFORMATION_SCHEMA.COLUMNS
-         WHERE TABLE_SCHEMA = DATABASE()
-           AND TABLE_NAME = 'users'`
+        `SELECT column_name
+         FROM information_schema.columns
+         WHERE table_catalog = current_database()
+           AND table_schema = 'public'
+           AND table_name = 'users'`
       );
 
-      return new Set(rows.map((row) => row.COLUMN_NAME));
+      return new Set(rows.map((row) => row.column_name));
     })();
   }
 
@@ -410,14 +411,46 @@ async function deleteOwnerPropertyById(propertyId) {
 
 async function getUserByEmail(email) {
   const { rows } = await db.query(
-    `SELECT u.*, s.code AS society_code, s.slug AS society_slug, s.subdomain AS society_subdomain, s.name AS society_name, s.builder_id
+    `SELECT
+       u.id,
+       u.name,
+       u.full_name,
+       u.email,
+       u.password,
+       u.role,
+       u.status,
+       u.is_verified,
+       u.resident_type,
+       u.society_id,
+       u.flat_id,
+       u.flat_number,
+       s.code AS society_code,
+       s.slug AS society_slug,
+       s.subdomain AS society_subdomain,
+       s.name AS society_name,
+       s.builder_id
      FROM users u
      LEFT JOIN societies s ON s.id = u.society_id
-     WHERE u.email = ?
+     WHERE u.email = $1
      LIMIT 1`,
     [email]
   );
-  return rows[0] || null;
+
+  const user = rows[0] || null;
+  if (user) {
+    console.log("[userModel.getUserByEmail] fetched super admin record", {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      status: user.status,
+      is_verified: user.is_verified,
+      society_id: user.society_id,
+    });
+  } else {
+    console.log("[userModel.getUserByEmail] no user found for email", email);
+  }
+
+  return user;
 }
 
 async function getUserById(id) {
@@ -428,7 +461,7 @@ async function getUserById(id) {
             u.deleted_at, u.deleted_by, u.delete_reason, u.original_email, u.created_at
      FROM users u
      LEFT JOIN societies s ON s.id = u.society_id
-     WHERE u.id = ?
+     WHERE u.id = $1
      LIMIT 1`,
     [id]
   );
