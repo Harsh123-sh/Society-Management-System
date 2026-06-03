@@ -264,9 +264,9 @@ export async function fetchSuperAdminSocieties(params = {}) {
 }
 
 export async function fetchSuperAdminSocietyDetails(societyId) {
-  const apiUrl = `${API_BASE_URL}/super-admin/societies/${societyId}`;
+  const apiUrl = `${API_BASE_URL}/super-admin/societies/${societyId}/details`;
   console.log("[SuperAdminSocietyAPI] detail URL:", apiUrl);
-  const { data } = await superAdminApi.get(`/super-admin/societies/${societyId}`);
+  const { data } = await superAdminApi.get(`/super-admin/societies/${societyId}/details`);
   console.log("[SuperAdminSocietyAPI] detail response:", data);
   return data;
 }

@@ -67,6 +67,7 @@ router.patch("/societies/:id/code", superAdminController.changeSocietyCode);
 router.patch("/societies/:id/suspend", superAdminController.suspendSociety);
 router.delete("/societies/:id", superAdminController.archiveSociety);
 router.get("/societies/:id", superAdminController.getSocietyDetails);
+router.get("/societies/:id/details", superAdminController.getSocietyDetails);
 router.get("/societies/:id/analytics", superAdminController.getSocietyAnalytics);
 router.get("/pending-approvals", superAdminController.getPendingApprovals);
 router.post("/pending-approvals/:approvalId/approve", superAdminController.approvePendingUser);

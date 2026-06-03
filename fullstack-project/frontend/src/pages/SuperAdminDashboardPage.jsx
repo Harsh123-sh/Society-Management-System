@@ -236,6 +236,10 @@ function SuperAdminDashboardPage() {
   const [pendingApprovals, setPendingApprovals] = useState([]);
   const [approvalMeta, setApprovalMeta] = useState({ total: 0, counts: {} });
   const [activityLogs, setActivityLogs] = useState([]);
+  const [activityPage, setActivityPage] = useState(1);
+  const [activityPagination, setActivityPagination] = useState({ page: 1, limit: 5, total: 0, totalPages: 1 });
+  const [activityLoading, setActivityLoading] = useState(false);
+  const [activityError, setActivityError] = useState("");
   const [subscriptions, setSubscriptions] = useState(null);
   const [analytics, setAnalytics] = useState(null);
   const [selectedSociety, setSelectedSociety] = useState(null);
@@ -281,27 +285,50 @@ function SuperAdminDashboardPage() {
     }, 4000);
   };
 
+  const loadActivityLogs = async (page = activityPage) => {
+    setActivityLoading(true);
+    setActivityError("");
+
+    try {
+      const response = await fetchSuperAdminActivityLogs({ page, pageSize: activityPagination.limit });
+      const activities = response.activities || response.data || [];
+      const nextPage = response.page || page;
+      const nextLimit = response.limit || activityPagination.limit;
+
+      setActivityLogs(activities);
+      setActivityPage(nextPage);
+      setActivityPagination({
+        page: nextPage,
+        limit: nextLimit,
+        total: response.total || 0,
+        totalPages: response.totalPages || 1,
+      });
+    } catch (error) {
+      setActivityError(getApiMessage(error, "Failed to load activity feed."));
+    } finally {
+      setActivityLoading(false);
+    }
+  };
+
   const loadCoreSections = async () => {
     const results = await Promise.allSettled([
       fetchSuperAdminPlatformStats(),
       fetchSuperAdminPendingApprovals(),
-      fetchSuperAdminActivityLogs({ page: 1, pageSize: 40 }),
       fetchSuperAdminSubscriptions(),
       fetchSuperAdminAnalytics(),
     ]);
 
-    const [statsResult, approvalsResult, activityResult, subscriptionsResult, analyticsResult] = results;
+    const [statsResult, approvalsResult, subscriptionsResult, analyticsResult] = results;
 
     if (statsResult.status === "fulfilled") setPlatformStats(statsResult.value.data);
     if (approvalsResult.status === "fulfilled") {
       setPendingApprovals(approvalsResult.value.data || []);
       setApprovalMeta(approvalsResult.value.meta || { total: 0, counts: {} });
     }
-    if (activityResult.status === "fulfilled") setActivityLogs(activityResult.value.data || []);
     if (subscriptionsResult.status === "fulfilled") setSubscriptions(subscriptionsResult.value.data || null);
     if (analyticsResult.status === "fulfilled") setAnalytics(analyticsResult.value.data || null);
 
-    const failure = [statsResult, approvalsResult, activityResult, subscriptionsResult, analyticsResult].find((item) => item.status === "rejected");
+    const failure = [statsResult, approvalsResult, subscriptionsResult, analyticsResult].find((item) => item.status === "rejected");
     if (failure) {
       setSectionError("Some platform sections could not be loaded. Refresh to retry.");
     } else {
@@ -335,6 +362,7 @@ function SuperAdminDashboardPage() {
   useEffect(() => {
     loadCoreSections();
     loadSocieties(1);
+    loadActivityLogs(1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -349,9 +377,7 @@ function SuperAdminDashboardPage() {
   }, []);
 
   useEffect(() => {
-    fetchSuperAdminActivityLogs({ page: 1, pageSize: 40 })
-      .then((response) => setActivityLogs(response.data || []))
-      .catch(() => null);
+    loadActivityLogs(activityPage);
   }, [liveTick]);
 
   useEffect(() => {
@@ -426,7 +452,7 @@ function SuperAdminDashboardPage() {
 
   const handleRefresh = async () => {
     setLoading(true);
-    await Promise.all([loadCoreSections(), loadSocieties(1)]);
+    await Promise.all([loadCoreSections(), loadSocieties(1), loadActivityLogs(1)]);
   };
 
   const openCreateModal = () => {
@@ -548,7 +574,7 @@ function SuperAdminDashboardPage() {
         navigate(`/super-admin/societies/${society.id}`);
         return;
       } else if (action === "analytics") {
-        navigate(`/super-admin/societies/${society.id}`);
+        setSelectedSociety(society);
         return;
       }
 
@@ -937,28 +963,60 @@ function SuperAdminDashboardPage() {
                 title="Live activity feed"
                 description="Real audit activity from the MySQL platform trail with automatic refresh."
               >
-                <div className="space-y-3">
-                  {activityFeed.length === 0 ? (
-                    emptyState("No activity recorded yet.", "Platform actions will appear here as societies, users, and payments move through the system.")
-                  ) : (
-                    activityFeed.map((item) => (
-                      <div key={item.id} className="rounded-[20px] border border-white/10 bg-white/5 px-4 py-3">
-                        <div className="flex items-start justify-between gap-4">
-                          <div>
-                            <p className="font-semibold text-white">{item.label}</p>
-                            <p className="mt-1 text-sm text-slate-400">
-                              {item.user_name || "System"}{item.user_email ? ` • ${item.user_email}` : ""}
-                            </p>
+                {activityError ? (
+                  <div className="rounded-[20px] border border-rose-500/20 bg-rose-500/10 px-5 py-6 text-rose-100">
+                    {activityError}
+                  </div>
+                ) : activityLoading ? (
+                  <div className="rounded-[20px] border border-white/10 bg-white/5 px-5 py-6 text-slate-300">Loading activity feed...</div>
+                ) : activityFeed.length === 0 ? (
+                  emptyState("No activity recorded yet.", "Platform actions will appear here as societies, users, and payments move through the system.")
+                ) : (
+                  <>
+                    <div className="space-y-3">
+                      {activityFeed.map((item) => (
+                        <div key={item.id} className="rounded-[20px] border border-white/10 bg-white/5 px-4 py-3">
+                          <div className="flex items-start justify-between gap-4">
+                            <div>
+                              <p className="font-semibold text-white">{item.label}</p>
+                              <p className="mt-1 text-sm text-slate-400">
+                                {item.user_name || "System"}{item.user_email ? ` • ${item.user_email}` : ""}
+                              </p>
+                            </div>
+                            <span className="text-xs text-slate-500">{item.time}</span>
                           </div>
-                          <span className="text-xs text-slate-500">{item.time}</span>
+                          <p className="mt-2 text-xs uppercase tracking-[0.2em] text-slate-500">
+                            {item.resource_type || "platform"} {item.resource_id ? `#${item.resource_id}` : ""}
+                          </p>
                         </div>
-                        <p className="mt-2 text-xs uppercase tracking-[0.2em] text-slate-500">
-                          {item.resource_type || "platform"} {item.resource_id ? `#${item.resource_id}` : ""}
-                        </p>
+                      ))}
+                    </div>
+                    <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                      <p className="text-sm text-slate-400">Showing {activityFeed.length} of {activityPagination.total} recent activities</p>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          disabled={activityPage <= 1 || activityLoading}
+                          onClick={() => loadActivityLogs(activityPage - 1)}
+                          className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-semibold text-white disabled:opacity-40"
+                        >
+                          Previous
+                        </button>
+                        <span className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs text-slate-300">
+                          Page {activityPagination.page} of {activityPagination.totalPages}
+                        </span>
+                        <button
+                          type="button"
+                          disabled={activityPage >= activityPagination.totalPages || activityLoading}
+                          onClick={() => loadActivityLogs(activityPage + 1)}
+                          className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-semibold text-white disabled:opacity-40"
+                        >
+                          Next
+                        </button>
                       </div>
-                    ))
-                  )}
-                </div>
+                    </div>
+                  </>
+                )}
               </SectionShell>
             </div>
 
@@ -1069,13 +1127,18 @@ function SuperAdminDashboardPage() {
                 {selectedSocietyLoading ? (
                   <div className="rounded-[20px] border border-white/10 bg-white/5 px-5 py-6 text-slate-300">Loading society analytics...</div>
                 ) : selectedSocietyAnalytics ? (
-                  <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+                  <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
                     {[
                       ["Users", selectedSocietyAnalytics.userStats?.total_users ?? 0],
                       ["Active Residents", selectedSocietyAnalytics.userStats?.active_residents ?? 0],
                       ["Flats", selectedSocietyAnalytics.flatStats?.total_flats ?? 0],
-                      ["Complaints", selectedSocietyAnalytics.complaintStats?.total_complaints ?? 0],
-                      ["Activity Events", selectedSocietyAnalytics.activityStats?.total_activity ?? 0],
+                      ["Occupied Flats", selectedSocietyAnalytics.flatStats?.occupied_flats ?? 0],
+                      ["Vacant Flats", selectedSocietyAnalytics.flatStats?.vacant_flats ?? 0],
+                      ["Active Visitors", selectedSocietyAnalytics.visitorStats?.active_visitors ?? 0],
+                      ["Pending Complaints", selectedSocietyAnalytics.complaintStats?.pending_complaints ?? 0],
+                      ["Paid Bills", selectedSocietyAnalytics.billStats?.paid_bills ?? 0],
+                      ["Unpaid Bills", selectedSocietyAnalytics.billStats?.unpaid_bills ?? 0],
+                      ["Monthly Collection", formatCurrency(selectedSocietyAnalytics.billStats?.monthly_collection ?? 0)],
                     ].map(([label, value]) => (
                       <div key={label} className="rounded-[20px] border border-white/10 bg-white/5 p-4">
                         <p className="text-xs uppercase tracking-[0.2em] text-slate-500">{label}</p>

@@ -560,7 +560,7 @@ async function getSocietyDetails(req, res) {
       return res.status(404).json({ success: false, message: "Society not found" });
     }
 
-    const [[userRows], [flatRows], [complaintRows], [visitorRows], [paymentRows], [subscriptionRows]] = await Promise.all([
+    const [[userRows], [flatRows], [complaintRows], [visitorRows], [paymentRows], [noticeRows], [subscriptionRows]] = await Promise.all([
       db.query(
         `SELECT
           COUNT(*) AS total_users,
@@ -599,10 +599,19 @@ async function getSocietyDetails(req, res) {
         [societyId]
       ),
       db.query(
-        `SELECT COALESCE(SUM(amount), 0) AS total_payments
+        `SELECT
+          COUNT(*) AS total_payment_records,
+          COUNT(DISTINCT b.id) AS total_bills,
+          COALESCE(SUM(bp.amount), 0) AS total_payments
          FROM bill_payments bp
          INNER JOIN bills b ON b.id = bp.bill_id
          WHERE b.society_id = ? AND bp.status IN ('authorized', 'captured')`,
+        [societyId]
+      ),
+      db.query(
+        `SELECT COUNT(*) AS total_notices
+         FROM notices
+         WHERE society_id = ?`,
         [societyId]
       ),
       db.query(
@@ -627,6 +636,9 @@ async function getSocietyDetails(req, res) {
       totalUsers: Number(userRows[0]?.total_users || 0),
       totalFlats: Number(flatRows[0]?.total_flats || 0),
       totalComplaints: Number(complaintRows[0]?.total_complaints || 0),
+      totalNotices: Number(noticeRows[0]?.total_notices || 0),
+      totalBills: Number(paymentRows[0]?.total_bills || 0),
+      totalPaymentRecords: Number(paymentRows[0]?.total_payment_records || 0),
     });
 
     return res.json({
@@ -650,6 +662,9 @@ async function getSocietyDetails(req, res) {
           resolvedComplaints: Number(complaintRows[0]?.resolved_complaints || 0),
           totalVisitors: Number(visitorRows[0]?.total_visitors || 0),
           totalPayments: Number(paymentRows[0]?.total_payments || 0),
+          totalBills: Number(paymentRows[0]?.total_bills || 0),
+          totalPaymentRecords: Number(paymentRows[0]?.total_payment_records || 0),
+          totalNotices: Number(noticeRows[0]?.total_notices || 0),
         },
         analytics,
       },
@@ -827,10 +842,14 @@ async function getActivityLogs(req, res) {
       [...params, pageSize, offset]
     );
 
+    const pagination = buildPagination({ page, pageSize, total: Number(countRows[0]?.count || 0) });
     return res.json({
       success: true,
-      data: rows,
-      pagination: buildPagination({ page, pageSize, total: Number(countRows[0]?.count || 0) }),
+      activities: rows,
+      total: pagination.total,
+      page: pagination.page,
+      limit: pagination.pageSize,
+      totalPages: pagination.totalPages,
     });
   } catch (error) {
     return res.status(500).json({ success: false, message: "Failed to fetch activity logs" });
@@ -950,7 +969,7 @@ async function getSocietyAnalytics(req, res) {
       return res.status(404).json({ success: false, message: "Society not found" });
     }
 
-    const [[userStats], [flatStats], [complaintStats], [activityStats], [subscriptionStats]] = await Promise.all([
+    const [[userStats], [flatStats], [complaintStats], [visitorStats], [billStats], [activityStats], [subscriptionStats]] = await Promise.all([
       db.query(
         `SELECT
           COUNT(*) AS total_users,
@@ -963,9 +982,10 @@ async function getSocietyAnalytics(req, res) {
         [societyId]
       ),
       db.query(
-        `SELECT COUNT(*) AS total_flats,
-                COUNT(CASE WHEN status = 'occupied' THEN 1 END) AS occupied_flats,
-                COUNT(CASE WHEN approval_status = 'pending' THEN 1 END) AS pending_flats
+        `SELECT
+          COUNT(*) AS total_flats,
+          COUNT(CASE WHEN status = 'occupied' THEN 1 END) AS occupied_flats,
+          COUNT(CASE WHEN status = 'vacant' THEN 1 END) AS vacant_flats
          FROM flats
          WHERE society_id = ?`,
         [societyId]
@@ -977,6 +997,25 @@ async function getSocietyAnalytics(req, res) {
          FROM complaints c
          JOIN users u ON u.id = c.resident_id
          WHERE u.society_id = ?`,
+        [societyId]
+      ),
+      db.query(
+        `SELECT
+          COUNT(*) AS total_visitors,
+          COUNT(CASE WHEN status = 'in_premises' THEN 1 END) AS active_visitors
+         FROM visitors v
+         LEFT JOIN flats f ON f.id = v.flat_id
+         WHERE f.society_id = ?`,
+        [societyId]
+      ),
+      db.query(
+        `SELECT
+          COUNT(*) AS total_bills,
+          COUNT(CASE WHEN payment_status = 'paid' THEN 1 END) AS paid_bills,
+          COUNT(CASE WHEN payment_status = 'unpaid' THEN 1 END) AS unpaid_bills,
+          COALESCE(SUM(CASE WHEN payment_status = 'paid' THEN paid_amount ELSE 0 END), 0) AS monthly_collection
+         FROM bills
+         WHERE society_id = ?`,
         [societyId]
       ),
       db.query(
@@ -994,6 +1033,15 @@ async function getSocietyAnalytics(req, res) {
       ),
     ]);
 
+    console.log("[SuperAdmin] Society analytics loaded", {
+      societyId,
+      totalResidents: Number(userStats[0]?.active_residents || 0),
+      totalFlats: Number(flatStats[0]?.total_flats || 0),
+      activeVisitors: Number(visitorStats[0]?.active_visitors || 0),
+      paidBills: Number(billStats[0]?.paid_bills || 0),
+      unpaidBills: Number(billStats[0]?.unpaid_bills || 0),
+    });
+
     return res.json({
       success: true,
       data: {
@@ -1001,6 +1049,8 @@ async function getSocietyAnalytics(req, res) {
         userStats: userStats[0] || {},
         flatStats: flatStats[0] || {},
         complaintStats: complaintStats[0] || {},
+        visitorStats: visitorStats[0] || {},
+        billStats: billStats[0] || {},
         activityStats: activityStats[0] || {},
         subscription: subscriptionStats[0] || null,
       },
