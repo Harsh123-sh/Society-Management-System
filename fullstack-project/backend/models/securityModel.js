@@ -1,7 +1,7 @@
 const db = require("../db");
 
 async function getSecurityProfile(userId) {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT u.id, u.name, u.email, u.role, u.status, u.society_id, s.name AS society_name
      FROM users u
      LEFT JOIN societies s ON u.society_id = s.id
@@ -14,7 +14,7 @@ async function getSecurityProfile(userId) {
 }
 
 async function getTodayAttendance(userId) {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT id, security_user_id, attendance_date, check_in_at, check_out_at, status, notes
      FROM security_attendance
      WHERE security_user_id = ? AND attendance_date = CURDATE()
@@ -26,7 +26,7 @@ async function getTodayAttendance(userId) {
 }
 
 async function checkIn(userId, notes) {
-  const [existing] = await db.query(
+  const { rows: existing } = await db.query(
     `SELECT id FROM security_attendance WHERE security_user_id = ? AND attendance_date = CURDATE() LIMIT 1`,
     [userId]
   );
@@ -76,7 +76,7 @@ async function getMyShifts(userId, fromDate, toDate) {
     params.push(toDate);
   }
 
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT ss.id, ss.shift_date, ss.start_time, ss.end_time, ss.shift_type, ss.status,
             ss.notes, ss.created_at, creator.name AS created_by_name
      FROM security_shifts ss
@@ -90,7 +90,7 @@ async function getMyShifts(userId, fromDate, toDate) {
 }
 
 async function createLeaveRequest({ userId, fromDate, toDate, reason }) {
-  const [result] = await db.query(
+  const { rows: result } = await db.query(
     `INSERT INTO security_leave_requests (security_user_id, from_date, to_date, reason, status)
      VALUES (?, ?, ?, ?, 'pending')`,
     [userId, fromDate, toDate, reason]
@@ -100,7 +100,7 @@ async function createLeaveRequest({ userId, fromDate, toDate, reason }) {
 }
 
 async function getLeaveRequestById(id) {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT slr.id, slr.security_user_id, u.name AS security_name, u.email AS security_email,
             slr.from_date, slr.to_date, slr.reason, slr.status, slr.reviewed_by,
             reviewer.name AS reviewed_by_name, slr.reviewed_at, slr.created_at
@@ -116,7 +116,7 @@ async function getLeaveRequestById(id) {
 }
 
 async function getMyLeaveRequests(userId) {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT slr.id, slr.from_date, slr.to_date, slr.reason, slr.status,
             slr.reviewed_by, reviewer.name AS reviewed_by_name, slr.reviewed_at, slr.created_at
      FROM security_leave_requests slr
@@ -130,7 +130,7 @@ async function getMyLeaveRequests(userId) {
 }
 
 async function reviewLeaveRequest({ leaveRequestId, status, reviewedBy }) {
-  const [result] = await db.query(
+  const { rows: result } = await db.query(
     `UPDATE security_leave_requests
      SET status = ?, reviewed_by = ?, reviewed_at = NOW()
      WHERE id = ? AND status = 'pending'`,
@@ -141,7 +141,7 @@ async function reviewLeaveRequest({ leaveRequestId, status, reviewedBy }) {
 }
 
 async function getHolidays() {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT id, title, holiday_date, description, is_optional, created_by, created_at
      FROM security_holidays
      ORDER BY holiday_date DESC, id DESC`
@@ -151,7 +151,7 @@ async function getHolidays() {
 }
 
 async function createHoliday({ title, holidayDate, description, isOptional, createdBy }) {
-  const [result] = await db.query(
+  const { rows: result } = await db.query(
     `INSERT INTO security_holidays (title, holiday_date, description, is_optional, created_by)
      VALUES (?, ?, ?, ?, ?)`,
     [title, holidayDate, description || null, isOptional ? 1 : 0, createdBy]
@@ -161,7 +161,7 @@ async function createHoliday({ title, holidayDate, description, isOptional, crea
 }
 
 async function createShift({ securityUserId, shiftDate, startTime, endTime, shiftType, notes, createdBy }) {
-  const [result] = await db.query(
+  const { rows: result } = await db.query(
     `INSERT INTO security_shifts (security_user_id, shift_date, start_time, end_time, shift_type, notes, created_by)
      VALUES (?, ?, ?, ?, ?, ?, ?)`,
     [securityUserId, shiftDate, startTime, endTime, shiftType || "general", notes || null, createdBy]
@@ -171,7 +171,7 @@ async function createShift({ securityUserId, shiftDate, startTime, endTime, shif
 }
 
 async function getDeliveryById(id) {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT sd.id, sd.flat_id, f.building_name, f.wing, f.flat_number, sd.delivery_type,
             sd.package_id, sd.recipient_name, sd.delivery_partner, sd.status, sd.notes,
             sd.logged_by, u.name AS logged_by_name, sd.created_at, sd.updated_at
@@ -187,7 +187,7 @@ async function getDeliveryById(id) {
 }
 
 async function createDelivery({ flatId, deliveryType, packageId, recipientName, deliveryPartner, status, notes, loggedBy }) {
-  const [result] = await db.query(
+  const { rows: result } = await db.query(
     `INSERT INTO security_deliveries
      (flat_id, delivery_type, package_id, recipient_name, delivery_partner, status, notes, logged_by)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -214,7 +214,7 @@ async function listDeliveries({ status, search }) {
 
   const whereClause = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
 
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT sd.id, sd.flat_id, f.building_name, f.wing, f.flat_number, sd.delivery_type,
             sd.package_id, sd.recipient_name, sd.delivery_partner, sd.status, sd.notes,
             sd.logged_by, u.name AS logged_by_name, sd.created_at, sd.updated_at
@@ -230,7 +230,7 @@ async function listDeliveries({ status, search }) {
 }
 
 async function updateDeliveryStatus({ id, status }) {
-  const [result] = await db.query(
+  const { rows: result } = await db.query(
     `UPDATE security_deliveries
      SET status = ?, updated_at = NOW()
      WHERE id = ?`,
@@ -241,7 +241,7 @@ async function updateDeliveryStatus({ id, status }) {
 }
 
 async function createVisitorApprovalRequest({ visitorName, phone, purpose, flatId, expectedAt, requestedBy, notes }) {
-  const [result] = await db.query(
+  const { rows: result } = await db.query(
     `INSERT INTO security_visitor_approvals
      (visitor_name, phone, purpose, flat_id, expected_at, requested_by, status, notes)
      VALUES (?, ?, ?, ?, ?, ?, 'pending', ?)`,
@@ -260,7 +260,7 @@ async function listVisitorApprovalRequests({ status }) {
     params.push(status);
   }
 
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT sva.id, sva.visitor_name, sva.phone, sva.purpose, sva.flat_id,
             f.building_name, f.wing, f.flat_number, sva.expected_at,
             sva.requested_by, requester.name AS requested_by_name,
@@ -279,7 +279,7 @@ async function listVisitorApprovalRequests({ status }) {
 }
 
 async function updateVisitorRequestStatus({ id, status, decisionBy }) {
-  const [result] = await db.query(
+  const { rows: result } = await db.query(
     `UPDATE security_visitor_approvals
      SET status = ?, decision_by = ?, decision_at = NOW()
      WHERE id = ?`,
@@ -290,7 +290,7 @@ async function updateVisitorRequestStatus({ id, status, decisionBy }) {
 }
 
 async function markVisitorCheckIn(id) {
-  const [result] = await db.query(
+  const { rows: result } = await db.query(
     `UPDATE security_visitor_approvals
      SET status = 'checked_in', check_in_at = NOW()
      WHERE id = ? AND status = 'approved'`,
@@ -301,7 +301,7 @@ async function markVisitorCheckIn(id) {
 }
 
 async function markVisitorCheckOut(id) {
-  const [result] = await db.query(
+  const { rows: result } = await db.query(
     `UPDATE security_visitor_approvals
      SET status = 'checked_out', check_out_at = NOW()
      WHERE id = ? AND status = 'checked_in'`,
@@ -312,7 +312,7 @@ async function markVisitorCheckOut(id) {
 }
 
 async function createNotification({ targetRole, targetUserId, title, message, priority, relatedType, relatedId }) {
-  const [result] = await db.query(
+  const { rows: result } = await db.query(
     `INSERT INTO security_notifications
      (target_role, target_user_id, title, message, priority, related_type, related_id, is_read)
      VALUES (?, ?, ?, ?, ?, ?, ?, 0)`,
@@ -330,7 +330,7 @@ async function listNotificationsForUser({ userId, role, onlyUnread }) {
     conditions.push("sn.is_read = 0");
   }
 
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT sn.id, sn.target_role, sn.target_user_id, sn.title, sn.message,
             sn.priority, sn.is_read, sn.related_type, sn.related_id, sn.created_at
      FROM security_notifications sn
@@ -343,7 +343,7 @@ async function listNotificationsForUser({ userId, role, onlyUnread }) {
 }
 
 async function markNotificationRead(id, userId, role) {
-  const [result] = await db.query(
+  const { rows: result } = await db.query(
     `UPDATE security_notifications
      SET is_read = 1
      WHERE id = ? AND (target_user_id = ? OR target_role = ? OR target_role = 'all')`,
@@ -354,7 +354,7 @@ async function markNotificationRead(id, userId, role) {
 }
 
 async function createEmergencyAlert({ triggeredBy, alertType, severity, message, location }) {
-  const [result] = await db.query(
+  const { rows: result } = await db.query(
     `INSERT INTO security_emergency_alerts
      (triggered_by, alert_type, severity, message, location, status)
      VALUES (?, ?, ?, ?, ?, 'active')`,
@@ -375,7 +375,7 @@ async function listEmergencyAlerts({ status }) {
 
   const whereClause = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
 
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT sea.id, sea.triggered_by, triggerer.name AS triggered_by_name,
             sea.alert_type, sea.severity, sea.message, sea.location, sea.status,
             sea.acknowledged_by, acknowledger.name AS acknowledged_by_name,
@@ -394,7 +394,7 @@ async function listEmergencyAlerts({ status }) {
 }
 
 async function acknowledgeEmergencyAlert({ id, userId }) {
-  const [result] = await db.query(
+  const { rows: result } = await db.query(
     `UPDATE security_emergency_alerts
      SET status = 'acknowledged', acknowledged_by = ?, acknowledged_at = NOW()
      WHERE id = ? AND status = 'active'`,
@@ -405,7 +405,7 @@ async function acknowledgeEmergencyAlert({ id, userId }) {
 }
 
 async function resolveEmergencyAlert({ id, userId }) {
-  const [result] = await db.query(
+  const { rows: result } = await db.query(
     `UPDATE security_emergency_alerts
      SET status = 'resolved', resolved_by = ?, resolved_at = NOW()
      WHERE id = ? AND status IN ('active', 'acknowledged')`,

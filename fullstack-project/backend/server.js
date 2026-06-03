@@ -21,11 +21,27 @@ if (missingEnv.length) {
   process.exit(1);
 }
 
-(async () => {
+// Initialize schema asynchronously without blocking server startup
+async function initializeSchema() {
   try {
     if (typeof ensureSchema === "function") {
       await ensureSchema();
+      console.log("✓ Database schema initialized");
     }
+  } catch (error) {
+    console.warn(`⚠ Schema initialization failed: ${error.message}`);
+    console.warn("Server will continue running. Database tables may be missing.");
+    // Retry schema initialization after 30 seconds
+    setTimeout(initializeSchema, 30000);
+  }
+}
+
+(async () => {
+  try {
+    // Start schema initialization in background
+    initializeSchema().catch(error => {
+      console.warn(`Background schema init error: ${error.message}`);
+    });
 
     await archiveModel.runArchiveMaintenance().catch((error) => {
       console.warn(`Archive maintenance skipped on startup: ${error.message}`);
@@ -44,7 +60,7 @@ if (missingEnv.length) {
     });
 
     server.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
+      console.log(`✓ Server running on port ${PORT}`);
     });
 
     setInterval(() => {
@@ -53,7 +69,7 @@ if (missingEnv.length) {
       });
     }, Number(process.env.ARCHIVE_MAINTENANCE_INTERVAL_MS || 60 * 60 * 1000));
   } catch (error) {
-    console.error("Schema initialization failed:", error.message);
+    console.error("Fatal startup error:", error.message);
     process.exit(1);
   }
 })();

@@ -7,7 +7,7 @@ async function createWing({
   towerId = null,
   createdBy 
 }) {
-  const [result] = await db.query(
+  const { rows: result } = await db.query(
     `INSERT INTO wings (
       society_id, builder_id, tower_id, name, code, created_by
     ) VALUES (?, ?, ?, ?, ?, ?)`,
@@ -25,7 +25,7 @@ async function createWing({
 }
 
 async function listWingsBySociety(societyId) {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT 
       id, society_id, builder_id, tower_id, name, code, created_by, created_at 
     FROM wings 
@@ -38,7 +38,7 @@ async function listWingsBySociety(societyId) {
 }
 
 async function getWingById(id) {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT 
       id, society_id, builder_id, tower_id, name, code, created_by, created_at 
     FROM wings 
@@ -79,7 +79,7 @@ async function updateWing(id, updateData) {
 }
 
 async function deleteWing(id) {
-  const [result] = await db.query('DELETE FROM wings WHERE id = ?', [id]);
+  const { rows: result } = await db.query('DELETE FROM wings WHERE id = ?', [id]);
   return result.affectedRows > 0;
 }
 
@@ -87,7 +87,7 @@ async function getWingWithFlats(wingId) {
   const wing = await getWingById(wingId);
   if (!wing) return null;
   
-  const [flats] = await db.query(
+  const { rows: flats } = await db.query(
     `SELECT id, flat_number, floor, flat_type, status, approval_status 
     FROM flats 
     WHERE wing_id = ? 

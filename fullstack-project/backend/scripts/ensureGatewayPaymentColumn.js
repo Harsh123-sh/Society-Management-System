@@ -2,7 +2,7 @@ require("dotenv").config();
 const db = require("../db");
 
 async function main() {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT COUNT(*) AS c
      FROM INFORMATION_SCHEMA.COLUMNS
      WHERE TABLE_SCHEMA = DATABASE()
@@ -12,7 +12,7 @@ async function main() {
 
   if (!rows[0]?.c) {
     // Ensure gateway_order_id exists before adding gateway_payment_id
-    const [orderCol] = await db.query(
+    const { rows: orderCol } = await db.query(
       `SELECT COUNT(*) AS c
        FROM INFORMATION_SCHEMA.COLUMNS
        WHERE TABLE_SCHEMA = DATABASE()

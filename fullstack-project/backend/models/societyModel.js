@@ -6,7 +6,7 @@ async function getSocietyByCode(code) {
   }
 
   const normalizedCode = String(code).trim().toUpperCase();
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT id, code, code AS society_code, slug, subdomain,
             COALESCE(society_name, name) AS name,
             COALESCE(society_name, name) AS society_name,
@@ -22,7 +22,7 @@ async function getSocietyByCode(code) {
 }
 
 async function getSocietyById(id) {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT id, code, code AS society_code, slug, subdomain,
             COALESCE(society_name, name) AS name,
             COALESCE(society_name, name) AS society_name,
@@ -38,7 +38,7 @@ async function getSocietyById(id) {
 }
 
 async function listSocieties() {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT id, code, code AS society_code, slug, subdomain,
             COALESCE(society_name, name) AS name,
             COALESCE(society_name, name) AS society_name,
@@ -56,7 +56,7 @@ async function getSocietyBySlug(slug) {
   }
 
   const normalizedSlug = String(slug).trim().toLowerCase();
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT id, code, code AS society_code, slug, subdomain,
             COALESCE(society_name, name) AS name,
             COALESCE(society_name, name) AS society_name,
@@ -77,7 +77,7 @@ async function getSocietyBySubdomain(subdomain) {
   }
 
   const normalizedSubdomain = String(subdomain).trim().toLowerCase();
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT id, code, code AS society_code, slug, subdomain,
             COALESCE(society_name, name) AS name,
             COALESCE(society_name, name) AS society_name,
@@ -116,7 +116,7 @@ async function createSociety({
   const normalizedSlug = slug ? String(slug).trim().toLowerCase() : normalizedCode.toLowerCase();
   const normalizedSubdomain = subdomain ? String(subdomain).trim().toLowerCase() : normalizedSlug;
 
-  const [result] = await db.query(
+  const { rows: result } = await db.query(
     `INSERT INTO societies
       (code, slug, subdomain, name, society_name, address, city, state, pincode, contact_email, contact_phone, builder_id, status, subscription_plan, default_language, created_by, primary_admin_user_id)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)` ,
@@ -244,7 +244,7 @@ async function updateSocietyById(id, updates = {}) {
 }
 
 async function listSocietiesByBuilder(builderId, limit = 50, offset = 0) {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT id, code, code AS society_code, slug, subdomain,
             COALESCE(society_name, name) AS name,
             COALESCE(society_name, name) AS society_name,
@@ -259,7 +259,7 @@ async function listSocietiesByBuilder(builderId, limit = 50, offset = 0) {
 }
 
 async function getSocietyCountByBuilder(builderId) {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT COUNT(*) as count FROM societies WHERE builder_id = ? AND status != 'archived'`,
     [builderId]
   );

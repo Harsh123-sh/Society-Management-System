@@ -318,7 +318,7 @@ async function applyPresetTheme(req, res) {
       [preset.theme_primary, preset.theme_secondary, preset.theme_accent, preset.theme_mode, presetId, societyId]
     );
 
-    const [updated] = await db.query('SELECT * FROM societies WHERE id = ?', [societyId]);
+    const { rows: updated } = await db.query('SELECT * FROM societies WHERE id = ?', [societyId]);
 
     res.json({ 
       success: true, 
@@ -397,7 +397,7 @@ async function exportThemeCSS(req, res) {
   try {
     const { societyId } = req.params;
 
-    const [theme] = await db.query(
+    const { rows: theme } = await db.query(
       `SELECT theme_primary, theme_secondary, theme_accent, theme_mode, font_family, 
               sidebar_style, button_style, accent_radius, theme_gradient_style
        FROM societies WHERE id = ?`,
@@ -488,7 +488,7 @@ async function getMyTheme(req, res) {
       });
     }
 
-    const [theme] = await db.query(
+    const { rows: theme } = await db.query(
       `SELECT id, code, name, 
         theme_primary, theme_secondary, theme_accent,
         theme_mode, theme_gradient_style,
@@ -523,7 +523,7 @@ async function getThemeBySubdomain(req, res) {
   try {
     const { subdomain } = req.params;
 
-    const [society] = await db.query(
+    const { rows: society } = await db.query(
       `SELECT id, theme_primary, theme_secondary, theme_accent, 
         theme_mode, theme_gradient_style, logo_url, logo_dark_url,
         brand_name, font_family, sidebar_style, button_style, accent_radius
@@ -564,7 +564,7 @@ async function generateAITheme(req, res) {
     const { prompt, style = "modern" } = req.body;
 
     // Verify authorization
-    const [user] = await db.query(
+    const { rows: user } = await db.query(
       `SELECT id FROM users 
        WHERE id = ? AND society_id = ? AND role IN ('secretary', 'admin', 'super_admin')`,
       [userId, societyId]
@@ -578,7 +578,7 @@ async function generateAITheme(req, res) {
     }
 
     // Get society name
-    const [society] = await db.query(
+    const { rows: society } = await db.query(
       `SELECT name FROM societies WHERE id = ?`,
       [societyId]
     );
@@ -637,7 +637,7 @@ async function applyAIGeneratedTheme(req, res) {
     const userId = req.user?.id;
 
     // Verify authorization
-    const [user] = await db.query(
+    const { rows: user } = await db.query(
       `SELECT id FROM users 
        WHERE id = ? AND society_id = ? AND role IN ('secretary', 'admin', 'super_admin')`,
       [userId, societyId]
@@ -651,7 +651,7 @@ async function applyAIGeneratedTheme(req, res) {
     }
 
     // Get theme generation
-    const [generation] = await db.query(
+    const { rows: generation } = await db.query(
       `SELECT generated_theme_json FROM ai_theme_generations 
        WHERE id = ? AND society_id = ?`,
       [generationId, societyId]
@@ -698,7 +698,7 @@ async function getThemeGenerationHistory(req, res) {
     const limit = req.query.limit || 10;
 
     // Verify authorization
-    const [user] = await db.query(
+    const { rows: user } = await db.query(
       `SELECT id FROM users 
        WHERE id = ? AND society_id = ?`,
       [userId, societyId]

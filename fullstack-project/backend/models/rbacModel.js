@@ -3,7 +3,7 @@ const db = require("../db");
 // ============ ROLES ============
 
 async function createRole({ name, description, builderId = null, societyId = null }) {
-  const [result] = await db.query(
+  const { rows: result } = await db.query(
     `INSERT INTO roles (name, description, builder_id, society_id)
      VALUES (?, ?, ?, ?)`,
     [name, description || null, builderId || null, societyId || null]
@@ -12,7 +12,7 @@ async function createRole({ name, description, builderId = null, societyId = nul
 }
 
 async function getRoleById(id) {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT id, name, description, builder_id, society_id, created_at
      FROM roles WHERE id = ? LIMIT 1`,
     [id]
@@ -33,7 +33,7 @@ async function getRoleByName(name, { builderId = null, societyId = null } = {}) 
     params.push(societyId);
   }
   
-  const [rows] = await db.query(query + ` LIMIT 1`, params);
+  const { rows } = await db.query(query + ` LIMIT 1`, params);
   return rows[0] || null;
 }
 
@@ -52,7 +52,7 @@ async function listRoles(builderId = null, societyId = null) {
   
   const whereClause = filters.length ? `WHERE ${filters.join(" AND ")}` : "";
   
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT id, name, description, builder_id, society_id, created_at
      FROM roles ${whereClause} ORDER BY name ASC`,
     params
@@ -63,7 +63,7 @@ async function listRoles(builderId = null, societyId = null) {
 // ============ PERMISSIONS ============
 
 async function createPermission({ resource, action, description }) {
-  const [result] = await db.query(
+  const { rows: result } = await db.query(
     `INSERT INTO permissions (resource, action, description)
      VALUES (?, ?, ?)`,
     [resource, action, description || null]
@@ -72,7 +72,7 @@ async function createPermission({ resource, action, description }) {
 }
 
 async function getPermissionById(id) {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT id, resource, action, description, created_at
      FROM permissions WHERE id = ? LIMIT 1`,
     [id]
@@ -81,7 +81,7 @@ async function getPermissionById(id) {
 }
 
 async function listPermissions() {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT id, resource, action, description, created_at
      FROM permissions ORDER BY resource ASC, action ASC`
   );
@@ -89,7 +89,7 @@ async function listPermissions() {
 }
 
 async function getPermissionByResourceAction(resource, action) {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT id, resource, action, description, created_at
      FROM permissions WHERE resource = ? AND action = ? LIMIT 1`,
     [resource, action]
@@ -101,7 +101,7 @@ async function getPermissionByResourceAction(resource, action) {
 
 async function grantPermissionToRole(roleId, permissionId) {
   try {
-    const [result] = await db.query(
+    const { rows: result } = await db.query(
       `INSERT INTO role_permissions (role_id, permission_id)
        VALUES (?, ?)`,
       [roleId, permissionId]
@@ -116,7 +116,7 @@ async function grantPermissionToRole(roleId, permissionId) {
 }
 
 async function revokePermissionFromRole(roleId, permissionId) {
-  const [result] = await db.query(
+  const { rows: result } = await db.query(
     `DELETE FROM role_permissions WHERE role_id = ? AND permission_id = ?`,
     [roleId, permissionId]
   );
@@ -124,7 +124,7 @@ async function revokePermissionFromRole(roleId, permissionId) {
 }
 
 async function getRolePermissions(roleId) {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT p.id, p.resource, p.action, p.description
      FROM role_permissions rp
      JOIN permissions p ON p.id = rp.permission_id
@@ -139,7 +139,7 @@ async function getRolePermissions(roleId) {
 
 async function assignRoleToUser(userId, roleId, { societyId = null, builderId = null } = {}) {
   try {
-    const [result] = await db.query(
+    const { rows: result } = await db.query(
       `INSERT INTO user_roles (user_id, role_id, society_id, builder_id)
        VALUES (?, ?, ?, ?)`,
       [userId, roleId, societyId || null, builderId || null]
@@ -154,7 +154,7 @@ async function assignRoleToUser(userId, roleId, { societyId = null, builderId = 
 }
 
 async function removeRoleFromUser(userId, roleId) {
-  const [result] = await db.query(
+  const { rows: result } = await db.query(
     `DELETE FROM user_roles WHERE user_id = ? AND role_id = ?`,
     [userId, roleId]
   );
@@ -162,7 +162,7 @@ async function removeRoleFromUser(userId, roleId) {
 }
 
 async function getUserRoles(userId) {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT ur.id, r.id as role_id, r.name, r.description, ur.society_id, ur.builder_id
      FROM user_roles ur
      JOIN roles r ON r.id = ur.role_id
@@ -174,7 +174,7 @@ async function getUserRoles(userId) {
 }
 
 async function getUserPermissions(userId) {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT DISTINCT p.id, p.resource, p.action, p.description
      FROM user_roles ur
      JOIN role_permissions rp ON rp.role_id = ur.role_id
@@ -187,7 +187,7 @@ async function getUserPermissions(userId) {
 }
 
 async function hasPermission(userId, resource, action) {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT COUNT(*) as count
      FROM user_roles ur
      JOIN role_permissions rp ON rp.role_id = ur.role_id

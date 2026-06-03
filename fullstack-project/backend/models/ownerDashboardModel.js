@@ -1,7 +1,7 @@
 const db = require("../db");
 
 async function getOwnerPropertyRows(ownerId) {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT
        op.id AS owner_property_id,
        op.user_id,
@@ -54,7 +54,7 @@ async function getOwnerPropertyRows(ownerId) {
 }
 
 async function getOwnerProfile(ownerId) {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT
        u.id,
        u.name,
@@ -81,7 +81,7 @@ async function getOwnerProfile(ownerId) {
 }
 
 async function getOwnerDocuments(ownerId) {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT
        id,
        document_type,
@@ -101,7 +101,7 @@ async function getOwnerDocuments(ownerId) {
 }
 
 async function getOwnerParkingSlots(ownerId) {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT
        ps.id,
        ps.slot_number,
@@ -128,7 +128,7 @@ async function getOwnerParkingSlots(ownerId) {
 }
 
 async function getOwnerBills(ownerId) {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT
        b.id,
        b.title,
@@ -152,7 +152,7 @@ async function getOwnerBills(ownerId) {
 }
 
 async function getOwnerComplaints(ownerId) {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT id, title, description, status, resolved_at, created_at, updated_at
      FROM complaints
      WHERE resident_id = ?
@@ -164,7 +164,7 @@ async function getOwnerComplaints(ownerId) {
 }
 
 async function getOwnerPreapprovals(ownerId) {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT
        vpa.id,
        vpa.flat_id,
@@ -202,7 +202,7 @@ async function createOwnerPreapproval({
   vehicleNumber,
   notes,
 }) {
-  const [result] = await db.query(
+  const { rows: result } = await db.query(
     `INSERT INTO visitor_preapprovals (
       owner_id,
       flat_id,
@@ -233,7 +233,7 @@ async function createOwnerPreapproval({
 }
 
 async function getOwnerPreapprovalById(preapprovalId, ownerId) {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT
        vpa.id,
        vpa.owner_id,
@@ -262,7 +262,7 @@ async function getOwnerPreapprovalById(preapprovalId, ownerId) {
 }
 
 async function cancelOwnerPreapproval(preapprovalId, ownerId) {
-  const [result] = await db.query(
+  const { rows: result } = await db.query(
     `UPDATE visitor_preapprovals
      SET status = 'cancelled'
      WHERE id = ? AND owner_id = ? AND status = 'approved'`,
@@ -273,7 +273,7 @@ async function cancelOwnerPreapproval(preapprovalId, ownerId) {
 }
 
 async function getOwnerVisitorHistory(ownerId) {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT
        v.id,
        v.visitor_name,
@@ -312,7 +312,7 @@ async function getOwnerVisitorHistory(ownerId) {
 async function getOwnerActivityTimeline(ownerId, limit = 25) {
   const safeLimit = Number.isFinite(limit) ? Math.min(Math.max(Number(limit), 1), 100) : 25;
 
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT activity_type, title, detail, happened_at
      FROM (
        SELECT

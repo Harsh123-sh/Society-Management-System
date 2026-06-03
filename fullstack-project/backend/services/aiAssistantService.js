@@ -239,7 +239,7 @@ async function answerSocietyQuestion({ query, context = {} }) {
 async function searchKnowledgeBase({ societyId, query }) {
   const like = `%${String(query || "").trim()}%`;
 
-  const [noticeRows] = await db.query(
+  const { rows: noticeRows } = await db.query(
     `SELECT id, title, message, created_at
      FROM notices
      WHERE title LIKE ? OR message LIKE ?
@@ -248,7 +248,7 @@ async function searchKnowledgeBase({ societyId, query }) {
     [like, like]
   );
 
-  const [complaintRows] = await db.query(
+  const { rows: complaintRows } = await db.query(
     `SELECT c.id, c.title, c.description, c.status, c.created_at
      FROM complaints c
      JOIN users u ON u.id = c.resident_id
@@ -259,7 +259,7 @@ async function searchKnowledgeBase({ societyId, query }) {
     [like, like, societyId || null, societyId || null]
   );
 
-  const [billRows] = await db.query(
+  const { rows: billRows } = await db.query(
     `SELECT b.id, b.title, b.status, b.total_amount, b.created_at
      FROM bills b
      JOIN users u ON u.id = b.resident_id
@@ -278,7 +278,7 @@ async function searchKnowledgeBase({ societyId, query }) {
 }
 
 async function predictMaintenanceIssues({ societyId }) {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT DATE_FORMAT(c.created_at, '%Y-%m') AS month_key,
             COUNT(*) AS total,
             SUM(CASE WHEN c.title LIKE '%water%' OR c.description LIKE '%water%' THEN 1 ELSE 0 END) AS water_issues,

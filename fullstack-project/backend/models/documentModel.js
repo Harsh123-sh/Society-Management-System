@@ -1,7 +1,7 @@
 const db = require("../db");
 
 async function createDocument({ userId, societyId, documentType, fileUrl }) {
-  const [result] = await db.query(
+  const { rows: result } = await db.query(
     `INSERT INTO documents (user_id, society_id, document_type, file_url, status)
      VALUES (?, ?, ?, ?, 'pending')`,
     [userId, societyId || null, documentType, fileUrl]
@@ -11,7 +11,7 @@ async function createDocument({ userId, societyId, documentType, fileUrl }) {
 }
 
 async function getDocumentById(id) {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT d.id, d.user_id, d.society_id, d.document_type, d.file_url, d.status, d.notes, d.reviewed_by,
             d.reviewed_at, d.created_at,
             u.name AS user_name, u.email AS user_email, u.resident_type,
@@ -53,7 +53,7 @@ async function getDocuments({ userId, status, residentType, societyId }) {
 
   const whereClause = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
 
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT d.id, d.user_id, d.society_id, d.document_type, d.file_url, d.status, d.notes, d.reviewed_by,
             d.reviewed_at, d.created_at,
             u.name AS user_name, u.email AS user_email, u.resident_type,

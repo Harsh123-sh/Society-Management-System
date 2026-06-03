@@ -48,7 +48,7 @@ function buildSocietyCodePrefix(societyName) {
 
 async function generateSocietyCode(societyName) {
   const prefix = buildSocietyCodePrefix(societyName);
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT code
      FROM societies
      WHERE code LIKE ?
@@ -125,7 +125,7 @@ async function getPlatformStats(req, res) {
   try {
     if (!(await ensureSuperAdmin(req, res))) return;
 
-    const [societyStatsRows] = await db.query(`
+    const { rows: societyStatsRows } = await db.query(`
       SELECT
         COUNT(CASE WHEN status IN ('active', 'inactive', 'suspended', 'trial') AND COALESCE(code, '') <> 'DEFAULT' THEN 1 END) AS total_societies,
         COUNT(CASE WHEN status = 'active' THEN 1 END) AS active_societies,
@@ -134,7 +134,7 @@ async function getPlatformStats(req, res) {
       FROM societies
     `);
 
-    const [userStatsRows] = await db.query(`
+    const { rows: userStatsRows } = await db.query(`
       SELECT
         COUNT(*) AS total_users,
         COUNT(CASE WHEN role = 'resident' AND status = 'active' THEN 1 END) AS active_residents,
@@ -144,7 +144,7 @@ async function getPlatformStats(req, res) {
       FROM users
     `);
 
-    const [complaintStatsRows] = await db.query(`
+    const { rows: complaintStatsRows } = await db.query(`
       SELECT
         COUNT(*) AS total_complaints,
         COUNT(CASE WHEN status = 'pending' THEN 1 END) AS pending_complaints,
@@ -152,7 +152,7 @@ async function getPlatformStats(req, res) {
       FROM complaints
     `);
 
-    const [flatStatsRows] = await db.query(`
+    const { rows: flatStatsRows } = await db.query(`
       SELECT
         COUNT(*) AS total_flats,
         COUNT(CASE WHEN status = 'occupied' THEN 1 END) AS occupied_flats,
@@ -160,7 +160,7 @@ async function getPlatformStats(req, res) {
       FROM flats
     `);
 
-    const [subscriptionStatsRows] = await db.query(`
+    const { rows: subscriptionStatsRows } = await db.query(`
       SELECT
         COUNT(*) AS total_subscriptions,
         COUNT(CASE WHEN status = 'active' THEN 1 END) AS active_subscriptions,
@@ -170,19 +170,19 @@ async function getPlatformStats(req, res) {
       FROM society_subscriptions
     `);
 
-    const [revenueRows] = await db.query(`
+    const { rows: revenueRows } = await db.query(`
       SELECT COALESCE(SUM(amount), 0) AS collected_revenue, COUNT(*) AS paid_payments
       FROM bill_payments
       WHERE status IN ('authorized', 'captured') OR gateway_payment_id IS NOT NULL
     `);
 
-    const [approvalRows] = await db.query(`
+    const { rows: approvalRows } = await db.query(`
       SELECT COUNT(*) AS pending_approvals
       FROM user_approvals
       WHERE status = 'pending'
     `);
 
-    const [loginRows] = await db.query(`
+    const { rows: loginRows } = await db.query(`
       SELECT COUNT(*) AS login_events
       FROM audit_logs
       WHERE action LIKE '%login%'
@@ -273,12 +273,12 @@ async function listSocieties(req, res) {
 
     const whereClause = filters.length ? `WHERE ${filters.join(" AND ")}` : "";
 
-    const [countRows] = await db.query(
+    const { rows: countRows } = await db.query(
       `SELECT COUNT(*) AS count FROM societies s ${whereClause}`,
       params
     );
 
-    const [rows] = await db.query(
+    const { rows } = await db.query(
       `SELECT
          s.id,
          s.code,
@@ -698,7 +698,7 @@ async function getPendingApprovals(req, res) {
     const roleFilter = role && ["admin", "secretary"].includes(role) ? " AND u.role = ?" : "";
     const params = roleFilter ? [role] : [];
 
-    const [rows] = await db.query(
+    const { rows } = await db.query(
       `SELECT ua.id, ua.user_id, ua.society_id, ua.approval_type, ua.status, ua.created_at,
               u.name, u.email, u.role, u.resident_type,
               s.code AS society_code, s.name AS society_name
@@ -738,7 +738,7 @@ async function approvePendingUser(req, res) {
       return res.status(404).json({ success: false, message: "Approval not found" });
     }
 
-    const [approvalUserRows] = await db.query(
+    const { rows: approvalUserRows } = await db.query(
       `SELECT role FROM users WHERE id = ? LIMIT 1`,
       [approvalRow.user_id]
     );
@@ -777,7 +777,7 @@ async function rejectPendingUser(req, res) {
       return res.status(404).json({ success: false, message: "Approval not found" });
     }
 
-    const [approvalUserRows] = await db.query(
+    const { rows: approvalUserRows } = await db.query(
       `SELECT role FROM users WHERE id = ? LIMIT 1`,
       [approvalRow.user_id]
     );
@@ -826,12 +826,12 @@ async function getActivityLogs(req, res) {
     }
 
     const whereClause = filters.length ? `WHERE ${filters.join(" AND ")}` : "";
-    const [countRows] = await db.query(
+    const { rows: countRows } = await db.query(
       `SELECT COUNT(*) AS count FROM audit_logs al LEFT JOIN users u ON u.id = al.user_id ${whereClause}`,
       params
     );
 
-    const [rows] = await db.query(
+    const { rows } = await db.query(
       `SELECT al.id, al.user_id, al.action, al.resource_type, al.resource_id, al.details, al.status, al.ip_address, al.user_agent, al.society_id, al.builder_id, al.created_at,
               u.name AS user_name, u.email AS user_email
        FROM audit_logs al
@@ -860,7 +860,7 @@ async function getSubscriptions(req, res) {
   try {
     if (!(await ensureSuperAdmin(req, res))) return;
 
-    const [rows] = await db.query(
+    const { rows } = await db.query(
       `SELECT s.id, s.society_id, s.plan_name, s.status, s.billing_cycle, s.renewal_at, s.provider_name, s.provider_subscription_id,
               soc.name AS society_name, soc.code AS society_code, soc.status AS society_status,
               CASE
@@ -901,7 +901,7 @@ async function getPlatformAnalytics(req, res) {
   try {
     if (!(await ensureSuperAdmin(req, res))) return;
 
-    const [societyGrowth] = await db.query(`
+    const { rows: societyGrowth } = await db.query(`
       SELECT DATE_FORMAT(created_at, '%Y-%m') AS period, COUNT(*) AS total
       FROM societies
       GROUP BY period
@@ -909,7 +909,7 @@ async function getPlatformAnalytics(req, res) {
       LIMIT 12
     `);
 
-    const [userGrowth] = await db.query(`
+    const { rows: userGrowth } = await db.query(`
       SELECT DATE_FORMAT(created_at, '%Y-%m') AS period, COUNT(*) AS total
       FROM users
       GROUP BY period
@@ -917,7 +917,7 @@ async function getPlatformAnalytics(req, res) {
       LIMIT 12
     `);
 
-    const [complaintTrend] = await db.query(`
+    const { rows: complaintTrend } = await db.query(`
       SELECT DATE_FORMAT(created_at, '%Y-%m') AS period, COUNT(*) AS total
       FROM complaints
       GROUP BY period
@@ -925,7 +925,7 @@ async function getPlatformAnalytics(req, res) {
       LIMIT 12
     `);
 
-    const [revenueTrend] = await db.query(`
+    const { rows: revenueTrend } = await db.query(`
       SELECT DATE_FORMAT(bp.created_at, '%Y-%m') AS period, COALESCE(SUM(bp.amount), 0) AS total
       FROM bill_payments bp
       WHERE bp.status IN ('authorized', 'captured')
@@ -934,7 +934,7 @@ async function getPlatformAnalytics(req, res) {
       LIMIT 12
     `);
 
-    const [loginTrend] = await db.query(`
+    const { rows: loginTrend } = await db.query(`
       SELECT DATE_FORMAT(created_at, '%Y-%m') AS period, COUNT(*) AS total
       FROM audit_logs
       WHERE action LIKE '%login%'

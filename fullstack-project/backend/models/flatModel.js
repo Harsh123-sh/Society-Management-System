@@ -13,7 +13,7 @@ async function createFlat({
   approvalStatus = "pending",
   createdBy,
 }) {
-  const [result] = await db.query(
+  const { rows: result } = await db.query(
     `INSERT INTO flats (
       society_id,
       tower_id,
@@ -47,7 +47,7 @@ async function createFlat({
 }
 
 async function getFlatByWingAndFlatNumber({ societyId, wingId, wing, flatNumber }) {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
         `SELECT id, society_id, tower_id, building_name, wing, wing_id, flat_number, floor, flat_type, status,
           occupancy_status, approval_status, approved_by, approved_at, archived_at, created_at, created_by
      FROM flats
@@ -63,7 +63,7 @@ async function getFlatByWingAndFlatNumber({ societyId, wingId, wing, flatNumber 
 }
 
 async function getFlatById(flatId, { societyId = null } = {}) {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
         `SELECT id, society_id, tower_id, building_name, wing, wing_id, flat_number, floor, flat_type, status,
           occupancy_status, approval_status, approved_by, approved_at, archived_at, created_at, created_by
      FROM flats
@@ -77,7 +77,7 @@ async function getFlatById(flatId, { societyId = null } = {}) {
 }
 
 async function getCurrentAssignment(flatId) {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT fr.id, fr.flat_id, fr.resident_id, fr.move_in_date, fr.move_out_date,
             u.name AS resident_name, u.email AS resident_email
      FROM flat_residents fr
@@ -102,7 +102,7 @@ async function getNextAvailableFlat({ societyId, preferredFlatId = null } = {}) 
     }
   }
 
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT f.id, f.society_id, f.tower_id, f.building_name, f.wing, f.wing_id, f.flat_number, f.floor, f.flat_type,
             f.status, f.occupancy_status, f.approval_status, f.approved_by, f.approved_at, f.archived_at, f.created_at, f.created_by,
             t.tower_name, t.tower_code
@@ -237,7 +237,7 @@ async function getFlatsWithOccupancy({ societyId, towerId, wingId, wing, search,
 
   const whereClause = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
 
-  const [rows] = await db.query(
+  const { rows } = await db.query(
       `SELECT f.id, f.society_id, f.tower_id, t.tower_name, t.tower_code, s.name AS society_name, f.building_name, f.wing, f.wing_id, f.flat_number, f.floor, f.flat_type,
         f.status, f.occupancy_status, f.approval_status, f.approved_by, f.approved_at, f.archived_at, f.created_at,
                  fr.id AS assignment_id, fr.move_in_date,
@@ -288,7 +288,7 @@ async function updateFlatById({ flatId, societyId, flatType, occupancyStatus, st
 }
 
 async function archiveFlatById({ flatId, societyId }) {
-  const [result] = await db.query(
+  const { rows: result } = await db.query(
     `UPDATE flats
      SET archived_at = NOW(), status = 'vacant', occupancy_status = 'vacant'
      WHERE id = ?
@@ -300,7 +300,7 @@ async function archiveFlatById({ flatId, societyId }) {
 }
 
 async function deleteFlatById({ flatId, societyId }) {
-  const [result] = await db.query(
+  const { rows: result } = await db.query(
     `DELETE FROM flats
      WHERE id = ?
        ${societyId ? "AND society_id = ?" : ""}`,
@@ -311,7 +311,7 @@ async function deleteFlatById({ flatId, societyId }) {
 }
 
 async function getOccupancyHistory() {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
         `SELECT fr.id, fr.flat_id, fr.resident_id, fr.move_in_date, fr.move_out_date, fr.is_active,
           f.building_name, f.flat_number, f.occupancy_status,
             u.name AS resident_name, u.email AS resident_email,
@@ -327,7 +327,7 @@ async function getOccupancyHistory() {
 }
 
 async function getFlatsForResident(residentId) {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT f.id, f.society_id, s.name AS society_name, f.building_name, f.flat_number, f.floor, f.flat_type, f.status,
             fr.move_in_date, fr.move_out_date, fr.is_active
      FROM flat_residents fr
@@ -342,7 +342,7 @@ async function getFlatsForResident(residentId) {
 }
 
 async function getResidentPropertySummary(residentId) {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT f.id AS flat_id, f.society_id, s.name AS society_name, f.building_name, f.flat_number, f.floor, f.flat_type,
             fr.resident_id AS owner_id,
             owner.name AS owner_name,

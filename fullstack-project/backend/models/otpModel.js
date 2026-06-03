@@ -1,7 +1,7 @@
 const db = require("../db");
 
 async function createOtp({ userId, email, otpHash, purpose, expiresAt }) {
-  const [result] = await db.query(
+  const { rows: result } = await db.query(
     `INSERT INTO user_otps (user_id, email, otp_hash, purpose, expires_at)
      VALUES (?, ?, ?, ?, ?)`,
     [userId || null, email, otpHash, purpose, expiresAt]
@@ -20,7 +20,7 @@ async function invalidateActiveOtps(email, purpose) {
 }
 
 async function getLatestActiveOtp(email, purpose) {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT id, user_id, email, otp_hash, purpose, expires_at
      FROM user_otps
      WHERE email = ? AND purpose = ? AND used_at IS NULL AND expires_at > NOW()

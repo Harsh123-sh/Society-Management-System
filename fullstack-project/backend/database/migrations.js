@@ -19,7 +19,7 @@ async function migrateBuilderIdToTables() {
     for (const table of tablesToMigrate) {
       try {
         // Check if table exists
-        const [tableExists] = await db.query(`
+        const { rows: tableExists } = await db.query(`
           SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES 
           WHERE TABLE_NAME='${table.name}'
         `);
@@ -30,7 +30,7 @@ async function migrateBuilderIdToTables() {
         }
 
         // Check if builder_id column already exists
-        const [columns] = await db.query(`
+        const { rows: columns } = await db.query(`
           SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS 
           WHERE TABLE_NAME='${table.name}' AND COLUMN_NAME='builder_id'
         `);

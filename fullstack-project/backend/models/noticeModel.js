@@ -70,7 +70,7 @@ function deriveNoticeStatus(expiresAt) {
 
 async function createNotice({ title, message, createdBy, societyId = null, expiresAt = null }) {
   const status = deriveNoticeStatus(expiresAt);
-  const [result] = await db.query(
+  const { rows: result } = await db.query(
     `INSERT INTO notices (title, message, created_by, society_id, status, expires_at)
      VALUES (?, ?, ?, ?, ?, ?)`,
     [title, message, createdBy, societyId, status, expiresAt]
@@ -82,7 +82,7 @@ async function createNotice({ title, message, createdBy, societyId = null, expir
 async function getNoticeById(id, { includeArchived = true, societyId = null } = {}) {
   const archiveFilter = includeArchived ? "" : "AND n.status NOT IN ('archived', 'deleted')";
   const societyFilter = societyId ? "AND n.society_id = ?" : "";
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT n.id, n.title, n.message, n.society_id, n.status, n.expires_at, n.archived_at, n.archived_by, n.archived_from_status,
             n.deleted_at, n.deleted_by, n.deletion_reason, n.created_at, n.created_by,
             u.name AS created_by_name, u.email AS created_by_email, archiver.name AS archived_by_name, deleter.name AS deleted_by_name
@@ -100,7 +100,7 @@ async function getNoticeById(id, { includeArchived = true, societyId = null } = 
 
 async function getAllNotices(filters = {}) {
   const { conditions, params } = buildNoticeSelect(filters);
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT n.id, n.title, n.message, n.society_id, n.status, n.expires_at, n.archived_at, n.archived_by, n.archived_from_status,
             n.deleted_at, n.deleted_by, n.deletion_reason, n.created_at, n.created_by,
             u.name AS created_by_name, u.email AS created_by_email, archiver.name AS archived_by_name, deleter.name AS deleted_by_name
@@ -129,7 +129,7 @@ async function archiveExpiredNotices(societyId = null) {
 }
 
 async function archiveNotice({ noticeId, archivedBy }) {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT status
      FROM notices
      WHERE id = ?
@@ -141,7 +141,7 @@ async function archiveNotice({ noticeId, archivedBy }) {
     return false;
   }
 
-  const [result] = await db.query(
+  const { rows: result } = await db.query(
     `UPDATE notices
      SET status = 'archived', archived_at = NOW(), archived_by = ?, archived_from_status = COALESCE(NULLIF(status, 'archived'), 'active'), updated_at = NOW()
      WHERE id = ? AND status <> 'deleted'`,
@@ -152,7 +152,7 @@ async function archiveNotice({ noticeId, archivedBy }) {
 }
 
 async function restoreNotice({ noticeId, restoredBy }) {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT archived_from_status, expires_at
      FROM notices
      WHERE id = ? AND status = 'archived'
@@ -168,7 +168,7 @@ async function restoreNotice({ noticeId, restoredBy }) {
     ? rows[0].archived_from_status
     : deriveNoticeStatus(rows[0].expires_at);
 
-  const [result] = await db.query(
+  const { rows: result } = await db.query(
     `UPDATE notices
      SET status = ?, archived_at = NULL, archived_by = NULL, updated_at = NOW()
      WHERE id = ? AND status = 'archived'`,
@@ -186,7 +186,7 @@ async function restoreNotice({ noticeId, restoredBy }) {
 }
 
 async function deleteNotice({ noticeId, deletedBy, reason }) {
-  const [result] = await db.query(
+  const { rows: result } = await db.query(
     `UPDATE notices
      SET status = 'deleted', deleted_at = NOW(), deleted_by = ?, deletion_reason = ?, updated_at = NOW()
      WHERE id = ? AND status <> 'deleted'`,

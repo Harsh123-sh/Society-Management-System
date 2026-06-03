@@ -102,7 +102,7 @@ async function getSocietyDashboard(req, res) {
     }
 
     const society = await societyModel.getSocietyById(req.society.id);
-    const [userRows] = await db.query(
+    const { rows: userRows } = await db.query(
       `SELECT id, name, email, role, resident_type, status
        FROM users
        WHERE id = ? AND society_id = ?
@@ -110,7 +110,7 @@ async function getSocietyDashboard(req, res) {
       [req.user.id, req.society.id]
     );
 
-    const [leadershipRows] = await db.query(
+    const { rows: leadershipRows } = await db.query(
       `SELECT id, name, email, role, status
        FROM users
        WHERE society_id = ? AND role IN ('admin', 'secretary')
@@ -124,7 +124,7 @@ async function getSocietyDashboard(req, res) {
     const secretary = leadershipRows.find((item) => item.role === "secretary") || null;
 
     // Get user statistics
-    const [userStats] = await db.query(
+    const { rows: userStats } = await db.query(
       `SELECT 
         COUNT(*) as total_users,
         SUM(CASE WHEN role = 'resident' AND resident_type = 'owner' THEN 1 ELSE 0 END) as total_owners,
@@ -200,7 +200,7 @@ async function getOwnerDashboard(req, res) {
     }
 
     // Get user and society information
-    const [userInfo] = await db.query(
+    const { rows: userInfo } = await db.query(
       `SELECT u.id, u.name, u.email, u.flat_id, s.id as society_id, s.name as society_name, s.code as society_code
        FROM users u
        LEFT JOIN societies s ON s.id = u.society_id
@@ -217,7 +217,7 @@ async function getOwnerDashboard(req, res) {
     // Get owner's flat details
     let flatDetails = null;
     if (user.flat_id) {
-      const [flatData] = await db.query(
+      const { rows: flatData } = await db.query(
         `SELECT f.id, f.flat_number, f.building_name, f.wing, f.floor, f.status, f.flat_type,
                 COUNT(DISTINCT fr.resident_id) as tenant_count
          FROM flats f
@@ -232,7 +232,7 @@ async function getOwnerDashboard(req, res) {
     // Get tenants in owner's flat
     let tenants = [];
     if (user.flat_id) {
-      const [tenantData] = await db.query(
+      const { rows: tenantData } = await db.query(
         `SELECT u.id, u.name, u.email, u.resident_type, u.status as user_status,
                 fr.move_in_date, fr.is_active as is_active_tenant
          FROM flat_residents fr
@@ -244,7 +244,7 @@ async function getOwnerDashboard(req, res) {
     }
 
     // Get bills for owner's flat
-    const [billsData] = await db.query(
+    const { rows: billsData } = await db.query(
       `SELECT id, amount, status, bill_date, due_date, bill_type
        FROM bills
        WHERE flat_id = ? AND society_id = ? 
@@ -254,7 +254,7 @@ async function getOwnerDashboard(req, res) {
     );
 
     // Get complaints for owner's flat
-    const [complaintsData] = await db.query(
+    const { rows: complaintsData } = await db.query(
       `SELECT c.id, c.title, c.status, c.created_at
        FROM complaints c
        WHERE c.resident_id = ? AND c.status = 'pending'
@@ -263,7 +263,7 @@ async function getOwnerDashboard(req, res) {
     );
 
     // Get documents for owner's flat
-    const [documentsData] = await db.query(
+    const { rows: documentsData } = await db.query(
       `SELECT id, document_type, title, uploaded_at
        FROM documents
        WHERE (flat_id = ? OR society_id = ?) AND society_id = ?
@@ -344,7 +344,7 @@ async function getTenantDashboard(req, res) {
       }
 
       // Get user and society information
-      const [userInfo] = await db.query(
+      const { rows: userInfo } = await db.query(
         `SELECT u.id, u.name, u.email, u.flat_id, s.id as society_id, s.name as society_name, s.code as society_code
          FROM users u
          LEFT JOIN societies s ON s.id = u.society_id
@@ -362,7 +362,7 @@ async function getTenantDashboard(req, res) {
       let flatDetails = null;
       let ownerInfo = null;
       if (user.flat_id) {
-        const [flatData] = await db.query(
+        const { rows: flatData } = await db.query(
           `SELECT f.id, f.flat_number, f.building_name, f.wing, f.floor, f.status, f.flat_type
            FROM flats f
            WHERE f.id = ? AND f.society_id = ?`,
@@ -371,7 +371,7 @@ async function getTenantDashboard(req, res) {
         flatDetails = flatData[0] || null;
 
         // Get owner of this flat
-        const [ownerData] = await db.query(
+        const { rows: ownerData } = await db.query(
           `SELECT u.id, u.name, u.email, u.phone
            FROM users u
            WHERE u.flat_id = ? AND u.society_id = ? AND u.resident_type = 'owner'`,
@@ -381,7 +381,7 @@ async function getTenantDashboard(req, res) {
       }
 
       // Get bills for tenant's flat
-      const [billsData] = await db.query(
+      const { rows: billsData } = await db.query(
         `SELECT id, amount, status, bill_date, due_date, bill_type
          FROM bills
          WHERE flat_id = ? AND society_id = ?
@@ -391,7 +391,7 @@ async function getTenantDashboard(req, res) {
       );
 
       // Get complaints filed by tenant
-      const [complaintsData] = await db.query(
+      const { rows: complaintsData } = await db.query(
         `SELECT id, title, status, created_at
          FROM complaints
          WHERE resident_id = ?
@@ -400,7 +400,7 @@ async function getTenantDashboard(req, res) {
       );
 
       // Get documents for tenant
-      const [documentsData] = await db.query(
+      const { rows: documentsData } = await db.query(
         `SELECT id, document_type, title, uploaded_at
          FROM documents
          WHERE (flat_id = ? OR society_id = ?) AND society_id = ?
@@ -471,7 +471,7 @@ async function getSecurityDashboard(req, res) {
     }
 
     // Get recent visitor entries
-    const [recentVisitors] = await db.query(
+    const { rows: recentVisitors } = await db.query(
       `SELECT v.id, v.name, v.visit_date, v.visit_time, v.purpose, v.status, f.flat_number, f.wing
        FROM visitors v
        LEFT JOIN flats f ON f.id = v.flat_id
@@ -482,7 +482,7 @@ async function getSecurityDashboard(req, res) {
     );
 
     // Get emergency alerts
-    const [alerts] = await db.query(
+    const { rows: alerts } = await db.query(
       `SELECT id, alert_type, severity, message, location, triggered_at, status
        FROM security_alerts
        WHERE society_id = ? AND triggered_at > DATE_SUB(NOW(), INTERVAL 7 DAY)

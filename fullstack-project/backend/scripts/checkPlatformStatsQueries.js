@@ -39,7 +39,7 @@ const queries = [
 async function main() {
   for (const [label, sql] of queries) {
     try {
-      const [rows] = await db.query(sql);
+      const { rows } = await db.query(sql);
       console.log(label, "OK", JSON.stringify(rows[0]));
     } catch (error) {
       console.log(label, "ERR", error.code, error.sqlMessage || error.message);

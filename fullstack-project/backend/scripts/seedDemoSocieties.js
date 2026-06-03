@@ -246,7 +246,7 @@ async function hashPassword(password) {
 
 async function createSociety(societyData) {
   try {
-    const [result] = await db.query(
+    const { rows: result } = await db.query(
       `INSERT INTO societies (
         code, slug, subdomain, name, 
         theme_primary, theme_secondary, theme_accent, theme_background, 
@@ -284,7 +284,7 @@ async function createWings(societyId, wingTemplates, createdBy) {
   const wings = [];
   
   for (const wing of wingTemplates) {
-    const [result] = await db.query(
+    const { rows: result } = await db.query(
       `INSERT INTO wings (
         society_id, name, code, structure_type, total_floors, 
         units_per_floor, status, created_by
@@ -315,7 +315,7 @@ async function createFlats(societyId, wings, createdBy) {
         const flatNumber = `${floor}0${unit}`;
         
         try {
-          const [result] = await db.query(
+          const { rows: result } = await db.query(
             `INSERT INTO flats (
               society_id, wing_id, building_name, flat_number, floor, flat_type, 
               status, approval_status, created_by
@@ -349,7 +349,7 @@ async function createUsers(societyId, userTemplates, demoUserId) {
     try {
       const hashedPassword = await hashPassword(userTemplate.password);
       
-      const [result] = await db.query(
+      const { rows: result } = await db.query(
         `INSERT INTO users (
           name, email, phone, password, role, resident_type, status, 
           approval_status, is_verified, society_id, flat_id, flat_number, 
@@ -411,7 +411,7 @@ async function seedDemoSocieties() {
     
     if (superAdminRows.length === 0) {
       const hashedPassword = await hashPassword("SuperAdmin@123");
-      const [result] = await db.query(
+      const { rows: result } = await db.query(
         `INSERT INTO users (
           name, email, phone, password, role, status, approval_status, is_verified
         ) VALUES (?, ?, ?, ?, 'super_admin', 'active', 'approved', 1)`,
@@ -496,7 +496,7 @@ async function resetDemoSocieties() {
     console.log("\n=== Starting Demo Data Reset ===\n");
     
     // Get all demo societies
-    const [demoMarkers] = await db.query(
+    const { rows: demoMarkers } = await db.query(
       `SELECT DISTINCT society_id FROM demo_data_markers WHERE is_demo = 1`
     );
     

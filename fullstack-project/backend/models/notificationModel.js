@@ -22,11 +22,11 @@ async function getTargetUserIds({ targetRole = "all", targetUserId = null }) {
   }
 
   if (!targetRole || targetRole === "all") {
-    const [rows] = await db.query("SELECT id FROM users WHERE is_active = 1");
+    const { rows } = await db.query("SELECT id FROM users WHERE is_active = 1");
     return rows.map((row) => Number(row.id));
   }
 
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     "SELECT id FROM users WHERE role = ? AND is_active = 1",
     [targetRole]
   );
@@ -39,7 +39,7 @@ async function getActiveDeviceTokensByUserIds(userIds) {
     return [];
   }
 
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT id, user_id, platform, fcm_token
      FROM notification_device_tokens
      WHERE user_id IN (?) AND is_active = 1`,
@@ -54,7 +54,7 @@ async function getActiveWebSubscriptionsByUserIds(userIds) {
     return [];
   }
 
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT id, user_id, endpoint, p256dh, auth
      FROM notification_web_subscriptions
      WHERE user_id IN (?) AND is_active = 1`,
@@ -180,7 +180,7 @@ async function createNotification(payload) {
 
   const normalizedCategory = normalizeCategory(category);
 
-  const [result] = await db.query(
+  const { rows: result } = await db.query(
     `INSERT INTO notifications (
       target_role, target_user_id, title, message, priority, category, deep_link,
       related_type, related_id, created_at
@@ -245,12 +245,12 @@ async function getNotifications(filters = {}) {
 
   query += " ORDER BY n.created_at DESC";
 
-  const [rows] = await db.query(query, params);
+  const { rows } = await db.query(query, params);
   return rows;
 }
 
 async function markNotificationAsRead(notificationId) {
-  const [result] = await db.query(
+  const { rows: result } = await db.query(
     `UPDATE notifications SET is_read = 1 WHERE id = ?`,
     [notificationId]
   );
@@ -258,7 +258,7 @@ async function markNotificationAsRead(notificationId) {
 }
 
 async function registerDeviceToken({ userId, platform = "web", fcmToken, deviceId = null, appVersion = null }) {
-  const [result] = await db.query(
+  const { rows: result } = await db.query(
     `INSERT INTO notification_device_tokens (user_id, platform, fcm_token, device_id, app_version, is_active, last_seen_at)
      VALUES (?, ?, ?, ?, ?, 1, NOW())
      ON DUPLICATE KEY UPDATE
@@ -275,7 +275,7 @@ async function registerDeviceToken({ userId, platform = "web", fcmToken, deviceI
 }
 
 async function unregisterDeviceToken({ userId, fcmToken }) {
-  const [result] = await db.query(
+  const { rows: result } = await db.query(
     `UPDATE notification_device_tokens
      SET is_active = 0
      WHERE user_id = ? AND fcm_token = ?`,
@@ -295,7 +295,7 @@ async function registerWebSubscription({ userId, subscription, userAgent = null 
     return false;
   }
 
-  const [result] = await db.query(
+  const { rows: result } = await db.query(
     `INSERT INTO notification_web_subscriptions
       (user_id, endpoint, p256dh, auth, expiration_time, user_agent, is_active)
      VALUES (?, ?, ?, ?, ?, ?, 1)
@@ -320,7 +320,7 @@ async function registerWebSubscription({ userId, subscription, userAgent = null 
 }
 
 async function unregisterWebSubscription({ userId, endpoint }) {
-  const [result] = await db.query(
+  const { rows: result } = await db.query(
     `UPDATE notification_web_subscriptions
      SET is_active = 0
      WHERE user_id = ? AND endpoint = ?`,
@@ -331,7 +331,7 @@ async function unregisterWebSubscription({ userId, endpoint }) {
 }
 
 async function createEventReminder({ title, message, targetRole = "all", targetUserId = null, eventAt, remindBeforeMinutes = 30, createdBy = null }) {
-  const [result] = await db.query(
+  const { rows: result } = await db.query(
     `INSERT INTO notification_events
       (title, message, target_role, target_user_id, category, event_at, remind_before_minutes, created_by)
      VALUES (?, ?, ?, ?, 'event_reminder', ?, ?, ?)`,
@@ -342,7 +342,7 @@ async function createEventReminder({ title, message, targetRole = "all", targetU
 }
 
 async function getDueEventReminders(limit = 200) {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT *
      FROM notification_events
      WHERE dispatched_at IS NULL
@@ -356,7 +356,7 @@ async function getDueEventReminders(limit = 200) {
 }
 
 async function markEventReminderDispatched(eventId) {
-  const [result] = await db.query(
+  const { rows: result } = await db.query(
     `UPDATE notification_events SET dispatched_at = NOW() WHERE id = ?`,
     [eventId]
   );

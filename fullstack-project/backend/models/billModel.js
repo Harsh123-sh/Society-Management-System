@@ -109,7 +109,7 @@ async function createAutoInvoices({
 }
 
 async function getBillById(billId, { builderId = null, societyId = null } = {}) {
-  const [billRows] = await db.query(
+  const { rows: billRows } = await db.query(
     `SELECT b.id, b.society_id, b.resident_id, b.bill_type, b.invoice_number, b.title,
             b.builder_id,
             b.due_date, b.billing_month, b.status, b.payment_status, b.total_amount,
@@ -133,7 +133,7 @@ async function getBillById(billId, { builderId = null, societyId = null } = {}) 
     return null;
   }
 
-  const [chargeRows] = await db.query(
+  const { rows: chargeRows } = await db.query(
     `SELECT id, bill_id, charge_name, charge_type, amount
      FROM bill_charges
      WHERE bill_id = ?
@@ -141,7 +141,7 @@ async function getBillById(billId, { builderId = null, societyId = null } = {}) 
     [billId]
   );
 
-  const [paymentRows] = await db.query(
+  const { rows: paymentRows } = await db.query(
     `SELECT id, bill_id, resident_id, amount, payment_method, gateway_provider,
             gateway_order_id, gateway_payment_id, gateway_signature, upi_id,
             upi_reference, status, metadata_json, paid_at, created_at, updated_at
@@ -198,7 +198,7 @@ async function getBillsForAdmin({ search, status, billType, paymentStatus, build
 
   const whereClause = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
 
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT b.id, b.society_id, b.resident_id, b.bill_type, b.invoice_number, b.title,
             b.builder_id,
             b.due_date, b.billing_month, b.status, b.payment_status, b.total_amount,
@@ -243,7 +243,7 @@ async function getBillsForResident(residentId, { search, status, billType, payme
 
   const whereClause = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
 
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT b.id, b.society_id, b.resident_id, b.bill_type, b.invoice_number, b.title,
             b.builder_id,
             b.due_date, b.billing_month, b.status, b.payment_status, b.total_amount,
@@ -267,7 +267,7 @@ async function getChargesByBillIds(billIds) {
   }
 
   const placeholders = billIds.map(() => "?").join(",");
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT id, bill_id, charge_name, charge_type, amount
      FROM bill_charges
      WHERE bill_id IN (${placeholders})
@@ -290,7 +290,7 @@ async function createPaymentOrder({
   const gatewayOrderId =
     providedOrderId || `${gatewayProvider || "internal"}_order_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
 
-  const [result] = await db.query(
+  const { rows: result } = await db.query(
     `INSERT INTO bill_payments (
       bill_id, resident_id, amount, payment_method, gateway_provider,
       gateway_order_id, status, metadata_json
@@ -312,7 +312,7 @@ async function createPaymentOrder({
 }
 
 async function getPaymentByOrderId(gatewayOrderId) {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT *
      FROM bill_payments
      WHERE gateway_order_id = ?
@@ -332,7 +332,7 @@ async function capturePayment({
   status = "captured",
   metadata = {},
 }) {
-  const [paymentRows] = await db.query(
+  const { rows: paymentRows } = await db.query(
     `SELECT id, bill_id, resident_id, amount, status AS current_status
      FROM bill_payments
      WHERE id = ?
@@ -399,7 +399,7 @@ async function capturePayment({
 }
 
 async function markBillPaid(billId) {
-  const [result] = await db.query(
+  const { rows: result } = await db.query(
     `UPDATE bills
      SET status = 'paid', payment_status = 'paid', paid_amount = total_amount, paid_at = NOW()
      WHERE id = ? AND status <> 'paid'`,
@@ -410,7 +410,7 @@ async function markBillPaid(billId) {
 }
 
 async function applyLateFeeAutomation({ runBy = null, lateFeeType = "percentage", lateFeeValue = 5, graceDays = 0 }) {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT id, total_amount
      FROM bills
      WHERE status IN ('unpaid', 'overdue', 'partially_paid')
@@ -452,7 +452,7 @@ async function applyLateFeeAutomation({ runBy = null, lateFeeType = "percentage"
 }
 
 async function createPaymentReminders({ createdBy = null, dueSoonDays = 3 }) {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT b.id AS bill_id, b.resident_id, b.total_amount, b.paid_amount, b.due_date,
             b.invoice_number, b.title, u.name AS resident_name
      FROM bills b
@@ -507,14 +507,14 @@ async function getBillingDashboard() {
      FROM bills`
   );
 
-  const [billTypeBreakdown] = await db.query(
+  const { rows: billTypeBreakdown } = await db.query(
     `SELECT bill_type, COUNT(*) AS count, COALESCE(SUM(total_amount), 0) AS total
      FROM bills
      GROUP BY bill_type
      ORDER BY total DESC`
   );
 
-  const [monthlyCollections] = await db.query(
+  const { rows: monthlyCollections } = await db.query(
     `SELECT DATE_FORMAT(created_at, '%Y-%m') AS month,
             COALESCE(SUM(total_amount), 0) AS invoiced,
             COALESCE(SUM(paid_amount), 0) AS collected
@@ -524,7 +524,7 @@ async function getBillingDashboard() {
      ORDER BY month ASC`
   );
 
-  const [recentPayments] = await db.query(
+  const { rows: recentPayments } = await db.query(
     `SELECT bp.id, bp.bill_id, bp.amount, bp.payment_method, bp.gateway_provider,
             bp.gateway_payment_id, bp.status, bp.paid_at, bp.created_at,
             b.invoice_number, u.name AS resident_name
@@ -555,7 +555,7 @@ async function getResidentPaymentPortal(residentId) {
     chargeMap.get(charge.bill_id).push(charge);
   }
 
-  const [payments] = await db.query(
+  const { rows: payments } = await db.query(
     `SELECT bp.id, bp.bill_id, bp.amount, bp.payment_method, bp.status, bp.paid_at, bp.created_at,
             b.invoice_number, b.title
      FROM bill_payments bp
@@ -575,7 +575,7 @@ async function getResidentPaymentPortal(residentId) {
 }
 
 async function getFinancialAnalyticsData() {
-  const [collectionEfficiency] = await db.query(
+  const { rows: collectionEfficiency } = await db.query(
     `SELECT
         DATE_FORMAT(created_at, '%Y-%m') AS month,
         COALESCE(SUM(total_amount), 0) AS invoiced,
@@ -590,7 +590,7 @@ async function getFinancialAnalyticsData() {
      ORDER BY month ASC`
   );
 
-  const [defaulterRows] = await db.query(
+  const { rows: defaulterRows } = await db.query(
     `SELECT b.resident_id, u.name AS resident_name, u.email AS resident_email,
             COUNT(*) AS overdueBills,
             COALESCE(SUM(b.total_amount - b.paid_amount), 0) AS outstandingAmount

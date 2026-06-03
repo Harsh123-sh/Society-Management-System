@@ -79,7 +79,7 @@ function mapComplaintRow(row) {
 }
 
 async function createComplaint({ residentId, societyId = null, title, description, category = "general" }) {
-  const [result] = await db.query(
+  const { rows: result } = await db.query(
     `INSERT INTO complaints (resident_id, society_id, title, description, category, status)
      VALUES (?, ?, ?, ?, ?, 'open')`,
     [residentId, societyId, title, description, category || "general"]
@@ -91,7 +91,7 @@ async function createComplaint({ residentId, societyId = null, title, descriptio
 async function getComplaintById(complaintId, { includeArchived = true, societyId = null } = {}) {
   const archiveFilter = includeArchived ? "" : "AND c.status NOT IN ('archived', 'deleted')";
   const societyFilter = societyId ? "AND resident.society_id = ?" : "";
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT c.id, c.title, c.description, c.category, c.status, c.resolved_at, c.archived_at, c.archived_by, c.archived_from_status,
             c.deleted_at, c.deleted_by, c.deletion_reason, c.created_at, c.updated_at,
             c.resident_id, resident.name AS resident_name, resident.email AS resident_email, resident.flat_number AS resident_flat_number,
@@ -113,7 +113,7 @@ async function getAllComplaints(filters = {}) {
   const { conditions, params } = buildComplaintWhere(filters);
   const whereClause = `WHERE ${conditions.join(" AND ")}`;
 
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT c.id, c.title, c.description, c.category, c.status, c.resolved_at, c.archived_at, c.archived_by, c.archived_from_status,
             c.deleted_at, c.deleted_by, c.deletion_reason, c.created_at, c.updated_at,
             c.resident_id, resident.name AS resident_name, resident.email AS resident_email, resident.flat_number AS resident_flat_number,
@@ -136,7 +136,7 @@ async function getComplaintsByResident(residentId, filters = {}) {
   const { conditions, params } = buildComplaintWhere({ ...filters, residentId, includeArchived });
   const whereClause = `WHERE ${conditions.join(" AND ")}`;
 
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT c.id, c.title, c.description, c.category, c.status, c.resolved_at, c.archived_at, c.archived_by, c.archived_from_status,
             c.deleted_at, c.deleted_by, c.deletion_reason, c.created_at, c.updated_at,
             c.resident_id, resident.name AS resident_name, resident.email AS resident_email, resident.flat_number AS resident_flat_number,
@@ -163,7 +163,7 @@ async function updateComplaintStatus({ complaintId, status, updatedBy, category 
   const resolvedAt = ["resolved", "closed"].includes(normalizedStatus) ? new Date() : null;
   const archiveSourceStatus = normalizedStatus === "archived" ? "closed" : null;
 
-  const [result] = await db.query(
+  const { rows: result } = await db.query(
     `UPDATE complaints
      SET status = ?, updated_by = ?, resolved_at = ?, archived_from_status = COALESCE(archived_from_status, ?), updated_at = NOW()
      WHERE id = ?`,
@@ -181,7 +181,7 @@ async function updateComplaintStatus({ complaintId, status, updatedBy, category 
 }
 
 async function archiveComplaint({ complaintId, archivedBy }) {
-  const [result] = await db.query(
+  const { rows: result } = await db.query(
     `UPDATE complaints
      SET status = 'archived', archived_at = NOW(), archived_by = ?, archived_from_status = COALESCE(NULLIF(status, 'archived'), 'closed'), updated_by = ?, updated_at = NOW()
      WHERE id = ? AND status <> 'deleted'`,
@@ -192,7 +192,7 @@ async function archiveComplaint({ complaintId, archivedBy }) {
 }
 
 async function restoreComplaint({ complaintId, restoredBy }) {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT archived_from_status
      FROM complaints
      WHERE id = ? AND status = 'archived'
@@ -206,7 +206,7 @@ async function restoreComplaint({ complaintId, restoredBy }) {
 
   const restoreStatus = ACTIVE_COMPLAINT_STATUSES.includes(rows[0].archived_from_status) ? rows[0].archived_from_status : "closed";
 
-  const [result] = await db.query(
+  const { rows: result } = await db.query(
     `UPDATE complaints
      SET status = ?, archived_at = NULL, archived_by = NULL, updated_by = ?, updated_at = NOW()
      WHERE id = ? AND status = 'archived'`,
@@ -217,7 +217,7 @@ async function restoreComplaint({ complaintId, restoredBy }) {
 }
 
 async function deleteComplaint({ complaintId, deletedBy, reason }) {
-  const [result] = await db.query(
+  const { rows: result } = await db.query(
     `UPDATE complaints
      SET status = 'deleted', deleted_at = NOW(), deleted_by = ?, deletion_reason = ?, updated_by = ?, updated_at = NOW()
      WHERE id = ? AND status <> 'deleted'`,
@@ -228,7 +228,7 @@ async function deleteComplaint({ complaintId, deletedBy, reason }) {
 }
 
 async function createComment({ complaintId, userId, comment }) {
-  const [result] = await db.query(
+  const { rows: result } = await db.query(
     `INSERT INTO complaint_comments (complaint_id, user_id, comment_text)
      VALUES (?, ?, ?)`,
     [complaintId, userId, comment]
@@ -243,7 +243,7 @@ async function getCommentsByComplaintIds(complaintIds) {
   }
 
   const placeholders = complaintIds.map(() => "?").join(",");
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT cc.id, cc.complaint_id, cc.comment_text, cc.created_at,
             cc.user_id, u.name AS user_name, u.role AS user_role
      FROM complaint_comments cc

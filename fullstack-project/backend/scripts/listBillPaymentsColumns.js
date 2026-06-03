@@ -2,7 +2,7 @@ require("dotenv").config();
 const db = require("../db");
 
 async function main() {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT COLUMN_NAME
      FROM INFORMATION_SCHEMA.COLUMNS
      WHERE TABLE_SCHEMA = DATABASE()

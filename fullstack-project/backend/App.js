@@ -137,7 +137,7 @@ app.get("/", (req, res) => {
 
 app.get("/api/test", async (req, res) => {
   try {
-    const [rows] = await db.query("SELECT 1 + 1 AS result");
+    const { rows } = await db.query("SELECT 1 + 1 AS result");
     res.json({
       success: true,
       message: "API and database are working",

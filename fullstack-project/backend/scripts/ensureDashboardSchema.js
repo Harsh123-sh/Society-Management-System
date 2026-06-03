@@ -2,7 +2,7 @@ require("dotenv").config();
 const db = require("../db");
 
 async function ensureColumnExists(tableName, columnName, alterSql) {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT COUNT(*) AS c
      FROM INFORMATION_SCHEMA.COLUMNS
      WHERE TABLE_SCHEMA = DATABASE()

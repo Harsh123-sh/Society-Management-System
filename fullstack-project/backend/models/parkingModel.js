@@ -19,7 +19,7 @@ async function createParkingSlot(payload) {
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
   `;
 
-  const [result] = await db.query(query, [
+  const { rows: result } = await db.query(query, [
     society_id || null,
     slot_number,
     wing,
@@ -81,7 +81,7 @@ async function getParkingSlots(filters = {}) {
 
   query += " ORDER BY ps.wing, ps.slot_number";
 
-  const [rows] = await db.query(query, params);
+  const { rows } = await db.query(query, params);
   return rows;
 }
 
@@ -99,7 +99,7 @@ async function getParkingSlotById(slotId, societyId = null) {
       ${societyId ? "AND ps.society_id = ?" : ""}
   `;
 
-  const [rows] = await db.query(query, societyId ? [slotId, societyId] : [slotId]);
+  const { rows } = await db.query(query, societyId ? [slotId, societyId] : [slotId]);
   return rows[0] || null;
 }
 
@@ -123,7 +123,7 @@ async function updateParkingSlot(slotId, payload, societyId = null) {
       ${societyId ? "AND society_id = ?" : ""}
   `;
 
-  const [result] = await db.query(query, [
+  const { rows: result } = await db.query(query, [
     status,
     owner_id,
     flat_id,
@@ -147,7 +147,7 @@ async function assignParkingSlot(slotId, userId, flatId, societyId = null) {
       ${societyId ? "AND society_id = ?" : ""}
   `;
 
-  const [result] = await db.query(query, [userId, flatId, slotId, ...(societyId ? [societyId] : [])]);
+  const { rows: result } = await db.query(query, [userId, flatId, slotId, ...(societyId ? [societyId] : [])]);
   return result.affectedRows > 0;
 }
 
@@ -163,7 +163,7 @@ async function releaseParkingSlot(slotId, societyId = null) {
       ${societyId ? "AND society_id = ?" : ""}
   `;
 
-  const [result] = await db.query(query, [slotId, ...(societyId ? [societyId] : [])]);
+  const { rows: result } = await db.query(query, [slotId, ...(societyId ? [societyId] : [])]);
   return result.affectedRows > 0;
 }
 
@@ -178,7 +178,7 @@ async function deleteParkingSlot(slotId, deletedBy, societyId = null) {
       ${societyId ? "AND society_id = ?" : ""}
   `;
 
-  const [result] = await db.query(query, [deletedBy, slotId, ...(societyId ? [societyId] : [])]);
+  const { rows: result } = await db.query(query, [deletedBy, slotId, ...(societyId ? [societyId] : [])]);
   return result.affectedRows > 0;
 }
 
@@ -195,7 +195,7 @@ async function getParkingStatistics(societyId = null) {
       ${societyId ? "AND society_id = ?" : ""}
   `;
 
-  const [rows] = await db.query(query, societyId ? [societyId] : []);
+  const { rows } = await db.query(query, societyId ? [societyId] : []);
   return rows[0];
 }
 

@@ -15,7 +15,7 @@ class UserApprovalModel {
     documents = null
   }) {
     try {
-      const [result] = await db.query(
+      const { rows: result } = await db.query(
         `INSERT INTO user_approvals (
           user_id, society_id, approval_type, requested_by, 
           documents_json, status
@@ -38,7 +38,7 @@ class UserApprovalModel {
   // Get approval by ID
   static async getApprovalById(approvalId) {
     try {
-      const [rows] = await db.query(
+      const { rows } = await db.query(
         `SELECT id, user_id, society_id, approval_type, status,
                 requested_by, approved_by, approval_comments,
                 documents_json, created_at, approved_at, updated_at
@@ -85,7 +85,7 @@ class UserApprovalModel {
 
       const whereClause = conditions.join(" AND ");
 
-      const [rows] = await db.query(
+      const { rows } = await db.query(
         `SELECT ua.id, ua.user_id, ua.approval_type, ua.status,
                 u.name, u.email, u.phone, u.role, u.resident_type,
                 u.flat_number, ua.created_at, ua.requested_by
@@ -179,7 +179,7 @@ class UserApprovalModel {
       );
 
       // Create approval if not exists
-      const [existing] = await db.query(
+      const { rows: existing } = await db.query(
         `SELECT id FROM user_approvals 
          WHERE user_id = ? AND approval_type = 'owner_verification'`,
         [userId]
@@ -224,7 +224,7 @@ class UserApprovalModel {
   // Get user approval history
   static async getUserApprovalHistory(userId) {
     try {
-      const [rows] = await db.query(
+      const { rows } = await db.query(
         `SELECT id, approval_type, status, approval_comments,
                 approved_by, created_at, approved_at
          FROM user_approvals
@@ -242,7 +242,7 @@ class UserApprovalModel {
   // Get society approval stats
   static async getApprovalStats(societyId) {
     try {
-      const [rows] = await db.query(
+      const { rows } = await db.query(
         `SELECT 
           approval_type,
           status,
@@ -265,7 +265,7 @@ class UserApprovalModel {
       const results = [];
 
       for (const userId of userIds) {
-        const [approvals] = await db.query(
+        const { rows: approvals } = await db.query(
           `SELECT id FROM user_approvals 
            WHERE user_id = ? AND society_id = ? AND status = 'pending'
            LIMIT 1`,

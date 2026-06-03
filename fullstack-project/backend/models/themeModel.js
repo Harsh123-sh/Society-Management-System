@@ -4,7 +4,7 @@ class ThemeModel {
   // Get society theme
   static async getTheme(societyId) {
     try {
-      const [theme] = await db.query(
+      const { rows: theme } = await db.query(
         `SELECT 
           id, code, name, 
           theme_primary, theme_secondary, theme_accent,

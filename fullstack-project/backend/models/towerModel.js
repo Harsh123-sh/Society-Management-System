@@ -39,7 +39,7 @@ function buildFlatNumber({ format, floor, sequence, towerCode }) {
 }
 
 async function getTowerById(towerId, societyId = null) {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT id, society_id, tower_name, tower_code, total_floors, flats_per_floor, flat_number_format,
             starting_floor, status, created_by, created_at, updated_at
      FROM towers
@@ -59,7 +59,7 @@ async function listTowersWithStats({ societyId } = {}) {
     params.push(societyId);
   }
   const whereClause = filters.length ? `WHERE ${filters.join(" AND ")}` : "";
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT t.id, t.society_id, t.tower_name, t.tower_code, t.total_floors, t.flats_per_floor, t.flat_number_format,
             t.starting_floor, t.status, t.created_by, t.created_at, t.updated_at,
             COUNT(f.id) AS total_flats,
@@ -83,7 +83,7 @@ async function createTower({ societyId, towerName, totalFloors, flatsPerFloor, f
   const existingCodes = new Set(existing.map((tower) => String(tower.tower_code || "").toUpperCase()));
   const towerCode = deriveTowerCode(towerName, existingCodes);
 
-  const [result] = await db.query(
+  const { rows: result } = await db.query(
     `INSERT INTO towers (
       society_id, tower_name, tower_code, total_floors, flats_per_floor, flat_number_format, created_by
      ) VALUES (?, ?, ?, ?, ?, ?, ?)` ,
@@ -146,7 +146,7 @@ async function generateFlatsForTower({ towerId, societyId, createdBy, flatType =
 
 async function bulkArchiveFlats({ flatIds, societyId }) {
   if (!flatIds.length) return 0;
-  const [result] = await db.query(
+  const { rows: result } = await db.query(
     `UPDATE flats
      SET archived_at = NOW(), status = 'vacant', occupancy_status = 'vacant'
      WHERE society_id = ? AND id IN (?)`,
@@ -157,7 +157,7 @@ async function bulkArchiveFlats({ flatIds, societyId }) {
 
 async function bulkDeleteFlats({ flatIds, societyId }) {
   if (!flatIds.length) return 0;
-  const [result] = await db.query(
+  const { rows: result } = await db.query(
     `DELETE FROM flats
      WHERE society_id = ? AND id IN (?)
        AND id NOT IN (

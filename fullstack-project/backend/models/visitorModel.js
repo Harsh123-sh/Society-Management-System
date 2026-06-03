@@ -74,7 +74,7 @@ async function getFlatByWingAndFlatNumber({ societyId, builderId, wingId, wing, 
 
   const whereClause = filters.length ? `WHERE ${filters.join(" AND ")}` : "";
 
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT f.id, f.society_id, f.builder_id, f.building_name, f.wing, f.wing_id, f.flat_number
      FROM flats f
      ${whereClause}
@@ -88,7 +88,7 @@ async function getFlatByWingAndFlatNumber({ societyId, builderId, wingId, wing, 
 }
 
 async function getFlatOwnerByFlatId(flatId) {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT u.id, u.name, u.email
      FROM owner_properties op
      JOIN users u ON u.id = op.user_id
@@ -105,7 +105,7 @@ async function getFlatOwnerByFlatId(flatId) {
 }
 
 async function getVisitorById(visitorId) {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT v.id, v.visitor_name, v.visitor_email, v.phone, v.purpose, v.person_to_meet,
             v.vehicle_number, v.entry_time, v.exit_time, v.status, v.approval_status,
             v.security_id, v.flat_id, v.preapproval_id, v.photo_url, v.face_capture_url,
@@ -145,7 +145,7 @@ async function createVisitorEntry({
   otpVerifiedAt,
   societyId,
 }) {
-  const [result] = await db.query(
+  const { rows: result } = await db.query(
     `INSERT INTO visitors (
       society_id,
       visitor_name,
@@ -194,7 +194,7 @@ async function createVisitorEntry({
 }
 
 async function markVisitorExit(visitorId) {
-  const [result] = await db.query(
+  const { rows: result } = await db.query(
     `UPDATE visitors
      SET exit_time = NOW(), status = 'exited'
      WHERE id = ? AND status = 'in_premises'`,
@@ -241,7 +241,7 @@ async function getVisitorLogs({ wing, search, fromDate, toDate, status, societyI
 
   const whereClause = filters.length ? `WHERE ${filters.join(" AND ")}` : "";
 
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT v.id, v.visitor_name, v.visitor_email, v.phone, v.purpose, v.person_to_meet,
             v.vehicle_number, v.entry_time, v.exit_time, v.status, v.approval_status,
             v.security_id, v.flat_id, v.preapproval_id, v.photo_url, v.face_capture_url,
@@ -273,7 +273,7 @@ async function createVisitorPreapproval({
   notes,
 }) {
   const approvalToken = crypto.randomBytes(10).toString("hex").toUpperCase();
-  const [result] = await db.query(
+  const { rows: result } = await db.query(
     `INSERT INTO visitor_preapprovals (
       owner_id, flat_id, visitor_name, phone, purpose, visit_date,
       expected_arrival_time, vehicle_number, notes, status, approved_at,
@@ -298,7 +298,7 @@ async function createVisitorPreapproval({
 }
 
 async function getVisitorPreapprovalById(preapprovalId) {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT vp.id, vp.owner_id, vp.flat_id, vp.visitor_name, vp.phone, vp.purpose,
             vp.visit_date, vp.expected_arrival_time, vp.vehicle_number, vp.notes,
             vp.status, vp.approved_at, vp.created_at, vp.approval_token,
@@ -335,7 +335,7 @@ async function listVisitorPreapprovals({ ownerId, status, societyId } = {}) {
 
   const whereClause = filters.length ? `WHERE ${filters.join(" AND ")}` : "";
 
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT vp.id, vp.owner_id, vp.flat_id, vp.visitor_name, vp.phone, vp.purpose,
             vp.visit_date, vp.expected_arrival_time, vp.vehicle_number, vp.notes,
             vp.status, vp.approved_at, vp.created_at, vp.approval_token,
@@ -352,7 +352,7 @@ async function listVisitorPreapprovals({ ownerId, status, societyId } = {}) {
 }
 
 async function updateVisitorPreapprovalStatus({ id, ownerId, status }) {
-  const [result] = await db.query(
+  const { rows: result } = await db.query(
     `UPDATE visitor_preapprovals
      SET status = ?, approved_at = CASE WHEN ? = 'approved' THEN NOW() ELSE approved_at END
      WHERE id = ? AND owner_id = ?`,
@@ -363,7 +363,7 @@ async function updateVisitorPreapprovalStatus({ id, ownerId, status }) {
 }
 
 async function markPreapprovalVisited(preapprovalId) {
-  const [result] = await db.query(
+  const { rows: result } = await db.query(
     `UPDATE visitor_preapprovals
      SET status = 'visited'
      WHERE id = ? AND status = 'approved'`,
@@ -379,7 +379,7 @@ async function issueQrPass({ preapprovalId, issuedBy, deviceLabel }) {
   const qrCodeUrl = await uploadQrData(qrPayload);
   const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 8);
 
-  const [result] = await db.query(
+  const { rows: result } = await db.query(
     `INSERT INTO visitor_qr_passes (
       preapproval_id, pass_token, qr_payload, qr_code_url, status,
       expires_at, issued_by, created_at
@@ -398,7 +398,7 @@ async function issueQrPass({ preapprovalId, issuedBy, deviceLabel }) {
 }
 
 async function getQrPassByToken(passToken) {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT vp.id, vp.preapproval_id, vp.pass_token, vp.qr_payload, vp.qr_code_url,
             vp.status, vp.expires_at, vp.scan_count, vp.last_scanned_at, vp.issued_by,
             pre.id AS preapproval_id, pre.visitor_name, pre.phone, pre.purpose, pre.flat_id, pre.vehicle_number,
@@ -414,7 +414,7 @@ async function getQrPassByToken(passToken) {
 }
 
 async function markQrPassScanned({ passId, scannedBy }) {
-  const [result] = await db.query(
+  const { rows: result } = await db.query(
     `UPDATE visitor_qr_passes
      SET scan_count = scan_count + 1, last_scanned_at = NOW(), scanned_by = ?, status = 'scanned'
      WHERE id = ? AND status = 'active'`,
@@ -437,7 +437,7 @@ async function updateVisitorPreapprovalStatusBySecurity({ id, status, updatedBy,
     params.push(societyId);
   }
 
-  const [result] = await db.query(sql, params).catch(() => [{}]);
+  const { rows: result } = await db.query(sql, params).catch(() => [{}]);
   return result && result.affectedRows > 0;
 }
 
@@ -445,7 +445,7 @@ async function createVisitorEntryFromPreapproval({ preapprovalId, securityId, en
   const preapproval = await getVisitorPreapprovalById(preapprovalId);
   if (!preapproval) return null;
 
-  const [result] = await db.query(
+  const { rows: result } = await db.query(
     `INSERT INTO visitors (
       society_id, visitor_name, phone, purpose, flat_id, preapproval_id,
       entry_time, status, security_id, qr_pass_id, face_capture_url, created_at
@@ -472,7 +472,7 @@ async function createVisitorEntryFromPreapproval({ preapprovalId, securityId, en
 }
 
 async function markVisitorCheckOut(visitorId) {
-  const [result] = await db.query(
+  const { rows: result } = await db.query(
     `UPDATE visitors
      SET exit_time = NOW(), status = 'checked_out'
      WHERE id = ? AND (status = 'in_premises' OR status = 'checked_in')`,
@@ -487,7 +487,7 @@ async function createVisitorOtp({ preapprovalId, issuedBy }) {
   const otpHash = createSignature(otpCode);
   const expiresAt = new Date(Date.now() + 1000 * 60 * 10);
 
-  const [result] = await db.query(
+  const { rows: result } = await db.query(
     `INSERT INTO visitor_otps (preapproval_id, otp_hash, otp_code_last4, expires_at, issued_by, status, created_at)
      VALUES (?, ?, ?, ?, ?, 'active', NOW())`,
     [preapprovalId, otpHash, otpCode.slice(-4), expiresAt, issuedBy || null]
@@ -497,7 +497,7 @@ async function createVisitorOtp({ preapprovalId, issuedBy }) {
 }
 
 async function verifyVisitorOtp({ preapprovalId, otpCode, verifiedBy }) {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT id, otp_hash, expires_at, status
      FROM visitor_otps
      WHERE preapproval_id = ?
@@ -546,7 +546,7 @@ async function upsertVisitorFaceProfile({
   faceMatchConfidence,
   createdBy,
 }) {
-  const [existingRows] = await db.query(
+  const { rows: existingRows } = await db.query(
     `SELECT id FROM visitor_face_profiles WHERE preapproval_id = ? LIMIT 1`,
     [preapprovalId]
   );
@@ -562,7 +562,7 @@ async function upsertVisitorFaceProfile({
     return existingRows[0].id;
   }
 
-  const [result] = await db.query(
+  const { rows: result } = await db.query(
     `INSERT INTO visitor_face_profiles (
       preapproval_id, visitor_name, phone, flat_id, face_capture_url, face_signature,
       face_match_confidence, created_by, created_at, updated_at
@@ -583,7 +583,7 @@ async function upsertVisitorFaceProfile({
 }
 
 async function recognizeVisitorFace({ faceCaptureUrl, faceSignature, phone, visitorName, flatId }) {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT id, visitor_name, phone, flat_id, face_signature, face_capture_url, face_match_confidence
      FROM visitor_face_profiles
      ORDER BY updated_at DESC, id DESC
@@ -625,7 +625,7 @@ async function recognizeVisitorFace({ faceCaptureUrl, faceSignature, phone, visi
 }
 
 async function addBlacklistEntry({ visitorName, phone, reason, blockedBy, flatId, faceSignature }) {
-  const [result] = await db.query(
+  const { rows: result } = await db.query(
     `INSERT INTO visitor_blacklist_entries
      (visitor_name, phone, reason, flat_id, face_signature, blocked_by, status, created_at)
      VALUES (?, ?, ?, ?, ?, ?, 'active', NOW())`,
@@ -658,7 +658,7 @@ async function isBlacklisted({ visitorName, phone, faceSignature }) {
     return { blacklisted: false, record: null };
   }
 
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT id, visitor_name, phone, reason, flat_id, face_signature, status, created_at
      FROM visitor_blacklist_entries
      WHERE (${filters.join(" OR ")})
@@ -679,7 +679,7 @@ async function createVehicleEntry({
   entryMethod,
   createdBy,
 }) {
-  const [result] = await db.query(
+  const { rows: result } = await db.query(
     `INSERT INTO visitor_vehicle_entries (
       visitor_id, preapproval_id, vehicle_number, vehicle_type, owner_name,
       flat_id, entry_method, status, created_by, created_at
@@ -707,7 +707,7 @@ async function listVehicleEntries({ search, societyId } = {}) {
 
   const whereClause = filters.length ? `WHERE ${filters.join(" AND ")}` : "";
 
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT v.id, v.visitor_id, v.preapproval_id, v.vehicle_number, v.vehicle_type, v.owner_name,
             v.flat_id, v.entry_method, v.status, v.entry_time, v.exit_time, v.created_by, v.created_at
      FROM visitor_vehicle_entries v
@@ -721,7 +721,7 @@ async function listVehicleEntries({ search, societyId } = {}) {
 }
 
 async function createDeliveryEntry({ visitorId, deliveryType, packageId, recipientName, deliveryPartner, flatId, status, notes, createdBy }) {
-  const [result] = await db.query(
+  const { rows: result } = await db.query(
     `INSERT INTO visitor_delivery_entries (
       visitor_id, delivery_type, package_id, recipient_name, delivery_partner,
       flat_id, status, notes, created_by, created_at
@@ -754,7 +754,7 @@ async function listDeliveryEntries({ status, search, societyId } = {}) {
 
   const whereClause = filters.length ? `WHERE ${filters.join(" AND ")}` : "";
 
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT d.id, d.visitor_id, d.delivery_type, d.package_id, d.recipient_name, d.delivery_partner,
             d.flat_id, d.status, d.notes, d.created_by, d.created_at, d.updated_at
      FROM visitor_delivery_entries d
@@ -869,7 +869,7 @@ async function getVisitorDashboard({ wing, societyId } = {}) {
 }
 
 async function createEmergencyAlert({ triggeredBy, alertType, severity, message, location }) {
-  const [result] = await db.query(
+  const { rows: result } = await db.query(
     `INSERT INTO visitor_emergency_alerts
      (triggered_by, alert_type, severity, message, location, status, created_at)
      VALUES (?, ?, ?, ?, ?, 'active', NOW())`,
@@ -889,7 +889,7 @@ async function listEmergencyAlerts({ status } = {}) {
   }
 
   const whereClause = filters.length ? `WHERE ${filters.join(" AND ")}` : "";
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT id, triggered_by, alert_type, severity, message, location, status, created_at
      FROM visitor_emergency_alerts
      ${whereClause}
@@ -901,7 +901,7 @@ async function listEmergencyAlerts({ status } = {}) {
 }
 
 async function acknowledgeEmergencyAlert({ id, userId }) {
-  const [result] = await db.query(
+  const { rows: result } = await db.query(
     `UPDATE visitor_emergency_alerts
      SET status = 'acknowledged', acknowledged_by = ?, acknowledged_at = NOW()
      WHERE id = ? AND status = 'active'`,
@@ -912,7 +912,7 @@ async function acknowledgeEmergencyAlert({ id, userId }) {
 }
 
 async function resolveEmergencyAlert({ id, userId }) {
-  const [result] = await db.query(
+  const { rows: result } = await db.query(
     `UPDATE visitor_emergency_alerts
      SET status = 'resolved', resolved_by = ?, resolved_at = NOW()
      WHERE id = ? AND status IN ('active', 'acknowledged')`,

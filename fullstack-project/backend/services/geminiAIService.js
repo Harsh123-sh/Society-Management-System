@@ -99,7 +99,7 @@ For document generation (notices, emails), follow professional formatting standa
       }
 
       // Get user role and permissions
-      const [userRows] = await db.query(
+      const { rows: userRows } = await db.query(
         `SELECT role, resident_type, flat_id FROM users WHERE id = ? AND society_id = ?`,
         [userId, societyId]
       );
@@ -182,7 +182,7 @@ If the user asks for data they don't have permission to access, politely inform 
       let context = "";
 
       // Get society basic info
-      const [societyRows] = await db.query(
+      const { rows: societyRows } = await db.query(
         `SELECT name, code FROM societies WHERE id = ?`,
         [societyId]
       );
@@ -231,7 +231,7 @@ If the user asks for data they don't have permission to access, politely inform 
       let context = "Billing Information:\n";
 
       if (userRole === "resident") {
-        const [bills] = await db.query(
+        const { rows: bills } = await db.query(
           `SELECT bill_type, total_amount, paid_amount, status, due_date 
            FROM bills 
            WHERE resident_id = ? AND society_id = ?
@@ -247,7 +247,7 @@ If the user asks for data they don't have permission to access, politely inform 
           });
         }
       } else if (["secretary", "admin"].includes(userRole)) {
-        const [stats] = await db.query(
+        const { rows: stats } = await db.query(
           `SELECT 
             COUNT(*) as total_bills,
             SUM(total_amount) as total_amount,
@@ -275,7 +275,7 @@ If the user asks for data they don't have permission to access, politely inform 
       let context = "Complaint Information:\n";
 
       if (userRole === "resident") {
-        const [complaints] = await db.query(
+        const { rows: complaints } = await db.query(
           `SELECT title, status, created_at 
            FROM complaints 
            WHERE resident_id = ? AND resident_id IN (
@@ -293,7 +293,7 @@ If the user asks for data they don't have permission to access, politely inform 
           });
         }
       } else if (["secretary", "admin"].includes(userRole)) {
-        const [stats] = await db.query(
+        const { rows: stats } = await db.query(
           `SELECT 
             COUNT(*) as total_complaints,
             SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending_complaints
@@ -316,7 +316,7 @@ If the user asks for data they don't have permission to access, politely inform 
 
   async getNoticeContext(societyId) {
     try {
-      const [notices] = await db.query(
+      const { rows: notices } = await db.query(
         `SELECT title, message, created_at 
          FROM notices 
          WHERE created_by IN (SELECT id FROM users WHERE society_id = ?)
@@ -342,7 +342,7 @@ If the user asks for data they don't have permission to access, politely inform 
 
   async getSocietyStaffContext(societyId) {
     try {
-      const [staff] = await db.query(
+      const { rows: staff } = await db.query(
         `SELECT role, COUNT(*) as count, GROUP_CONCAT(name) as names
          FROM users 
          WHERE society_id = ? AND role IN ('secretary', 'admin', 'staff')
@@ -366,7 +366,7 @@ If the user asks for data they don't have permission to access, politely inform 
       let context = "Visitor Information:\n";
 
       if (userRole === "resident") {
-        const [visitors] = await db.query(
+        const { rows: visitors } = await db.query(
           `SELECT visitor_name, purpose, entry_time, status 
            FROM visitors 
            WHERE flat_id IN (SELECT id FROM flats WHERE society_id = ?)
@@ -377,7 +377,7 @@ If the user asks for data they don't have permission to access, politely inform 
 
         context += `Recent Visitors: ${visitors.length}\n`;
       } else if (userRole === "security") {
-        const [stats] = await db.query(
+        const { rows: stats } = await db.query(
           `SELECT 
             COUNT(*) as total_visitors,
             SUM(CASE WHEN status = 'in_premises' THEN 1 ELSE 0 END) as current_in_premises
@@ -495,7 +495,7 @@ Format as a complete professional email.`;
       query += ` ORDER BY created_at DESC LIMIT ?`;
       params.push(limit);
 
-      const [rows] = await db.query(query, params);
+      const { rows } = await db.query(query, params);
       return rows;
     } catch (error) {
       console.error("Error fetching chat history:", error);
@@ -521,7 +521,7 @@ Format as a complete professional email.`;
         params.push(societyId);
       }
 
-      const [rows] = await db.query(query, params);
+      const { rows } = await db.query(query, params);
       return rows[0] || {};
     } catch (error) {
       console.error("Error fetching AI stats:", error);

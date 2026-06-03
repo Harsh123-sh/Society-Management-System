@@ -3,7 +3,7 @@ const db = require("../db");
 // ============ TOWERS ============
 
 async function createTower({ societyId, builderId, name, code, totalFloors }) {
-  const [result] = await db.query(
+  const { rows: result } = await db.query(
     `INSERT INTO towers (society_id, builder_id, name, code, total_floors)
      VALUES (?, ?, ?, ?, ?)`,
     [societyId, builderId, name, code || null, totalFloors || null]
@@ -12,7 +12,7 @@ async function createTower({ societyId, builderId, name, code, totalFloors }) {
 }
 
 async function getTowerById(id) {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT id, society_id, builder_id, name, code, total_floors, created_at
      FROM towers WHERE id = ? LIMIT 1`,
     [id]
@@ -21,7 +21,7 @@ async function getTowerById(id) {
 }
 
 async function listTowersBySociety(societyId, builderId) {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT id, society_id, builder_id, name, code, total_floors, created_at
      FROM towers WHERE society_id = ? AND builder_id = ? ORDER BY name ASC`,
     [societyId, builderId]
@@ -49,7 +49,7 @@ async function deleteTower(id, builderId, societyId) {
 // ============ BLOCKS ============
 
 async function createBlock({ societyId, builderId, towerId, name, code }) {
-  const [result] = await db.query(
+  const { rows: result } = await db.query(
     `INSERT INTO blocks (society_id, builder_id, tower_id, name, code)
      VALUES (?, ?, ?, ?, ?)`,
     [societyId, builderId, towerId, name || null, code || null]
@@ -58,7 +58,7 @@ async function createBlock({ societyId, builderId, towerId, name, code }) {
 }
 
 async function getBlockById(id) {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT id, society_id, builder_id, tower_id, name, code, created_at
      FROM blocks WHERE id = ? LIMIT 1`,
     [id]
@@ -67,7 +67,7 @@ async function getBlockById(id) {
 }
 
 async function listBlocksByTower(towerId, builderId, societyId) {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT id, society_id, builder_id, tower_id, name, code, created_at
      FROM blocks WHERE tower_id = ? AND builder_id = ? AND society_id = ?
      ORDER BY name ASC`,
@@ -79,7 +79,7 @@ async function listBlocksByTower(towerId, builderId, societyId) {
 // ============ FLOORS ============
 
 async function createFloor({ societyId, builderId, towerId, floorNumber, floorName, totalUnits }) {
-  const [result] = await db.query(
+  const { rows: result } = await db.query(
     `INSERT INTO floors (society_id, builder_id, tower_id, floor_number, floor_name, total_units)
      VALUES (?, ?, ?, ?, ?, ?)`,
     [societyId, builderId, towerId, floorNumber, floorName || null, totalUnits || null]
@@ -88,7 +88,7 @@ async function createFloor({ societyId, builderId, towerId, floorNumber, floorNa
 }
 
 async function getFloorById(id) {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT id, society_id, builder_id, tower_id, floor_number, floor_name, total_units, created_at
      FROM floors WHERE id = ? LIMIT 1`,
     [id]
@@ -97,7 +97,7 @@ async function getFloorById(id) {
 }
 
 async function listFloorsByTower(towerId, builderId, societyId) {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT id, society_id, builder_id, tower_id, floor_number, floor_name, total_units, created_at
      FROM floors WHERE tower_id = ? AND builder_id = ? AND society_id = ?
      ORDER BY floor_number ASC`,
@@ -107,7 +107,7 @@ async function listFloorsByTower(towerId, builderId, societyId) {
 }
 
 async function getFloorsByTowerRange(towerId, builderId, societyId, startFloor, endFloor) {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT id, floor_number, floor_name, total_units
      FROM floors 
      WHERE tower_id = ? AND builder_id = ? AND society_id = ?

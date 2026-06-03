@@ -7,7 +7,7 @@ let userTableColumnsCache = null;
 async function getUserTableColumns() {
   if (!userTableColumnsCache) {
     userTableColumnsCache = (async () => {
-      const [rows] = await db.query(
+      const { rows } = await db.query(
         `SELECT COLUMN_NAME
          FROM INFORMATION_SCHEMA.COLUMNS
          WHERE TABLE_SCHEMA = DATABASE()
@@ -71,7 +71,7 @@ async function getAllUsers({ search, status, role, societyId } = {}) {
 
   const whereClause = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
 
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT u.id, u.name, u.email, u.role, u.resident_type, u.status, u.is_verified,
             u.society_id, u.flat_id, u.flat_number, s.code AS society_code, s.name AS society_name,
              u.deleted_at, u.deleted_by, u.delete_reason, u.permanently_deleted_at, u.created_at
@@ -111,7 +111,7 @@ async function getDeletedUsers({ search, societyId } = {}) {
 
   const whereClause = `WHERE ${conditions.join(" AND ")}`;
 
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT u.id, u.name, u.email, u.original_email, u.role, u.resident_type, u.status,
             u.is_verified, u.society_id, u.flat_id, u.flat_number, s.code AS society_code,
             s.name AS society_name, u.deleted_at, u.deleted_by, u.delete_reason,
@@ -185,7 +185,7 @@ async function createUser({
     values.push(address || null);
   }
 
-  const [result] = await db.query(
+  const { rows: result } = await db.query(
     `INSERT INTO users (${fields.join(", ")}) VALUES (${fields.map(() => "?").join(", ")})`,
     values
   );
@@ -207,7 +207,7 @@ async function createUser({
 }
 
 async function countUsersByRoleAndSociety(role, societyId) {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT COUNT(*) AS count
      FROM users
      WHERE society_id = ?
@@ -240,7 +240,7 @@ async function getUserCountsByRolesAndStatus({ societyId, roles = [], statuses =
 
   const whereClause = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
 
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT COUNT(*) AS count
      FROM users
      ${whereClause}`,
@@ -272,7 +272,7 @@ async function getFlatByWingAndNumber({ societyId, wingId, wing, flatNumber }) {
 
   const whereClause = filters.length ? `WHERE ${filters.join(" AND ")}` : "";
 
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT f.id, f.building_name, f.wing, f.wing_id, f.flat_number, f.floor, f.flat_type
      FROM flats f
      ${whereClause}
@@ -285,7 +285,7 @@ async function getFlatByWingAndNumber({ societyId, wingId, wing, flatNumber }) {
 }
 
 async function createOwnerProperty({ userId, flatId, livingStartDate }) {
-  const [result] = await db.query(
+  const { rows: result } = await db.query(
     `INSERT INTO owner_properties (user_id, flat_id, living_start_date)
      VALUES (?, ?, ?)
      ON DUPLICATE KEY UPDATE
@@ -298,7 +298,7 @@ async function createOwnerProperty({ userId, flatId, livingStartDate }) {
 }
 
 async function syncOwnerPropertyMapping(userId, flatId = null) {
-  const [userRows] = await db.query(
+  const { rows: userRows } = await db.query(
     `SELECT id, flat_id, resident_type, status
      FROM users
      WHERE id = ?
@@ -316,7 +316,7 @@ async function syncOwnerPropertyMapping(userId, flatId = null) {
     return null;
   }
 
-  const [flatRows] = await db.query(
+  const { rows: flatRows } = await db.query(
     `SELECT id, building_name, wing, flat_number, floor, flat_type
      FROM flats
      WHERE id = ?
@@ -400,7 +400,7 @@ async function updateUserById(id, { name, email, phone, profilePhotoUrl, familyM
 }
 
 async function deleteOwnerPropertyById(propertyId) {
-  const [result] = await db.query(
+  const { rows: result } = await db.query(
     `DELETE FROM owner_properties WHERE id = ?`,
     [propertyId]
   );
@@ -409,7 +409,7 @@ async function deleteOwnerPropertyById(propertyId) {
 }
 
 async function getUserByEmail(email) {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT u.*, s.code AS society_code, s.slug AS society_slug, s.subdomain AS society_subdomain, s.name AS society_name, s.builder_id
      FROM users u
      LEFT JOIN societies s ON s.id = u.society_id
@@ -421,7 +421,7 @@ async function getUserByEmail(email) {
 }
 
 async function getUserById(id) {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
         `SELECT u.id, u.name, u.email, u.role, u.resident_type, u.status, u.is_verified,
           u.society_id, u.flat_id, u.flat_number, s.code AS society_code, s.slug AS society_slug,
           s.subdomain AS society_subdomain, s.name AS society_name, s.builder_id,
@@ -440,7 +440,7 @@ async function verifyUserByEmail(email) {
 }
 
 async function hasOwnerForFlat({ societyId, flatNumber }) {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT id
      FROM users
      WHERE society_id = ?
@@ -455,7 +455,7 @@ async function hasOwnerForFlat({ societyId, flatNumber }) {
 }
 
 async function hasOwnerForFlatId(flatId) {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT id
      FROM owner_properties
      WHERE flat_id = ?
@@ -467,7 +467,7 @@ async function hasOwnerForFlatId(flatId) {
 }
 
 async function getOwnerPropertyRows(ownerId) {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT
        op.id AS owner_property_id,
        op.user_id,
@@ -508,7 +508,7 @@ async function countActiveAdmins(excludeUserId = null) {
     params.push(excludeUserId);
   }
 
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT COUNT(*) AS count
      FROM users
      WHERE role = 'admin'
@@ -793,7 +793,7 @@ async function getUsersByCategory(category, { search, status, societyId } = {}) 
 
   const whereClause = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
 
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT u.id, u.name, u.email, u.role, u.resident_type, u.status, u.is_verified,
             u.society_id, u.flat_id, u.flat_number, s.code AS society_code, s.name AS society_name,
             u.created_at
@@ -1000,7 +1000,7 @@ async function getUserDirectory({
   const pageSize = Math.min(Math.max(Number.parseInt(limit, 10) || 20, 1), 100);
   const offset = (pageNumber - 1) * pageSize;
 
-  const [countRows] = await db.query(
+  const { rows: countRows } = await db.query(
     `SELECT COUNT(*) AS total
      FROM users u
      ${joins.join("\n     ")}
@@ -1015,7 +1015,7 @@ async function getUserDirectory({
     summaryParams.push(societyId);
   }
 
-  const [summaryRows] = await db.query(
+  const { rows: summaryRows } = await db.query(
     `SELECT
         COUNT(CASE WHEN u.role = 'resident' THEN 1 END) AS total_residents,
         COUNT(CASE WHEN u.role = 'resident' AND u.resident_type = 'owner' THEN 1 END) AS total_owners,
@@ -1029,7 +1029,7 @@ async function getUserDirectory({
     summaryParams
   );
 
-  const [vacantRows] = await db.query(
+  const { rows: vacantRows } = await db.query(
     `SELECT COUNT(*) AS vacant_flats
      FROM flats f
      WHERE f.society_id = ?
@@ -1037,7 +1037,7 @@ async function getUserDirectory({
     [societyId || 0]
   );
 
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT ${selectFields.join(",\n            ")}
      FROM users u
      ${joins.join("\n     ")}

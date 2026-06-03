@@ -17,7 +17,7 @@ async function main() {
   try {
     for (const [label, sql, params] of queries) {
       try {
-        const [rows] = await db.query(sql, params);
+        const { rows } = await db.query(sql, params);
         console.log(label, 'OK', rows[0]);
       } catch (error) {
         console.log(label, 'ERR', error.code, error.sqlMessage || error.message);

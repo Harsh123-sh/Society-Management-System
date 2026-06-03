@@ -1,7 +1,7 @@
 const db = require("../db");
 
 async function getBuilderById(id) {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT id, name, email, slug, logo_url, website, status, subscription_plan, max_societies, max_users, created_at
      FROM builders WHERE id = ? LIMIT 1`,
     [id]
@@ -10,7 +10,7 @@ async function getBuilderById(id) {
 }
 
 async function getBuilderByEmail(email) {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT id, name, email, slug, logo_url, website, status, subscription_plan, max_societies, max_users, created_at
      FROM builders WHERE email = ? LIMIT 1`,
     [email]
@@ -19,7 +19,7 @@ async function getBuilderByEmail(email) {
 }
 
 async function getBuilderBySlug(slug) {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT id, name, email, slug, logo_url, website, status, subscription_plan, max_societies, max_users, created_at
      FROM builders WHERE slug = ? LIMIT 1`,
     [slug]
@@ -28,7 +28,7 @@ async function getBuilderBySlug(slug) {
 }
 
 async function createBuilder({ name, email, slug, logoUrl, website, subscriptionPlan, maxSocieties, maxUsers }) {
-  const [result] = await db.query(
+  const { rows: result } = await db.query(
     `INSERT INTO builders (name, email, slug, logo_url, website, subscription_plan, max_societies, max_users, status)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'active')`,
     [name, email, slug, logoUrl || null, website || null, subscriptionPlan || 'starter', maxSocieties || 10, maxUsers || 1000]
@@ -49,7 +49,7 @@ async function updateBuilder(id, updates) {
 }
 
 async function listBuilders(limit = 50, offset = 0) {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT id, name, email, slug, status, subscription_plan, max_societies, max_users, created_at
      FROM builders ORDER BY created_at DESC LIMIT ? OFFSET ?`,
     [limit, offset]
@@ -58,7 +58,7 @@ async function listBuilders(limit = 50, offset = 0) {
 }
 
 async function getSocietyCountForBuilder(builderId) {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT COUNT(*) as count FROM societies WHERE builder_id = ? AND status != 'archived'`,
     [builderId]
   );
@@ -66,7 +66,7 @@ async function getSocietyCountForBuilder(builderId) {
 }
 
 async function getUserCountForBuilder(builderId) {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT COUNT(DISTINCT u.id) as count 
      FROM users u
      JOIN societies s ON u.society_id = s.id

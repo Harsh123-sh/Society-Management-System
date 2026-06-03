@@ -30,7 +30,7 @@ router.get("/society", async (req, res) => {
 router.get("/societies", async (req, res) => {
   try {
     console.log("[Public] GET /societies");
-    const [rows] = await db.query(
+    const { rows } = await db.query(
       `SELECT
          id,
          code AS society_code,
@@ -75,19 +75,19 @@ router.get("/societies/:societyId/landing-stats", async (req, res) => {
       return res.status(404).json({ success: false, message: "Society not found" });
     }
 
-    const [residentRows] = await db.query(
+    const { rows: residentRows } = await db.query(
       `SELECT COUNT(*) AS total_residents FROM users WHERE role = 'resident' AND society_id = ?`,
       [societyId]
     );
 
-    const [paymentRows] = await db.query(
+    const { rows: paymentRows } = await db.query(
       `SELECT COALESCE(SUM(total_amount), 0) AS total_amount
        FROM bills
        WHERE society_id = ? AND status = 'paid'`,
       [societyId]
     );
 
-    const [openComplaintsRows] = await db.query(
+    const { rows: openComplaintsRows } = await db.query(
       `SELECT COUNT(*) AS pending_complaints
        FROM complaints c
        JOIN users resident ON resident.id = c.resident_id
@@ -95,7 +95,7 @@ router.get("/societies/:societyId/landing-stats", async (req, res) => {
       [societyId]
     );
 
-    const [complaintSummaryRows] = await db.query(
+    const { rows: complaintSummaryRows } = await db.query(
       `SELECT COUNT(*) AS total_complaints,
               SUM(c.status = 'resolved') AS resolved_complaints
        FROM complaints c
@@ -104,7 +104,7 @@ router.get("/societies/:societyId/landing-stats", async (req, res) => {
       [societyId]
     );
 
-    const [latestComplaintRows] = await db.query(
+    const { rows: latestComplaintRows } = await db.query(
       `SELECT c.title, c.description, resident.name AS resident_name
        FROM complaints c
        JOIN users resident ON resident.id = c.resident_id
@@ -114,7 +114,7 @@ router.get("/societies/:societyId/landing-stats", async (req, res) => {
       [societyId]
     );
 
-    const [visitorRows] = await db.query(
+    const { rows: visitorRows } = await db.query(
       `SELECT COUNT(*) AS total_visitors
        FROM visitors v
        LEFT JOIN flats f ON f.id = v.flat_id
@@ -192,12 +192,12 @@ router.get("/societies/:societyId/live-preview", async (req, res) => {
       return res.status(404).json({ success: false, message: "Society not found" });
     }
 
-    const [residentRows] = await db.query(
+    const { rows: residentRows } = await db.query(
       `SELECT COUNT(*) AS total_residents FROM users WHERE role = 'resident' AND society_id = ?`,
       [societyId]
     );
 
-    const [flatRows] = await db.query(
+    const { rows: flatRows } = await db.query(
       `SELECT
          COUNT(*) AS total_flats,
          COALESCE(SUM(status = 'occupied'), 0) AS occupied_flats
@@ -206,7 +206,7 @@ router.get("/societies/:societyId/live-preview", async (req, res) => {
       [societyId]
     );
 
-    const [complaintRows] = await db.query(
+    const { rows: complaintRows } = await db.query(
       `SELECT COUNT(*) AS pending_complaints
        FROM complaints c
        JOIN users resident ON resident.id = c.resident_id
@@ -214,7 +214,7 @@ router.get("/societies/:societyId/live-preview", async (req, res) => {
       [societyId]
     );
 
-    const [visitorRows] = await db.query(
+    const { rows: visitorRows } = await db.query(
       `SELECT COUNT(*) AS today_visitors
        FROM visitors v
        JOIN flats f ON f.id = v.flat_id
@@ -222,7 +222,7 @@ router.get("/societies/:societyId/live-preview", async (req, res) => {
       [societyId]
     );
 
-    const [paymentRows] = await db.query(
+    const { rows: paymentRows } = await db.query(
       `SELECT COALESCE(SUM(total_amount), 0) AS total_collections
        FROM bills
        WHERE society_id = ? AND status = 'paid'`,
@@ -231,7 +231,7 @@ router.get("/societies/:societyId/live-preview", async (req, res) => {
 
       let aiTaskCount = 0;
       try {
-        const [aiRows] = await db.query(
+        const { rows: aiRows } = await db.query(
           `SELECT COUNT(*) AS ai_task_count FROM ai_chats WHERE society_id = ?`,
           [societyId]
         );
@@ -242,7 +242,7 @@ router.get("/societies/:societyId/live-preview", async (req, res) => {
         }
       }
 
-    const [noticeRows] = await db.query(
+    const { rows: noticeRows } = await db.query(
       `SELECT n.id, n.title, n.message, n.created_at, u.name AS created_by
        FROM notices n
        JOIN users u ON u.id = n.created_by
@@ -252,7 +252,7 @@ router.get("/societies/:societyId/live-preview", async (req, res) => {
       [societyId]
     );
 
-    const [maintenanceRows] = await db.query(
+    const { rows: maintenanceRows } = await db.query(
       `SELECT c.id, c.title, c.description, c.status, c.created_at, resident.name AS resident_name
        FROM complaints c
        JOIN users resident ON resident.id = c.resident_id

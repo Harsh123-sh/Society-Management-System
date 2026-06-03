@@ -230,7 +230,7 @@ async function getTenantContextBySocietyId(societyId) {
     return null;
   }
 
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT s.id, s.code, s.slug, s.subdomain, s.name, s.status, s.subscription_plan, s.default_language,
             s.created_by, s.primary_admin_user_id, s.created_at,
             b.logo_url, b.favicon_url, b.primary_color, b.secondary_color, b.accent_color, b.font_family, b.theme_json,
@@ -297,7 +297,7 @@ async function getTenantContextBySocietyId(societyId) {
 }
 
 async function listTenantSummaries() {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT s.id, s.code, s.slug, s.subdomain, s.name, s.status, s.subscription_plan,
             s.default_language, s.created_at,
             b.primary_color, b.secondary_color, b.accent_color,
@@ -317,7 +317,7 @@ async function listTenantSummaries() {
 }
 
 async function updateTenantBranding(societyId, branding = {}) {
-  const [result] = await db.query(
+  const { rows: result } = await db.query(
     `INSERT INTO society_brandings
       (society_id, logo_url, favicon_url, primary_color, secondary_color, accent_color, font_family, theme_json)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
@@ -345,7 +345,7 @@ async function updateTenantBranding(societyId, branding = {}) {
 }
 
 async function updateTenantSettings(societyId, settings = {}) {
-  const [result] = await db.query(
+  const { rows: result } = await db.query(
     `INSERT INTO society_settings
       (society_id, timezone, locale, currency_code, modules_json, permissions_json, feature_flags_json, personalization_json)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
@@ -373,7 +373,7 @@ async function updateTenantSettings(societyId, settings = {}) {
 }
 
 async function updateTenantSubscription(societyId, subscription = {}) {
-  const [result] = await db.query(
+  const { rows: result } = await db.query(
     `INSERT INTO society_subscriptions
       (society_id, plan_name, status, billing_cycle, renewal_at, limits_json, provider_name, provider_subscription_id)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
@@ -401,7 +401,7 @@ async function updateTenantSubscription(societyId, subscription = {}) {
 }
 
 async function setModuleState(societyId, moduleKey, enabled, config = {}) {
-  const [result] = await db.query(
+  const { rows: result } = await db.query(
     `INSERT INTO society_modules
       (society_id, module_key, enabled, config_json)
      VALUES (?, ?, ?, ?)
@@ -426,7 +426,7 @@ async function recordSocietyAnalytics(societyId, metrics = {}, metricDate = new 
 }
 
 async function getSocietyAnalytics(societyId) {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT id, society_id, metric_date, metrics_json, created_at
      FROM society_analytics
      WHERE society_id = ?

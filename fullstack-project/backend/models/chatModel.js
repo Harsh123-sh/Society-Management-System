@@ -24,7 +24,7 @@ function fromJson(value, fallback = null) {
 }
 
 async function getChatActorContext(userId) {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT u.id, u.name, u.role, u.status, u.society_id, u.flat_number, u.resident_type,
             s.code AS society_code, s.slug AS society_slug, s.subdomain AS society_subdomain
      FROM users u
@@ -45,7 +45,7 @@ async function getChatActorContext(userId) {
 }
 
 async function getChatMemberById(memberId) {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT u.id, u.name, u.flat_number, u.society_id, u.role, u.status,
             COALESCE(f.wing, '-') AS wing,
             COALESCE(f.floor, '-') AS floor,
@@ -89,7 +89,7 @@ async function getChatMembersForUser({ currentUserId, currentRole, societyId, se
     params.push(likeSearch, likeSearch, likeSearch, likeSearch);
   }
 
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT u.id, u.name, u.flat_number, u.role, u.resident_type,
             COALESCE(f.wing, '-') AS wing,
             COALESCE(f.floor, '-') AS floor,
@@ -125,7 +125,7 @@ async function ensureThreadMember(connection, threadId, userId, memberRole = "me
 }
 
 async function getThreadById(threadId) {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT id, society_id, thread_type, title, description, avatar_url, created_by,
             last_message_at, pinned_message_id, archived_at, created_at, updated_at
      FROM chat_threads
@@ -138,7 +138,7 @@ async function getThreadById(threadId) {
 }
 
 async function getThreadMembers(threadId) {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT tm.thread_id, tm.user_id, tm.member_role, tm.joined_at, tm.left_at, tm.muted_until,
             tm.last_read_message_id, tm.last_delivered_message_id,
             u.name, u.email, u.role, u.status, u.flat_number, u.society_id,
@@ -158,7 +158,7 @@ async function getThreadMembers(threadId) {
 }
 
 async function getDirectThreadBetweenUsers(userId, peerId) {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT t.id
      FROM chat_threads t
      JOIN chat_thread_members m1 ON m1.thread_id = t.id AND m1.user_id = ? AND m1.left_at IS NULL
@@ -223,7 +223,7 @@ async function ensureDirectThread({ userId, peerId, societyId = null }) {
 }
 
 async function listThreadsForUser(userId) {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT t.id, t.society_id, t.thread_type, t.title, t.description, t.avatar_url, t.created_by,
             t.last_message_at, t.pinned_message_id, t.archived_at, t.created_at, t.updated_at,
             latest.id AS latest_message_id,
@@ -322,7 +322,7 @@ async function getThreadMessages({ threadId, currentUserId, limit = 200, search 
   }
   params.push(safeLimit);
 
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT m.id, m.thread_id, m.sender_id, m.receiver_id, m.message_type, m.message,
             m.media_url, m.media_name, m.media_size, m.mime_type, m.thumbnail_url,
             m.reply_to_message_id, m.is_pinned, m.pinned_by, m.pinned_at,
@@ -410,7 +410,7 @@ async function createMessage({
     targetThreadId = thread.id;
   }
 
-  const [result] = await db.query(
+  const { rows: result } = await db.query(
     `INSERT INTO chat_messages (
       thread_id, sender_id, receiver_id, message_type, message, media_url, media_name,
       media_size, mime_type, thumbnail_url, reply_to_message_id, metadata_json
@@ -433,7 +433,7 @@ async function createMessage({
 
   await db.query("UPDATE chat_threads SET last_message_at = NOW() WHERE id = ?", [targetThreadId]);
 
-  const [memberRows] = await db.query(
+  const { rows: memberRows } = await db.query(
     `SELECT user_id
      FROM chat_thread_members
      WHERE thread_id = ?
@@ -457,7 +457,7 @@ async function createMessage({
 }
 
 async function getMessageById(messageId) {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT m.id, m.thread_id, m.sender_id, m.receiver_id, m.message_type, m.message,
             m.media_url, m.media_name, m.media_size, m.mime_type, m.thumbnail_url,
             m.reply_to_message_id, m.is_pinned, m.pinned_by, m.pinned_at,
@@ -517,7 +517,7 @@ async function markThreadRead({ threadId, userId, messageId = null }) {
   const params = [threadId, userId];
   if (messageId) params.push(messageId);
 
-  const [messages] = await db.query(
+  const { rows: messages } = await db.query(
     `SELECT id
      FROM chat_messages
      WHERE thread_id = ?
@@ -576,7 +576,7 @@ async function searchMessages({ userId, query, limit = 50 }) {
   const safeLimit = Number.isFinite(limit) ? Math.min(Math.max(Number(limit), 1), 100) : 50;
   const likeQuery = `%${query}%`;
 
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT m.id, m.thread_id, m.sender_id, m.receiver_id, m.message_type, m.message,
             m.media_url, m.media_name, m.media_size, m.mime_type, m.thumbnail_url,
             m.created_at, sender.name AS sender_name
@@ -594,7 +594,7 @@ async function searchMessages({ userId, query, limit = 50 }) {
 }
 
 async function softDeleteMessageForMe({ messageId, userId }) {
-  const [ownedRows] = await db.query(
+  const { rows: ownedRows } = await db.query(
     `SELECT id, sender_id, receiver_id, thread_id
      FROM chat_messages
      WHERE id = ?
@@ -610,14 +610,14 @@ async function softDeleteMessageForMe({ messageId, userId }) {
   }
 
   if (message.sender_id === userId) {
-    const [result] = await db.query(
+    const { rows: result } = await db.query(
       "UPDATE chat_messages SET deleted_for_sender = 1 WHERE id = ?",
       [messageId]
     );
     return { found: true, updated: result.affectedRows > 0 };
   }
 
-  const [result] = await db.query(
+  const { rows: result } = await db.query(
     "UPDATE chat_messages SET deleted_for_receiver = 1 WHERE id = ?",
     [messageId]
   );
@@ -625,7 +625,7 @@ async function softDeleteMessageForMe({ messageId, userId }) {
 }
 
 async function deleteMessageForEveryone({ messageId, userId }) {
-  const [ownedRows] = await db.query(
+  const { rows: ownedRows } = await db.query(
     `SELECT id, sender_id, receiver_id, deleted_for_all
      FROM chat_messages
      WHERE id = ?
@@ -640,7 +640,7 @@ async function deleteMessageForEveryone({ messageId, userId }) {
     return { found: true, updated: false, unauthorized: true };
   }
 
-  const [result] = await db.query(
+  const { rows: result } = await db.query(
     `UPDATE chat_messages
      SET deleted_for_all = 1,
          deleted_for_all_by = ?,

@@ -43,7 +43,7 @@ async function validateBulkRecordAccess(db, table, recordIds, societyId) {
   }
 
   const placeholders = recordIds.map(() => "?").join(",");
-  const [records] = await db.query(
+  const { rows: records } = await db.query(
     `SELECT id, society_id FROM ${table} WHERE id IN (${placeholders})`,
     recordIds
   );

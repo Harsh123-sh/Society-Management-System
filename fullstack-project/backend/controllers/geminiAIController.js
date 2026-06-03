@@ -46,7 +46,7 @@ exports.askSocietyQuestion = async (req, res) => {
     }
 
     // Verify user has access to this society
-    const [user] = await db.query(
+    const { rows: user } = await db.query(
       `SELECT society_id, role FROM users WHERE id = ? AND society_id = ?`,
       [userId, societyId]
     );
@@ -83,7 +83,7 @@ exports.generateNotice = async (req, res) => {
     }
 
     // Verify authorization
-    const [user] = await db.query(
+    const { rows: user } = await db.query(
       `SELECT id FROM users 
        WHERE id = ? AND society_id = ? AND role IN ('secretary', 'admin')`,
       [userId, societyId]
@@ -126,7 +126,7 @@ exports.generateEmail = async (req, res) => {
     }
 
     // Verify user is in the society
-    const [user] = await db.query(
+    const { rows: user } = await db.query(
       `SELECT id FROM users 
        WHERE id = ? AND society_id = ?`,
       [userId, societyId]
@@ -191,7 +191,7 @@ exports.getAIUsageStats = async (req, res) => {
 
     if (societyId) {
       // Society Admin
-      const [user] = await db.query(
+      const { rows: user } = await db.query(
         `SELECT id FROM users 
          WHERE id = ? AND society_id = ? AND role IN ('secretary', 'admin')`,
         [userId, societyId]
@@ -205,7 +205,7 @@ exports.getAIUsageStats = async (req, res) => {
       whereClause = " WHERE society_id = ?";
     } else {
       // Super Admin
-      const [user] = await db.query(
+      const { rows: user } = await db.query(
         `SELECT id FROM users WHERE id = ? AND role = 'super_admin'`,
         [userId]
       );
@@ -310,7 +310,7 @@ exports.analyzeComplaint = async (req, res) => {
     }
 
     // Verify user is in society
-    const [user] = await db.query(
+    const { rows: user } = await db.query(
       `SELECT role FROM users WHERE id = ? AND society_id = ?`,
       [userId, societyId]
     );
@@ -359,7 +359,7 @@ exports.getMaintenanceSuggestions = async (req, res) => {
     const { societyId } = req.params;
 
     // Verify authorization - Secretary/Admin
-    const [user] = await db.query(
+    const { rows: user } = await db.query(
       `SELECT id FROM users 
        WHERE id = ? AND society_id = ? AND role IN ('secretary', 'admin')`,
       [userId, societyId]

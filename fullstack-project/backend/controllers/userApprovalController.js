@@ -14,7 +14,7 @@ exports.getPendingApprovals = async (req, res) => {
     const { residentType, approvalType } = req.query;
 
     // Verify authorization - must be secretary or admin
-    const [user] = await db.query(
+    const { rows: user } = await db.query(
       `SELECT id FROM users 
        WHERE id = ? AND society_id = ? AND role IN ('secretary', 'admin', 'super_admin')`,
       [userId, societyId]
@@ -48,7 +48,7 @@ exports.getApprovalStats = async (req, res) => {
     const userId = req.user.id;
 
     // Verify authorization
-    const [user] = await db.query(
+    const { rows: user } = await db.query(
       `SELECT id FROM users 
        WHERE id = ? AND society_id = ? AND role IN ('secretary', 'admin', 'super_admin')`,
       [userId, societyId]
@@ -79,7 +79,7 @@ exports.approveUser = async (req, res) => {
     const { comments } = req.body;
 
     // Verify authorization
-    const [user] = await db.query(
+    const { rows: user } = await db.query(
       `SELECT id FROM users 
        WHERE id = ? AND society_id = ? AND role IN ('secretary', 'admin', 'super_admin')`,
       [userId, societyId]
@@ -118,7 +118,7 @@ exports.rejectUser = async (req, res) => {
     }
 
     // Verify authorization
-    const [user] = await db.query(
+    const { rows: user } = await db.query(
       `SELECT id FROM users 
        WHERE id = ? AND society_id = ? AND role IN ('secretary', 'admin', 'super_admin')`,
       [userId, societyId]
@@ -157,7 +157,7 @@ exports.bulkApproveUsers = async (req, res) => {
     }
 
     // Verify authorization
-    const [user] = await db.query(
+    const { rows: user } = await db.query(
       `SELECT id FROM users 
        WHERE id = ? AND society_id = ? AND role IN ('secretary', 'admin', 'super_admin')`,
       [userId, societyId]
@@ -198,7 +198,7 @@ exports.verifyOwner = async (req, res) => {
     }
 
     // Verify authorization
-    const [user] = await db.query(
+    const { rows: user } = await db.query(
       `SELECT id FROM users 
        WHERE id = ? AND society_id = ? AND role IN ('secretary', 'admin', 'super_admin')`,
       [verifierId, societyId]
@@ -232,7 +232,7 @@ exports.verifyTenant = async (req, res) => {
     }
 
     // Verify authorization
-    const [user] = await db.query(
+    const { rows: user } = await db.query(
       `SELECT id FROM users 
        WHERE id = ? AND society_id = ? AND role IN ('secretary', 'admin', 'super_admin')`,
       [verifierId, societyId]
@@ -261,7 +261,7 @@ exports.getUserApprovalHistory = async (req, res) => {
     const requesterId = req.user.id;
 
     // Get user info
-    const [userInfo] = await db.query(
+    const { rows: userInfo } = await db.query(
       `SELECT society_id FROM users WHERE id = ?`,
       [userId]
     );
@@ -296,7 +296,7 @@ exports.getSuperAdminPendingApprovals = async (req, res) => {
     const userId = req.user.id;
 
     // Verify super admin
-    const [user] = await db.query(
+    const { rows: user } = await db.query(
       `SELECT id FROM users WHERE id = ? AND role = 'super_admin'`,
       [userId]
     );
@@ -306,7 +306,7 @@ exports.getSuperAdminPendingApprovals = async (req, res) => {
     }
 
     // Get all pending approvals
-    const [approvals] = await db.query(
+    const { rows: approvals } = await db.query(
       `SELECT ua.id, ua.user_id, ua.approval_type, ua.status,
               u.name, u.email, u.phone, u.role, u.resident_type,
               s.code, s.name as society_name, ua.created_at
@@ -336,7 +336,7 @@ exports.superAdminApproveUser = async (req, res) => {
     const { comments } = req.body;
 
     // Verify super admin
-    const [user] = await db.query(
+    const { rows: user } = await db.query(
       `SELECT id FROM users WHERE id = ? AND role = 'super_admin'`,
       [userId]
     );
@@ -374,7 +374,7 @@ exports.superAdminRejectUser = async (req, res) => {
     }
 
     // Verify super admin
-    const [user] = await db.query(
+    const { rows: user } = await db.query(
       `SELECT id FROM users WHERE id = ? AND role = 'super_admin'`,
       [userId]
     );

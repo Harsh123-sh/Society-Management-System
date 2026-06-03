@@ -1,7 +1,7 @@
 const db = require("../db");
 
 async function getRetentionRules() {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT rr.id, rr.resource_type, rr.retention_days, rr.archive_after_days, rr.auto_archive_enabled,
             rr.allow_permanent_delete, rr.updated_by, rr.created_at, rr.updated_at,
             u.name AS updated_by_name
@@ -14,7 +14,7 @@ async function getRetentionRules() {
 }
 
 async function updateRetentionRule({ resourceType, retentionDays, archiveAfterDays, autoArchiveEnabled, allowPermanentDelete, updatedBy }) {
-  const [result] = await db.query(
+  const { rows: result } = await db.query(
     `INSERT INTO retention_rules (resource_type, retention_days, archive_after_days, auto_archive_enabled, allow_permanent_delete, updated_by)
      VALUES (?, ?, ?, ?, ?, ?)
      ON DUPLICATE KEY UPDATE
@@ -75,7 +75,7 @@ async function getArchivedComplaints(filters = {}) {
     params.push(filters.toDate);
   }
 
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT c.id, c.title, c.description, c.category, c.status, c.resolved_at, c.archived_at, c.archived_by, c.archived_from_status,
             c.deleted_at, c.deleted_by, c.deletion_reason, c.created_at, c.updated_at,
             c.resident_id, resident.name AS resident_name, resident.email AS resident_email, resident.flat_number AS resident_flat_number,
@@ -122,7 +122,7 @@ async function getArchivedNotices(filters = {}) {
     params.push(filters.toDate);
   }
 
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT n.id, n.title, n.message, n.status, n.expires_at, n.archived_at, n.archived_by, n.archived_from_status,
             n.deleted_at, n.deleted_by, n.deletion_reason, n.created_at, n.created_by,
             u.name AS created_by_name, u.email AS created_by_email, archiver.name AS archived_by_name, deleter.name AS deleted_by_name
@@ -180,7 +180,7 @@ async function getArchiveStats({ societyId = null } = {}) {
 
 async function getRecentAuditLogs({ limit = 20, societyId = null } = {}) {
   const societyFilter = societyId ? "AND al.society_id = ?" : "";
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT al.id, al.user_id, al.action, al.resource_type, al.resource_id, al.details, al.status, al.created_at,
             u.name AS user_name, u.email AS user_email
      FROM audit_logs al

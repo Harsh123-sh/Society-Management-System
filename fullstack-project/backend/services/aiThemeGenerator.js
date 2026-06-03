@@ -347,7 +347,7 @@ Return ONLY the JSON object.
    */
   async saveGeneratedTheme(societyId, prompt, generatedTheme, generatedBy) {
     try {
-      const [result] = await db.query(
+      const { rows: result } = await db.query(
         `INSERT INTO ai_theme_generations (
           society_id, request_prompt, generated_theme_json, 
           generated_by, status
@@ -372,7 +372,7 @@ Return ONLY the JSON object.
    */
   async applyThemeToSociety(societyId, theme, userId) {
     try {
-      const [result] = await db.query(
+      const { rows: result } = await db.query(
         `UPDATE societies SET
           theme_primary = ?,
           theme_secondary = ?,
@@ -416,7 +416,7 @@ Return ONLY the JSON object.
    */
   async getThemeHistory(societyId, limit = 10) {
     try {
-      const [rows] = await db.query(
+      const { rows } = await db.query(
         `SELECT id, request_prompt, generated_theme_json, status, 
                 generated_by, created_at
          FROM ai_theme_generations

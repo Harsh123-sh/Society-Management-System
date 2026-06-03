@@ -17,7 +17,7 @@ async function createAuditLog({
   societyId = null,
   builderId = null,
 }) {
-  const [result] = await db.query(
+  const { rows: result } = await db.query(
     `INSERT INTO audit_logs (
       user_id, action, resource_type, resource_id, details,
       old_values, new_values, status, ip_address, user_agent,
@@ -101,7 +101,7 @@ async function getAuditLogs({
 
   const whereClause = filters.length ? `WHERE ${filters.join(" AND ")}` : "";
 
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT al.*, u.name AS user_name, u.email AS user_email
      FROM audit_logs al
      LEFT JOIN users u ON u.id = al.user_id
@@ -172,7 +172,7 @@ async function getAuditLogCount({
 
   const whereClause = filters.length ? `WHERE ${filters.join(" AND ")}` : "";
 
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT COUNT(*) as count FROM audit_logs al ${whereClause}`,
     params
   );
@@ -184,7 +184,7 @@ async function getAuditLogCount({
  * Get audit log by ID
  */
 async function getAuditLogById(id) {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT al.*, u.name AS user_name, u.email AS user_email
      FROM audit_logs al
      LEFT JOIN users u ON u.id = al.user_id
@@ -216,7 +216,7 @@ async function getActivitySummary(builderId = null, societyId = null, hours = 24
 
   const whereClause = `WHERE ${filters.join(" AND ")}`;
 
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT
       action,
       COUNT(*) as count,

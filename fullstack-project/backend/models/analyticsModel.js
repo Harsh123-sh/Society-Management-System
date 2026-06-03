@@ -2,28 +2,28 @@ const db = require("../db");
 
 // ============ LEGACY METHODS (retained for compatibility) ============
 async function getTotalResidents() {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
      "SELECT COUNT(*) AS total_residents FROM users WHERE role = 'resident'"
   );
   return Number(rows[0]?.total_residents || 0);
 }
 
 async function getPendingComplaints() {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     "SELECT COUNT(*) AS pending_complaints FROM complaints WHERE status = 'pending'"
   );
   return Number(rows[0]?.pending_complaints || 0);
 }
 
 async function getUnpaidBills() {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     "SELECT COUNT(*) AS unpaid_bills FROM bills WHERE status = 'unpaid'"
   );
   return Number(rows[0]?.unpaid_bills || 0);
 }
 
 async function getComplaintStatusBreakdown() {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT status, COUNT(*) AS total
      FROM complaints
      GROUP BY status`
@@ -36,7 +36,7 @@ async function getComplaintStatusBreakdown() {
 }
 
 async function getBillStatusBreakdown() {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT status, COUNT(*) AS total
      FROM bills
      GROUP BY status`
@@ -49,7 +49,7 @@ async function getBillStatusBreakdown() {
 }
 
 async function getMonthlyComplaintsAndBills(lastMonths = 6) {
-  const [complaintRows] = await db.query(
+  const { rows: complaintRows } = await db.query(
     `SELECT DATE_FORMAT(created_at, '%Y-%m') AS month_key, COUNT(*) AS total
      FROM complaints
      WHERE created_at >= DATE_SUB(CURDATE(), INTERVAL ? MONTH)
@@ -58,7 +58,7 @@ async function getMonthlyComplaintsAndBills(lastMonths = 6) {
     [lastMonths]
   );
 
-  const [billRows] = await db.query(
+  const { rows: billRows } = await db.query(
     `SELECT DATE_FORMAT(created_at, '%Y-%m') AS month_key, COUNT(*) AS total
      FROM bills
      WHERE created_at >= DATE_SUB(CURDATE(), INTERVAL ? MONTH)
@@ -90,36 +90,36 @@ async function getMonthlyComplaintsAndBills(lastMonths = 6) {
 
 // ============ VISITOR ANALYTICS ============
 async function getVisitorAnalytics(startDate, endDate) {
-  const [totalVisitors] = await db.query(
+  const { rows: totalVisitors } = await db.query(
     `SELECT COUNT(*) AS total FROM visitors WHERE created_at BETWEEN ? AND ?`,
     [startDate, endDate]
   );
 
-  const [approvedCount] = await db.query(
+  const { rows: approvedCount } = await db.query(
     `SELECT COUNT(*) AS total FROM visitors WHERE status = 'approved' AND created_at BETWEEN ? AND ?`,
     [startDate, endDate]
   );
 
-  const [visitTrend] = await db.query(
+  const { rows: visitTrend } = await db.query(
     `SELECT DATE(created_at) AS date, COUNT(*) AS count 
      FROM visitors WHERE created_at BETWEEN ? AND ?
      GROUP BY DATE(created_at) ORDER BY date ASC`,
     [startDate, endDate]
   );
 
-  const [visitorTypes] = await db.query(
+  const { rows: visitorTypes } = await db.query(
     `SELECT visitor_type, COUNT(*) AS count FROM visitors 
      WHERE created_at BETWEEN ? AND ? GROUP BY visitor_type`,
     [startDate, endDate]
   );
 
-  const [approvalStatus] = await db.query(
+  const { rows: approvalStatus } = await db.query(
     `SELECT status, COUNT(*) AS count FROM visitors 
      WHERE created_at BETWEEN ? AND ? GROUP BY status`,
     [startDate, endDate]
   );
 
-  const [peakHours] = await db.query(
+  const { rows: peakHours } = await db.query(
     `SELECT HOUR(created_at) AS hour, COUNT(*) AS count FROM visitors 
      WHERE created_at BETWEEN ? AND ? GROUP BY HOUR(created_at) ORDER BY hour ASC`,
     [startDate, endDate]
@@ -138,13 +138,13 @@ async function getVisitorAnalytics(startDate, endDate) {
 
 // ============ FINANCIAL ANALYTICS ============
 async function getFinancialAnalytics(startDate, endDate) {
-  const [totalRevenue] = await db.query(
+  const { rows: totalRevenue } = await db.query(
     `SELECT COALESCE(SUM(amount), 0) AS total FROM bills 
      WHERE status = 'paid' AND paid_date BETWEEN ? AND ?`,
     [startDate, endDate]
   );
 
-  const [collectionRate] = await db.query(
+  const { rows: collectionRate } = await db.query(
     `SELECT 
       COUNT(CASE WHEN status = 'paid' THEN 1 END) AS paid,
       COUNT(*) AS total
@@ -152,20 +152,20 @@ async function getFinancialAnalytics(startDate, endDate) {
     [startDate, endDate]
   );
 
-  const [monthlyRevenue] = await db.query(
+  const { rows: monthlyRevenue } = await db.query(
     `SELECT DATE_FORMAT(paid_date, '%Y-%m') AS month, COALESCE(SUM(amount), 0) AS total
      FROM bills WHERE status = 'paid' AND paid_date BETWEEN ? AND ?
      GROUP BY DATE_FORMAT(paid_date, '%Y-%m') ORDER BY month ASC`,
     [startDate, endDate]
   );
 
-  const [billStatus] = await db.query(
+  const { rows: billStatus } = await db.query(
     `SELECT status, COUNT(*) AS count, COALESCE(SUM(amount), 0) AS amount FROM bills 
      WHERE created_at BETWEEN ? AND ? GROUP BY status`,
     [startDate, endDate]
   );
 
-  const [topDefaulters] = await db.query(
+  const { rows: topDefaulters } = await db.query(
     `SELECT u.name, COUNT(b.id) AS unpaid_count, COALESCE(SUM(b.amount), 0) AS total_amount
      FROM bills b JOIN users u ON b.user_id = u.id
      WHERE b.status = 'unpaid' AND b.created_at BETWEEN ? AND ?
@@ -185,37 +185,37 @@ async function getFinancialAnalytics(startDate, endDate) {
 
 // ============ COMPLAINT ANALYTICS ============
 async function getComplaintAnalytics(startDate, endDate) {
-  const [totalComplaints] = await db.query(
+  const { rows: totalComplaints } = await db.query(
     `SELECT COUNT(*) AS total FROM complaints WHERE created_at BETWEEN ? AND ?`,
     [startDate, endDate]
   );
 
-  const [resolvedCount] = await db.query(
+  const { rows: resolvedCount } = await db.query(
     `SELECT COUNT(*) AS total FROM complaints 
      WHERE status = 'resolved' AND created_at BETWEEN ? AND ?`,
     [startDate, endDate]
   );
 
-  const [complaintTrend] = await db.query(
+  const { rows: complaintTrend } = await db.query(
     `SELECT DATE(created_at) AS date, COUNT(*) AS count 
      FROM complaints WHERE created_at BETWEEN ? AND ?
      GROUP BY DATE(created_at) ORDER BY date ASC`,
     [startDate, endDate]
   );
 
-  const [complaintStatus] = await db.query(
+  const { rows: complaintStatus } = await db.query(
     `SELECT status, COUNT(*) AS count FROM complaints 
      WHERE created_at BETWEEN ? AND ? GROUP BY status`,
     [startDate, endDate]
   );
 
-  const [complaintCategory] = await db.query(
+  const { rows: complaintCategory } = await db.query(
     `SELECT category, COUNT(*) AS count FROM complaints 
      WHERE created_at BETWEEN ? AND ? GROUP BY category ORDER BY count DESC LIMIT 5`,
     [startDate, endDate]
   );
 
-  const [avgResolutionTime] = await db.query(
+  const { rows: avgResolutionTime } = await db.query(
     `SELECT AVG(DATEDIFF(updated_at, created_at)) AS avg_days FROM complaints 
      WHERE status = 'resolved' AND created_at BETWEEN ? AND ?`,
     [startDate, endDate]
@@ -234,30 +234,30 @@ async function getComplaintAnalytics(startDate, endDate) {
 
 // ============ CHAT ANALYTICS ============
 async function getChatAnalytics(startDate, endDate) {
-  const [totalMessages] = await db.query(
+  const { rows: totalMessages } = await db.query(
     `SELECT COUNT(*) AS total FROM chats WHERE created_at BETWEEN ? AND ?`,
     [startDate, endDate]
   );
 
-  const [activeUsers] = await db.query(
+  const { rows: activeUsers } = await db.query(
     `SELECT COUNT(DISTINCT user_id) AS count FROM chats WHERE created_at BETWEEN ? AND ?`,
     [startDate, endDate]
   );
 
-  const [messageTrend] = await db.query(
+  const { rows: messageTrend } = await db.query(
     `SELECT DATE(created_at) AS date, COUNT(*) AS count 
      FROM chats WHERE created_at BETWEEN ? AND ?
      GROUP BY DATE(created_at) ORDER BY date ASC`,
     [startDate, endDate]
   );
 
-  const [chatChannels] = await db.query(
+  const { rows: chatChannels } = await db.query(
     `SELECT thread_id, COUNT(*) AS message_count FROM chats 
      WHERE created_at BETWEEN ? AND ? GROUP BY thread_id ORDER BY message_count DESC LIMIT 10`,
     [startDate, endDate]
   );
 
-  const [avgResponseTime] = await db.query(
+  const { rows: avgResponseTime } = await db.query(
     `SELECT AVG(TIMESTAMPDIFF(MINUTE, c1.created_at, c2.created_at)) AS avg_minutes
      FROM chats c1 JOIN chats c2 ON c1.thread_id = c2.thread_id 
      AND c1.user_id != c2.user_id AND c1.id < c2.id
@@ -276,33 +276,33 @@ async function getChatAnalytics(startDate, endDate) {
 
 // ============ PAYMENT ANALYTICS ============
 async function getPaymentAnalytics(startDate, endDate) {
-  const [totalPayments] = await db.query(
+  const { rows: totalPayments } = await db.query(
     `SELECT COUNT(*) AS total, COALESCE(SUM(amount), 0) AS amount FROM bills 
      WHERE status = 'paid' AND paid_date BETWEEN ? AND ?`,
     [startDate, endDate]
   );
 
-  const [paymentMethods] = await db.query(
+  const { rows: paymentMethods } = await db.query(
     `SELECT payment_method, COUNT(*) AS count, COALESCE(SUM(amount), 0) AS total 
      FROM bills WHERE status = 'paid' AND paid_date BETWEEN ? AND ?
      GROUP BY payment_method`,
     [startDate, endDate]
   );
 
-  const [paymentTrend] = await db.query(
+  const { rows: paymentTrend } = await db.query(
     `SELECT DATE(paid_date) AS date, COUNT(*) AS count, COALESCE(SUM(amount), 0) AS amount
      FROM bills WHERE status = 'paid' AND paid_date BETWEEN ? AND ?
      GROUP BY DATE(paid_date) ORDER BY date ASC`,
     [startDate, endDate]
   );
 
-  const [failedPayments] = await db.query(
+  const { rows: failedPayments } = await db.query(
     `SELECT COUNT(*) AS total FROM bills 
      WHERE status = 'failed' AND created_at BETWEEN ? AND ?`,
     [startDate, endDate]
   );
 
-  const [successRate] = await db.query(
+  const { rows: successRate } = await db.query(
     `SELECT 
       COUNT(CASE WHEN status = 'paid' THEN 1 END) AS successful,
       COUNT(*) AS total
@@ -332,12 +332,12 @@ async function getPaymentAnalytics(startDate, endDate) {
 
 // ============ AI ANALYTICS ============
 async function getAIAnalytics(startDate, endDate) {
-  const [totalRequests] = await db.query(
+  const { rows: totalRequests } = await db.query(
     `SELECT COUNT(*) AS total FROM chats WHERE message_type = 'ai' AND created_at BETWEEN ? AND ?`,
     [startDate, endDate]
   );
 
-  const [requestTrend] = await db.query(
+  const { rows: requestTrend } = await db.query(
     `SELECT DATE(created_at) AS date, COUNT(*) AS count 
      FROM chats WHERE message_type = 'ai' AND created_at BETWEEN ? AND ?
      GROUP BY DATE(created_at) ORDER BY date ASC`,
@@ -345,7 +345,7 @@ async function getAIAnalytics(startDate, endDate) {
   );
 
   // Note: These would typically come from an ai_logs table in production
-  const [usageByFeature] = await db.query(
+  const { rows: usageByFeature } = await db.query(
     `SELECT category AS feature, COUNT(*) AS count 
      FROM complaints WHERE created_at BETWEEN ? AND ? GROUP BY category LIMIT 5`,
     [startDate, endDate]
@@ -361,26 +361,26 @@ async function getAIAnalytics(startDate, endDate) {
 
 // ============ STAFF PERFORMANCE ============
 async function getStaffPerformance(startDate, endDate) {
-  const [staffList] = await db.query(
+  const { rows: staffList } = await db.query(
     `SELECT id, name, role FROM users WHERE role IN ('staff', 'guard', 'maintenance') AND society_id = ?`,
     [global.societyId || 1]
   );
 
   const performance = [];
   for (const staff of staffList) {
-    const [complaints] = await db.query(
+    const { rows: complaints } = await db.query(
       `SELECT COUNT(*) AS total FROM complaints 
        WHERE assigned_to = ? AND created_at BETWEEN ? AND ?`,
       [staff.id, startDate, endDate]
     );
 
-    const [resolved] = await db.query(
+    const { rows: resolved } = await db.query(
       `SELECT COUNT(*) AS total FROM complaints 
        WHERE assigned_to = ? AND status = 'resolved' AND created_at BETWEEN ? AND ?`,
       [staff.id, startDate, endDate]
     );
 
-    const [taskCompletionTime] = await db.query(
+    const { rows: taskCompletionTime } = await db.query(
       `SELECT AVG(DATEDIFF(updated_at, created_at)) AS avg_days FROM complaints 
        WHERE assigned_to = ? AND status = 'resolved' AND created_at BETWEEN ? AND ?`,
       [staff.id, startDate, endDate]
@@ -407,31 +407,31 @@ async function getStaffPerformance(startDate, endDate) {
 
 // ============ SECURITY ANALYTICS ============
 async function getSecurityAnalytics(startDate, endDate) {
-  const [totalAlerts] = await db.query(
+  const { rows: totalAlerts } = await db.query(
     `SELECT COUNT(*) AS total FROM security_alerts WHERE created_at BETWEEN ? AND ?`,
     [startDate, endDate]
   );
 
-  const [alertTrend] = await db.query(
+  const { rows: alertTrend } = await db.query(
     `SELECT DATE(created_at) AS date, COUNT(*) AS count 
      FROM security_alerts WHERE created_at BETWEEN ? AND ?
      GROUP BY DATE(created_at) ORDER BY date ASC`,
     [startDate, endDate]
   );
 
-  const [alertSeverity] = await db.query(
+  const { rows: alertSeverity } = await db.query(
     `SELECT severity, COUNT(*) AS count FROM security_alerts 
      WHERE created_at BETWEEN ? AND ? GROUP BY severity`,
     [startDate, endDate]
   );
 
-  const [alertType] = await db.query(
+  const { rows: alertType } = await db.query(
     `SELECT alert_type, COUNT(*) AS count FROM security_alerts 
      WHERE created_at BETWEEN ? AND ? GROUP BY alert_type ORDER BY count DESC`,
     [startDate, endDate]
   );
 
-  const [incidentsByLocation] = await db.query(
+  const { rows: incidentsByLocation } = await db.query(
     `SELECT location, COUNT(*) AS count FROM security_alerts 
      WHERE created_at BETWEEN ? AND ? GROUP BY location ORDER BY count DESC LIMIT 10`,
     [startDate, endDate]
