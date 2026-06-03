@@ -1,6 +1,6 @@
 const crypto = require("crypto");
 const bcrypt = require("bcrypt");
-const db = require("../db");
+const db = require("../config/db");
 const societyModel = require("../models/societyModel");
 const userModel = require("../models/userModel");
 const tenantModel = require("../models/tenantModel");

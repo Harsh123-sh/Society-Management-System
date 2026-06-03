@@ -1,4 +1,4 @@
-const db = require("../db");
+const db = require("../config/db");
 
 const COMPLAINT_STATUSES = ["open", "assigned", "in_progress", "resolved", "closed", "archived", "deleted"];
 const ACTIVE_COMPLAINT_STATUSES = ["open", "assigned", "in_progress", "resolved", "closed"];

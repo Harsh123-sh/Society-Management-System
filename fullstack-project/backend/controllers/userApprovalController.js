@@ -3,7 +3,7 @@
  * Handles approval/rejection of new user registrations and KYC verification
  */
 
-const db = require("../db");
+const db = require("../config/db");
 const UserApprovalModel = require("../models/userApprovalModel");
 
 // Get pending approvals for a society

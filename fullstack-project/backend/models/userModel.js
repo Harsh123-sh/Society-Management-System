@@ -1,4 +1,4 @@
-const db = require("../db");
+const db = require("../config/db");
 const ALLOWED_ROLES = ["super_admin", "admin", "chairman", "secretary", "resident", "staff", "security"];
 const RESIDENT_TYPES = ["owner", "tenant"];
 const ACCOUNT_STATUSES = ["pending", "active", "rejected", "inactive"];

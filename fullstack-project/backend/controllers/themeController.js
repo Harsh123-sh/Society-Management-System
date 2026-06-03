@@ -168,7 +168,7 @@ module.exports = {
 // NEW COMPREHENSIVE THEME FUNCTIONS
 // ========================================
 
-const db = require("../db");
+const db = require("../config/db");
 
 // Get predefined theme presets
 async function getThemePresets(req, res) {

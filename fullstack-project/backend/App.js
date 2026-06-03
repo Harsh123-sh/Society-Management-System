@@ -4,7 +4,7 @@ const path = require("path");
 const helmet = require("helmet");
 const hpp = require("hpp");
 const rateLimit = require("express-rate-limit");
-const db = require("./db");
+const db = require("./config/db");
 const authRoutes = require("./routes/authRoutes");
 const superAdminRoutes = require("./routes/superAdminRoutes");
 const userRoutes = require("./routes/userRoutes");
@@ -83,6 +83,7 @@ app.use(
     origin(origin, callback) {
       if (
         !origin ||
+        allowedOrigins.includes("*") ||
         allowedOrigins.includes(origin) ||
         (process.env.NODE_ENV !== "production" && isLocalDevOrigin(origin))
       ) {
@@ -97,7 +98,6 @@ app.use(express.json({ limit: requestBodyLimit }));
 app.use(express.urlencoded({ extended: true, limit: requestBodyLimit }));
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use("/api", apiLimiter);
-app.use(resolveTenantContext);
 
 app.use("/api/auth", authLimiter, authRoutes);
 app.use("/api/super-admin", superAdminRoutes);
@@ -131,22 +131,40 @@ app.use("/api/dashboards", dashboardRoutes);
 app.use("/api/dashboards", dashboardRoutes);
 app.use("/api/audit", auditRoutes);
 
+// Health check routes
 app.get("/", (req, res) => {
-  res.send("Backend is running");
+  res.status(200).json({
+    success: true,
+    message: "Backend is running",
+    timestamp: new Date().toISOString(),
+  });
 });
 
-app.get("/api/test", async (req, res) => {
+app.get("/health", (req, res) => {
+  res.status(200).json({
+    success: true,
+    status: "healthy",
+    timestamp: new Date().toISOString(),
+  });
+});
+
+app.get("/api/health", async (req, res) => {
   try {
-    const { rows } = await db.query("SELECT 1 + 1 AS result");
-    res.json({
+    const { rows } = await db.query("SELECT NOW() as server_time");
+    res.status(200).json({
       success: true,
-      message: "API and database are working",
-      data: rows[0],
+      status: "healthy",
+      database: "connected",
+      serverTime: rows[0].server_time,
+      timestamp: new Date().toISOString(),
     });
   } catch (err) {
-    res.status(500).json({
+    res.status(503).json({
       success: false,
-      message: "Database query failed",
+      status: "unhealthy",
+      database: "disconnected",
+      error: err.message,
+      timestamp: new Date().toISOString(),
     });
   }
 });

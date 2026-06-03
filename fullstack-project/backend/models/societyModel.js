@@ -1,4 +1,4 @@
-const db = require("../db");
+const db = require("../config/db");
 
 async function getSocietyByCode(code) {
   if (!code) {
@@ -13,7 +13,7 @@ async function getSocietyByCode(code) {
             logo_url,
             address, city, state, pincode, contact_email, contact_phone, builder_id, status, subscription_plan, default_language, created_by, primary_admin_user_id, created_at
      FROM societies
-     WHERE code = ?
+     WHERE code = $1
      LIMIT 1`,
     [normalizedCode]
   );
@@ -29,7 +29,7 @@ async function getSocietyById(id) {
             logo_url,
             address, city, state, pincode, contact_email, contact_phone, builder_id, status, subscription_plan, default_language, created_by, primary_admin_user_id, created_at
      FROM societies
-     WHERE id = ?
+     WHERE id = $1
      LIMIT 1`,
     [id]
   );
@@ -63,7 +63,7 @@ async function getSocietyBySlug(slug) {
             logo_url,
             address, city, state, pincode, contact_email, contact_phone, builder_id, status, subscription_plan, default_language, created_by, primary_admin_user_id, created_at
      FROM societies
-     WHERE slug = ?
+     WHERE slug = $1
      LIMIT 1`,
     [normalizedSlug]
   );
@@ -84,7 +84,7 @@ async function getSocietyBySubdomain(subdomain) {
             logo_url,
             address, city, state, pincode, contact_email, contact_phone, builder_id, status, subscription_plan, default_language, created_by, primary_admin_user_id, created_at
      FROM societies
-     WHERE subdomain = ?
+     WHERE subdomain = $1
      LIMIT 1`,
     [normalizedSubdomain]
   );
@@ -116,10 +116,11 @@ async function createSociety({
   const normalizedSlug = slug ? String(slug).trim().toLowerCase() : normalizedCode.toLowerCase();
   const normalizedSubdomain = subdomain ? String(subdomain).trim().toLowerCase() : normalizedSlug;
 
-  const { rows: result } = await db.query(
+  const result = await db.query(
     `INSERT INTO societies
       (code, slug, subdomain, name, society_name, address, city, state, pincode, contact_email, contact_phone, builder_id, status, subscription_plan, default_language, created_by, primary_admin_user_id)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)` ,
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
+     RETURNING id` ,
     [
       normalizedCode,
       normalizedSlug,
@@ -141,95 +142,96 @@ async function createSociety({
     ]
   );
 
-  return getSocietyById(result.insertId);
+  return getSocietyById(result.rows[0].id);
 }
 
 async function updateSocietyById(id, updates = {}) {
   const fields = [];
   const params = [];
+  let paramIndex = 1;
 
   if (updates.code !== undefined) {
-    fields.push("code = ?");
+    fields.push(`code = $${paramIndex++}`);
     params.push(String(updates.code).trim().toUpperCase());
   }
 
   if (updates.slug !== undefined) {
-    fields.push("slug = ?");
+    fields.push(`slug = $${paramIndex++}`);
     params.push(String(updates.slug).trim().toLowerCase());
   }
 
   if (updates.subdomain !== undefined) {
-    fields.push("subdomain = ?");
+    fields.push(`subdomain = $${paramIndex++}`);
     params.push(String(updates.subdomain).trim().toLowerCase());
   }
 
   if (updates.name !== undefined) {
-    fields.push("name = ?");
+    fields.push(`name = $${paramIndex++}`);
     params.push(String(updates.name).trim());
   }
 
   if (updates.societyName !== undefined) {
-    fields.push("society_name = ?");
+    fields.push(`society_name = $${paramIndex++}`);
     params.push(String(updates.societyName).trim());
   }
 
   if (updates.address !== undefined) {
-    fields.push("address = ?");
+    fields.push(`address = $${paramIndex++}`);
     params.push(updates.address || null);
   }
 
   if (updates.city !== undefined) {
-    fields.push("city = ?");
+    fields.push(`city = $${paramIndex++}`);
     params.push(updates.city || null);
   }
 
   if (updates.state !== undefined) {
-    fields.push("state = ?");
+    fields.push(`state = $${paramIndex++}`);
     params.push(updates.state || null);
   }
 
   if (updates.pincode !== undefined) {
-    fields.push("pincode = ?");
+    fields.push(`pincode = $${paramIndex++}`);
     params.push(updates.pincode || null);
   }
 
   if (updates.contactEmail !== undefined) {
-    fields.push("contact_email = ?");
+    fields.push(`contact_email = $${paramIndex++}`);
     params.push(updates.contactEmail || null);
   }
 
   if (updates.contactPhone !== undefined) {
-    fields.push("contact_phone = ?");
+    fields.push(`contact_phone = $${paramIndex++}`);
     params.push(updates.contactPhone || null);
   }
 
   if (updates.builderId !== undefined) {
-    fields.push("builder_id = ?");
+    fields.push(`builder_id = $${paramIndex++}`);
     params.push(updates.builderId || null);
   }
 
   if (updates.status !== undefined) {
-    fields.push("status = ?");
+    fields.push(`status = $${paramIndex++}`);
     params.push(updates.status);
   }
 
   if (updates.subscriptionPlan !== undefined) {
-    fields.push("subscription_plan = ?");
+    fields.push(`subscription_plan = $${paramIndex++}`);
     params.push(updates.subscriptionPlan);
   }
 
   if (updates.defaultLanguage !== undefined) {
-    fields.push("default_language = ?");
+    fields.push(`default_language = $${paramIndex++}`);
     params.push(updates.defaultLanguage);
   }
 
   if (updates.createdBy !== undefined) {
-    fields.push("created_by = ?");
+    fields.push(`created_by = $${paramIndex++}`);
     params.push(updates.createdBy || null);
   }
 
   if (updates.primaryAdminUserId !== undefined) {
-    fields.push("primary_admin_user_id = ?");
+    fields.push(`primary_admin_user_id = $${paramIndex++}`);
     params.push(updates.primaryAdminUserId || null);
   }
 
@@ -238,7 +240,7 @@ async function updateSocietyById(id, updates = {}) {
   }
 
   params.push(id);
-  await db.query(`UPDATE societies SET ${fields.join(", ")} WHERE id = ?`, params);
+  await db.query(`UPDATE societies SET ${fields.join(", ")} WHERE id = $${paramIndex}`, params);
 
   return getSocietyById(id);
 }
@@ -250,9 +252,9 @@ async function listSocietiesByBuilder(builderId, limit = 50, offset = 0) {
             COALESCE(society_name, name) AS society_name,
             address, city, state, pincode, contact_email, contact_phone, builder_id, status, subscription_plan, default_language, created_by, primary_admin_user_id, created_at
      FROM societies
-     WHERE builder_id = ? AND status != 'archived'
+     WHERE builder_id = $1 AND status != 'archived'
      ORDER BY created_at DESC
-     LIMIT ? OFFSET ?`,
+     LIMIT $2 OFFSET $3`,
     [builderId, limit, offset]
   );
   return rows;
@@ -260,7 +262,7 @@ async function listSocietiesByBuilder(builderId, limit = 50, offset = 0) {
 
 async function getSocietyCountByBuilder(builderId) {
   const { rows } = await db.query(
-    `SELECT COUNT(*) as count FROM societies WHERE builder_id = ? AND status != 'archived'`,
+    `SELECT COUNT(*) as count FROM societies WHERE builder_id = $1 AND status != 'archived'`,
     [builderId]
   );
   return rows[0]?.count || 0;

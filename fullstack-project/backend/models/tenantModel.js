@@ -1,4 +1,4 @@
-const db = require("../db");
+const db = require("../config/db");
 const societyModel = require("./societyModel");
 
 const DEFAULT_MODULES = [
@@ -99,18 +99,18 @@ async function ensureSocietyDefaults(connection, societyId, overrides = {}) {
     providerSubscriptionId: overrides.providerSubscriptionId || null,
   };
 
-  await connection.query(
+  await db.query(
     `INSERT INTO society_brandings
       (society_id, logo_url, favicon_url, primary_color, secondary_color, accent_color, font_family, theme_json)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-     ON DUPLICATE KEY UPDATE
-       logo_url = VALUES(logo_url),
-       favicon_url = VALUES(favicon_url),
-       primary_color = VALUES(primary_color),
-       secondary_color = VALUES(secondary_color),
-       accent_color = VALUES(accent_color),
-       font_family = VALUES(font_family),
-       theme_json = VALUES(theme_json)`,
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+     ON CONFLICT(society_id) DO UPDATE SET
+       logo_url = EXCLUDED.logo_url,
+       favicon_url = EXCLUDED.favicon_url,
+       primary_color = EXCLUDED.primary_color,
+       secondary_color = EXCLUDED.secondary_color,
+       accent_color = EXCLUDED.accent_color,
+       font_family = EXCLUDED.font_family,
+       theme_json = EXCLUDED.theme_json`,
     [
       societyId,
       branding.logoUrl,
@@ -123,18 +123,18 @@ async function ensureSocietyDefaults(connection, societyId, overrides = {}) {
     ]
   );
 
-  await connection.query(
+  await db.query(
     `INSERT INTO society_settings
       (society_id, timezone, locale, currency_code, modules_json, permissions_json, feature_flags_json, personalization_json)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-     ON DUPLICATE KEY UPDATE
-       timezone = VALUES(timezone),
-       locale = VALUES(locale),
-       currency_code = VALUES(currency_code),
-       modules_json = VALUES(modules_json),
-       permissions_json = VALUES(permissions_json),
-       feature_flags_json = VALUES(feature_flags_json),
-       personalization_json = VALUES(personalization_json)`,
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+     ON CONFLICT(society_id) DO UPDATE SET
+       timezone = EXCLUDED.timezone,
+       locale = EXCLUDED.locale,
+       currency_code = EXCLUDED.currency_code,
+       modules_json = EXCLUDED.modules_json,
+       permissions_json = EXCLUDED.permissions_json,
+       feature_flags_json = EXCLUDED.feature_flags_json,
+       personalization_json = EXCLUDED.personalization_json`,
     [
       societyId,
       settings.timezone,
@@ -147,18 +147,18 @@ async function ensureSocietyDefaults(connection, societyId, overrides = {}) {
     ]
   );
 
-  await connection.query(
+  await db.query(
     `INSERT INTO society_subscriptions
       (society_id, plan_name, status, billing_cycle, renewal_at, limits_json, provider_name, provider_subscription_id)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-     ON DUPLICATE KEY UPDATE
-       plan_name = VALUES(plan_name),
-       status = VALUES(status),
-       billing_cycle = VALUES(billing_cycle),
-       renewal_at = VALUES(renewal_at),
-       limits_json = VALUES(limits_json),
-       provider_name = VALUES(provider_name),
-       provider_subscription_id = VALUES(provider_subscription_id)`,
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+     ON CONFLICT(society_id) DO UPDATE SET
+       plan_name = EXCLUDED.plan_name,
+       status = EXCLUDED.status,
+       billing_cycle = EXCLUDED.billing_cycle,
+       renewal_at = EXCLUDED.renewal_at,
+       limits_json = EXCLUDED.limits_json,
+       provider_name = EXCLUDED.provider_name,
+       provider_subscription_id = EXCLUDED.provider_subscription_id`,
     [
       societyId,
       subscription.planName,
@@ -172,17 +172,17 @@ async function ensureSocietyDefaults(connection, societyId, overrides = {}) {
   );
 
   for (const moduleConfig of settings.modules) {
-    await connection.query(
+    await db.query(
       `INSERT INTO society_modules
         (society_id, module_key, enabled, config_json)
-       VALUES (?, ?, ?, ?)
-       ON DUPLICATE KEY UPDATE
-         enabled = VALUES(enabled),
-         config_json = VALUES(config_json)`,
+       VALUES ($1, $2, $3, $4)
+       ON CONFLICT(society_id, module_key) DO UPDATE SET
+         enabled = EXCLUDED.enabled,
+         config_json = EXCLUDED.config_json`,
       [
         societyId,
         moduleConfig.moduleKey,
-        moduleConfig.enabled ? 1 : 0,
+        moduleConfig.enabled ? true : false,
         toJson(moduleConfig.config || {}),
       ]
     );
@@ -190,15 +190,12 @@ async function ensureSocietyDefaults(connection, societyId, overrides = {}) {
 }
 
 async function createSocietyTenant(payload) {
-  const connection = await db.getConnection();
-
   try {
-    await connection.beginTransaction();
-
-    const [societyResult] = await connection.query(
+    const result = await db.query(
       `INSERT INTO societies
         (code, slug, subdomain, name, status, subscription_plan, default_language, created_by, primary_admin_user_id)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+       RETURNING id`,
       [
         String(payload.code).trim().toUpperCase(),
         String(payload.slug || payload.code).trim().toLowerCase(),
@@ -212,16 +209,12 @@ async function createSocietyTenant(payload) {
       ]
     );
 
-    const societyId = societyResult.insertId;
-    await ensureSocietyDefaults(connection, societyId, payload);
+    const societyId = result.rows[0].id;
+    await ensureSocietyDefaults(societyId, payload);
 
-    await connection.commit();
     return societyModel.getSocietyById(societyId);
   } catch (error) {
-    await connection.rollback();
     throw error;
-  } finally {
-    connection.release();
   }
 }
 
@@ -242,7 +235,7 @@ async function getTenantContextBySocietyId(societyId) {
      LEFT JOIN society_brandings b ON b.society_id = s.id
      LEFT JOIN society_settings st ON st.society_id = s.id
      LEFT JOIN society_subscriptions sub ON sub.society_id = s.id
-     WHERE s.id = ?
+     WHERE s.id = $1
      LIMIT 1`,
     [societyId]
   );
@@ -317,18 +310,18 @@ async function listTenantSummaries() {
 }
 
 async function updateTenantBranding(societyId, branding = {}) {
-  const { rows: result } = await db.query(
+  await db.query(
     `INSERT INTO society_brandings
       (society_id, logo_url, favicon_url, primary_color, secondary_color, accent_color, font_family, theme_json)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-     ON DUPLICATE KEY UPDATE
-       logo_url = VALUES(logo_url),
-       favicon_url = VALUES(favicon_url),
-       primary_color = VALUES(primary_color),
-       secondary_color = VALUES(secondary_color),
-       accent_color = VALUES(accent_color),
-       font_family = VALUES(font_family),
-       theme_json = VALUES(theme_json)`,
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+     ON CONFLICT(society_id) DO UPDATE SET
+       logo_url = EXCLUDED.logo_url,
+       favicon_url = EXCLUDED.favicon_url,
+       primary_color = EXCLUDED.primary_color,
+       secondary_color = EXCLUDED.secondary_color,
+       accent_color = EXCLUDED.accent_color,
+       font_family = EXCLUDED.font_family,
+       theme_json = EXCLUDED.theme_json`,
     [
       societyId,
       branding.logoUrl || null,
@@ -341,22 +334,22 @@ async function updateTenantBranding(societyId, branding = {}) {
     ]
   );
 
-  return result;
+  return { success: true };
 }
 
 async function updateTenantSettings(societyId, settings = {}) {
-  const { rows: result } = await db.query(
+  await db.query(
     `INSERT INTO society_settings
       (society_id, timezone, locale, currency_code, modules_json, permissions_json, feature_flags_json, personalization_json)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-     ON DUPLICATE KEY UPDATE
-       timezone = VALUES(timezone),
-       locale = VALUES(locale),
-       currency_code = VALUES(currency_code),
-       modules_json = VALUES(modules_json),
-       permissions_json = VALUES(permissions_json),
-       feature_flags_json = VALUES(feature_flags_json),
-       personalization_json = VALUES(personalization_json)`,
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+     ON CONFLICT(society_id) DO UPDATE SET
+       timezone = EXCLUDED.timezone,
+       locale = EXCLUDED.locale,
+       currency_code = EXCLUDED.currency_code,
+       modules_json = EXCLUDED.modules_json,
+       permissions_json = EXCLUDED.permissions_json,
+       feature_flags_json = EXCLUDED.feature_flags_json,
+       personalization_json = EXCLUDED.personalization_json`,
     [
       societyId,
       settings.timezone || "Asia/Kolkata",
@@ -369,22 +362,22 @@ async function updateTenantSettings(societyId, settings = {}) {
     ]
   );
 
-  return result;
+  return { success: true };
 }
 
 async function updateTenantSubscription(societyId, subscription = {}) {
-  const { rows: result } = await db.query(
+  await db.query(
     `INSERT INTO society_subscriptions
       (society_id, plan_name, status, billing_cycle, renewal_at, limits_json, provider_name, provider_subscription_id)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-     ON DUPLICATE KEY UPDATE
-       plan_name = VALUES(plan_name),
-       status = VALUES(status),
-       billing_cycle = VALUES(billing_cycle),
-       renewal_at = VALUES(renewal_at),
-       limits_json = VALUES(limits_json),
-       provider_name = VALUES(provider_name),
-       provider_subscription_id = VALUES(provider_subscription_id)`,
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+     ON CONFLICT(society_id) DO UPDATE SET
+       plan_name = EXCLUDED.plan_name,
+       status = EXCLUDED.status,
+       billing_cycle = EXCLUDED.billing_cycle,
+       renewal_at = EXCLUDED.renewal_at,
+       limits_json = EXCLUDED.limits_json,
+       provider_name = EXCLUDED.provider_name,
+       provider_subscription_id = EXCLUDED.provider_subscription_id`,
     [
       societyId,
       subscription.planName || subscription.plan_name || "starter",
@@ -397,21 +390,21 @@ async function updateTenantSubscription(societyId, subscription = {}) {
     ]
   );
 
-  return result;
+  return { success: true };
 }
 
 async function setModuleState(societyId, moduleKey, enabled, config = {}) {
-  const { rows: result } = await db.query(
+  await db.query(
     `INSERT INTO society_modules
       (society_id, module_key, enabled, config_json)
-     VALUES (?, ?, ?, ?)
-     ON DUPLICATE KEY UPDATE
-       enabled = VALUES(enabled),
-       config_json = VALUES(config_json)`,
-    [societyId, moduleKey, enabled ? 1 : 0, toJson(config)]
+     VALUES ($1, $2, $3, $4)
+     ON CONFLICT(society_id, module_key) DO UPDATE SET
+       enabled = EXCLUDED.enabled,
+       config_json = EXCLUDED.config_json`,
+    [societyId, moduleKey, enabled ? true : false, toJson(config)]
   );
 
-  return result;
+  return { success: true };
 }
 
 async function recordSocietyAnalytics(societyId, metrics = {}, metricDate = new Date()) {
@@ -419,8 +412,8 @@ async function recordSocietyAnalytics(societyId, metrics = {}, metricDate = new 
 
   await db.query(
     `INSERT INTO society_analytics (society_id, metric_date, metrics_json)
-     VALUES (?, ?, ?)
-     ON DUPLICATE KEY UPDATE metrics_json = VALUES(metrics_json)`,
+     VALUES ($1, $2, $3)
+     ON CONFLICT(society_id, metric_date) DO UPDATE SET metrics_json = EXCLUDED.metrics_json`,
     [societyId, metricKey, toJson(metrics)]
   );
 }
@@ -429,7 +422,7 @@ async function getSocietyAnalytics(societyId) {
   const { rows } = await db.query(
     `SELECT id, society_id, metric_date, metrics_json, created_at
      FROM society_analytics
-     WHERE society_id = ?
+     WHERE society_id = $1
      ORDER BY metric_date DESC, id DESC`,
     [societyId]
   );

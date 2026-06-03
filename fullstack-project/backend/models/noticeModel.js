@@ -1,4 +1,4 @@
-const db = require("../db");
+const db = require("../config/db");
 
 const NOTICE_STATUSES = ["active", "scheduled", "expired", "archived", "deleted"];
 

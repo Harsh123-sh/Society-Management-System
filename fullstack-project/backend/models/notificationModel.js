@@ -1,4 +1,4 @@
-const db = require("../db");
+const db = require("../config/db");
 const { sendFcmMulticast, sendWebPushNotifications } = require("../services/pushNotificationService");
 
 const VALID_CATEGORIES = new Set([

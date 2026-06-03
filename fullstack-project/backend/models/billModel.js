@@ -1,4 +1,4 @@
-const db = require("../db");
+const db = require("../config/db");
 
 function toJson(value) {
   return JSON.stringify(value ?? null);

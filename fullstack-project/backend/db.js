@@ -1,25 +1,7 @@
-const mysql = require("mysql2/promise");
+// This file has been deprecated. Use ./config/db.js instead.
+// All database connections should use:
+//   const pool = require("./config/db");
 
-const pool = mysql.createPool({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0,
-});
-
-async function checkDatabaseConnection() {
-  try {
-    const connection = await pool.getConnection();
-    connection.release();
-    console.log("MySQL pool connected...");
-  } catch (error) {
-    console.error("Database pool connection failed:", error.message);
-  }
-}
-
-checkDatabaseConnection();
-
-module.exports = pool;
+throw new Error(
+  "DEPRECATED: db.js is no longer used. Import pool from ./config/db.js instead: const pool = require('./config/db')"
+);

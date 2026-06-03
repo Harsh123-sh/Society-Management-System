@@ -1,4 +1,4 @@
-const db = require("../db");
+const db = require("../config/db");
 
 async function getOwnerPropertyRows(ownerId) {
   const { rows } = await db.query(

@@ -1,5 +1,5 @@
 require("dotenv").config();
-const db = require("../db");
+const db = require("../config/db");
 
 async function ensureColumnExists(tableName, columnName, alterSql) {
   const { rows } = await db.query(

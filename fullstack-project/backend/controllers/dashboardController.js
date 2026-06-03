@@ -1,4 +1,4 @@
-const db = require("../db");
+const db = require("../config/db");
 const builderModel = require("../models/builderModel");
 const societyModel = require("../models/societyModel");
 const userModel = require("../models/userModel");

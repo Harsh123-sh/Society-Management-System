@@ -4,7 +4,7 @@
  */
 
 const geminiAIService = require("../services/geminiAIService");
-const db = require("../db");
+const db = require("../config/db");
 
 // Ask general question (no society context)
 exports.askGeneralQuestion = async (req, res) => {

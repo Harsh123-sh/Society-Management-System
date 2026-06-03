@@ -3,7 +3,7 @@
  * Uses Gemini AI to generate beautiful, cohesive themes for societies
  */
 
-const db = require("../db");
+const db = require("../config/db");
 let GoogleGenerativeAI = null;
 let geminiImportError = null;
 

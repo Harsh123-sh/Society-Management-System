@@ -1,4 +1,4 @@
-const db = require("../db");
+const db = require("../config/db");
 
 /**
  * Middleware to enforce society-level access control

@@ -1,4 +1,4 @@
-const db = require("../db");
+const db = require("../config/db");
 
 async function createDocument({ userId, societyId, documentType, fileUrl }) {
   const { rows: result } = await db.query(

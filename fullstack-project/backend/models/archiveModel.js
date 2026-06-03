@@ -1,4 +1,4 @@
-const db = require("../db");
+const db = require("../config/db");
 
 async function getRetentionRules() {
   const { rows } = await db.query(
@@ -14,20 +14,20 @@ async function getRetentionRules() {
 }
 
 async function updateRetentionRule({ resourceType, retentionDays, archiveAfterDays, autoArchiveEnabled, allowPermanentDelete, updatedBy }) {
-  const { rows: result } = await db.query(
+  await db.query(
     `INSERT INTO retention_rules (resource_type, retention_days, archive_after_days, auto_archive_enabled, allow_permanent_delete, updated_by)
-     VALUES (?, ?, ?, ?, ?, ?)
-     ON DUPLICATE KEY UPDATE
-       retention_days = VALUES(retention_days),
-       archive_after_days = VALUES(archive_after_days),
-       auto_archive_enabled = VALUES(auto_archive_enabled),
-       allow_permanent_delete = VALUES(allow_permanent_delete),
-       updated_by = VALUES(updated_by),
-       updated_at = NOW()`,
-    [resourceType, retentionDays, archiveAfterDays, autoArchiveEnabled ? 1 : 0, allowPermanentDelete ? 1 : 0, updatedBy]
+     VALUES ($1, $2, $3, $4, $5, $6)
+     ON CONFLICT(resource_type) DO UPDATE SET
+       retention_days = EXCLUDED.retention_days,
+       archive_after_days = EXCLUDED.archive_after_days,
+       auto_archive_enabled = EXCLUDED.auto_archive_enabled,
+       allow_permanent_delete = EXCLUDED.allow_permanent_delete,
+       updated_by = EXCLUDED.updated_by,
+       updated_at = CURRENT_TIMESTAMP`,
+    [resourceType, retentionDays, archiveAfterDays, autoArchiveEnabled ? true : false, allowPermanentDelete ? true : false, updatedBy]
   );
 
-  return result.affectedRows > 0;
+  return true;
 }
 
 async function getArchivedComplaints(filters = {}) {

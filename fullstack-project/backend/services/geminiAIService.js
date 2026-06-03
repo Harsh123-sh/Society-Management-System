@@ -3,7 +3,7 @@
  * Handles Google Gemini API integration for AI-powered society management
  */
 
-const db = require("../db");
+const db = require("../config/db");
 let GoogleGenerativeAI = null;
 let geminiSdkError = null;
 

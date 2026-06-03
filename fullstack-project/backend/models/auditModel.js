@@ -1,4 +1,4 @@
-const db = require("../db");
+const db = require("../config/db");
 
 /**
  * Create audit log entry
@@ -22,7 +22,8 @@ async function createAuditLog({
       user_id, action, resource_type, resource_id, details,
       old_values, new_values, status, ip_address, user_agent,
       society_id, builder_id, created_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, CURRENT_TIMESTAMP)
+    RETURNING id`,
     [
       userId,
       action,
@@ -38,7 +39,7 @@ async function createAuditLog({
       builderId || null,
     ]
   );
-  return result.insertId;
+  return result[0]?.id;
 }
 
 /**

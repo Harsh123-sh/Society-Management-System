@@ -3,7 +3,7 @@
  * Manages the approval process for new user registrations
  */
 
-const db = require("../db");
+const db = require("../config/db");
 
 class UserApprovalModel {
   // Create approval request

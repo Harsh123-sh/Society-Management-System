@@ -1,6 +1,6 @@
 const bcrypt = require("bcrypt");
 const crypto = require("crypto");
-const db = require("../db");
+const db = require("../config/db");
 const userModel = require("../models/userModel");
 const { sendOtpEmail } = require("../utils/mailer");
 

@@ -1,29 +1,27 @@
 const { Pool } = require("pg");
 require("dotenv").config();
 
-const sslConfig = process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : undefined;
-
-function buildPostgresUrl() {
-  const host = process.env.DB_HOST;
-  const port = process.env.DB_PORT || "5432";
-  const user = process.env.DB_USER;
-  const password = process.env.DB_PASSWORD;
-  const dbName = process.env.DB_NAME;
-
-  if (!host || !user || !password || !dbName) {
-    throw new Error("Missing PostgreSQL environment variables. Set DATABASE_URL or DB_HOST, DB_USER, DB_PASSWORD, DB_NAME.");
-  }
-
-  const encodedUser = encodeURIComponent(user);
-  const encodedPassword = encodeURIComponent(password);
-  const sslMode = process.env.NODE_ENV === "production" ? "?sslmode=require" : "";
-  return `postgresql://${encodedUser}:${encodedPassword}@${host}:${port}/${dbName}${sslMode}`;
+function isPlaceholder(value) {
+  return typeof value === "string" && (/<[^>]+>|YOUR_[A-Z_]+|RENDER_DB/.test(value));
 }
 
-const connectionString = process.env.DATABASE_URL || buildPostgresUrl();
+// Validate DATABASE_URL on startup
+if (!process.env.DATABASE_URL) {
+  throw new Error(
+    "DATABASE_URL environment variable is required. Set it to your Render PostgreSQL Internal Database URL in format: postgresql://user:password@host:port/dbname"
+  );
+}
+
+if (isPlaceholder(process.env.DATABASE_URL)) {
+  throw new Error(
+    `Invalid DATABASE_URL: ${process.env.DATABASE_URL}. Replace placeholder values. Use Render PostgreSQL Internal Database URL in format: postgresql://user:password@host:port/dbname`
+  );
+}
+
+const sslConfig = process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : undefined;
 
 const pool = new Pool({
-  connectionString,
+  connectionString: process.env.DATABASE_URL,
   ssl: sslConfig,
   connectionTimeoutMillis: 10000,
   idleTimeoutMillis: 30000,

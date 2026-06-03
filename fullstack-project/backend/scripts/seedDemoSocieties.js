@@ -5,7 +5,7 @@
  * Run with: node scripts/seedDemoSocieties.js
  */
 
-const db = require("../db");
+const db = require("../config/db");
 const bcrypt = require("bcryptjs");
 
 // =====================================================

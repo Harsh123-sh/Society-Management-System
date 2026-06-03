@@ -1,4 +1,4 @@
-const db = require("../db");
+const db = require("../config/db");
 const analyticsModel = require("../models/analyticsModel");
 const complaintModel = require("../models/complaintModel");
 const noticeModel = require("../models/noticeModel");

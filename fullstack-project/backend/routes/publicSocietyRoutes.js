@@ -1,5 +1,5 @@
 const express = require("express");
-const db = require("../db");
+const db = require("../config/db");
 const societyModel = require("../models/societyModel");
 const wingModel = require("../models/wingModel");
 const flatModel = require("../models/flatModel");

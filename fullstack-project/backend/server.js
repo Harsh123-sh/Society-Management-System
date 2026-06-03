@@ -13,11 +13,17 @@ try {
 
 const PORT = process.env.PORT || 5000;
 
-const requiredEnv = ["DB_HOST", "DB_USER", "DB_NAME", "JWT_SECRET"];
-const missingEnv = requiredEnv.filter((key) => !process.env[key]);
+const placeholderPattern = /<[^>]+>|YOUR_[A-Z_]+|RENDER_DB/;
+const requiredEnv = ["JWT_SECRET", "DATABASE_URL"];
+const missingEnv = requiredEnv.filter((key) => !process.env[key] || placeholderPattern.test(process.env[key]));
 
 if (missingEnv.length) {
-  console.error(`Missing required environment variables: ${missingEnv.join(", ")}`);
+  console.error(
+    `Missing or placeholder environment variables: ${[...new Set(missingEnv)].join(", ")}`
+  );
+  console.error(
+    "For Render deployment, set DATABASE_URL to Render PostgreSQL Internal Database URL and JWT_SECRET to a secure value."
+  );
   process.exit(1);
 }
 
@@ -59,7 +65,7 @@ async function initializeSchema() {
       process.exit(1);
     });
 
-    server.listen(PORT, () => {
+    server.listen(PORT, "0.0.0.0", () => {
       console.log(`✓ Server running on port ${PORT}`);
     });
 

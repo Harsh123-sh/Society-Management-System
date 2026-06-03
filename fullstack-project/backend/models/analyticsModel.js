@@ -1,4 +1,4 @@
-const db = require("../db");
+const db = require("../config/db");
 
 // ============ LEGACY METHODS (retained for compatibility) ============
 async function getTotalResidents() {

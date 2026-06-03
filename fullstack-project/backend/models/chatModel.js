@@ -1,4 +1,4 @@
-const db = require("../db");
+const db = require("../config/db");
 
 const THREAD_TYPES = ["direct", "group", "channel"];
 const MESSAGE_TYPES = ["text", "image", "video", "audio", "file", "pdf", "system"];
