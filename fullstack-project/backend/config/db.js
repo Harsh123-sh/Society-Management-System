@@ -1,24 +1,22 @@
-const { Pool } = require("pg");
+const mysql = require("mysql2/promise");
 require("dotenv").config();
 
-if (!process.env.DATABASE_URL) {
-  console.error("DATABASE_URL is missing");
-  process.exit(1);
-}
-
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl:
-    process.env.NODE_ENV === "production"
-      ? { rejectUnauthorized: false }
-      : false,
+const pool = mysql.createPool({
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  port: Number(process.env.DB_PORT) || 3306,
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0,
 });
 
 pool
-  .connect()
-  .then((client) => {
-    console.log("PostgreSQL database connected successfully");
-    client.release();
+  .getConnection()
+  .then((connection) => {
+    console.log("MySQL database connected successfully");
+    connection.release();
   })
   .catch((error) => {
     console.error("Database pool connection failed:", error);
