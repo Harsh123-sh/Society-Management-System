@@ -493,7 +493,7 @@ function SuperAdminDashboardPage() {
       await handleRefresh();
     } catch (error) {
       console.error("[SuperAdminDashboard] Delete society API error:", error?.response?.data?.message || error?.message || error);
-      showToast(error?.response?.data?.message || "Failed to delete society", "error");
+      showToast(getApiMessage(error, "Failed to delete society"), "error");
     }
   };
 
@@ -503,6 +503,7 @@ function SuperAdminDashboardPage() {
 
     const apiUrl = "/super-admin/societies";
     const createPayload = {
+      name: societyForm.societyName.trim(),
       society_name: societyForm.societyName.trim(),
       address: societyForm.address.trim(),
       city: societyForm.city.trim(),
@@ -550,7 +551,7 @@ function SuperAdminDashboardPage() {
       await handleRefresh();
     } catch (error) {
       console.error("[SuperAdminDashboard] Create society API error:", error?.response?.data?.message || error?.message || error);
-      showToast(error?.response?.data?.message || "Failed to create society", "error");
+      showToast(getApiMessage(error, "Failed to create society"), "error");
     } finally {
       setSavingSociety(false);
     }

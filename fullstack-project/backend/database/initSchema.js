@@ -97,7 +97,10 @@ async function ensureSchema() {
         slug VARCHAR(60) NOT NULL UNIQUE,
         subdomain VARCHAR(80) NOT NULL UNIQUE,
         name VARCHAR(120) NOT NULL,
+        society_name VARCHAR(120),
         address VARCHAR(255),
+        contact_email VARCHAR(150),
+        contact_phone VARCHAR(50),
         builder_id INT,
         configured_at TIMESTAMP,
         subscription_tier VARCHAR(50) DEFAULT 'starter',
@@ -125,6 +128,90 @@ async function ensureSchema() {
         custom_css TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
+    await db.query(`ALTER TABLE societies ADD COLUMN IF NOT EXISTS society_name VARCHAR(120);`);
+    await db.query(`ALTER TABLE societies ADD COLUMN IF NOT EXISTS contact_email VARCHAR(150);`);
+    await db.query(`ALTER TABLE societies ADD COLUMN IF NOT EXISTS contact_phone VARCHAR(50);`);
+
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS society_brandings (
+        society_id INT PRIMARY KEY,
+        logo_url VARCHAR(500),
+        favicon_url VARCHAR(500),
+        primary_color VARCHAR(50),
+        secondary_color VARCHAR(50),
+        accent_color VARCHAR(50),
+        font_family VARCHAR(100),
+        theme_json JSONB,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS society_settings (
+        society_id INT PRIMARY KEY,
+        timezone VARCHAR(100),
+        locale VARCHAR(20),
+        currency_code VARCHAR(20),
+        modules_json JSONB,
+        permissions_json JSONB,
+        feature_flags_json JSONB,
+        personalization_json JSONB,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS society_subscriptions (
+        society_id INT PRIMARY KEY,
+        plan_name VARCHAR(50),
+        status VARCHAR(50),
+        billing_cycle VARCHAR(50),
+        renewal_at TIMESTAMP,
+        limits_json JSONB,
+        provider_name VARCHAR(100),
+        provider_subscription_id VARCHAR(200),
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS society_modules (
+        society_id INT NOT NULL,
+        module_key VARCHAR(100) NOT NULL,
+        enabled BOOLEAN DEFAULT false,
+        config_json JSONB,
+        PRIMARY KEY (society_id, module_key)
+      );
+    `);
+
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS society_analytics (
+        society_id INT NOT NULL,
+        metric_date DATE NOT NULL,
+        metrics_json JSONB,
+        PRIMARY KEY (society_id, metric_date)
+      );
+    `);
+
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS audit_logs (
+        id SERIAL PRIMARY KEY,
+        user_id INT,
+        action VARCHAR(150) NOT NULL,
+        resource_type VARCHAR(100),
+        resource_id INT,
+        details JSONB,
+        old_values JSONB,
+        new_values JSONB,
+        status VARCHAR(50) DEFAULT 'success',
+        ip_address VARCHAR(100),
+        user_agent VARCHAR(300),
+        society_id INT,
+        builder_id INT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
 

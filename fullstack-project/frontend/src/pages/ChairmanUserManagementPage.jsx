@@ -559,7 +559,7 @@ function ChairmanUserManagementPage() {
 
       <section className="overflow-hidden rounded-[28px] border border-[rgb(var(--app-border-rgb))] bg-[rgb(var(--app-surface-rgb))] shadow-[0_20px_60px_-32px_rgba(15,23,42,0.22)]">
         <div className="overflow-x-auto">
-          <table className="min-w-[1500px] w-full border-collapse text-left text-sm">
+          <table className="min-w-full w-full border-collapse text-left text-sm">
             <thead className="sticky top-0 z-10 bg-[rgb(var(--app-surface-muted-rgb))] text-[10px] font-bold uppercase tracking-[0.24em] text-[rgb(var(--app-text-muted-rgb))]">
               <tr>
                 <th className="px-4 py-4">Profile Photo</th>

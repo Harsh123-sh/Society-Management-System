@@ -3,7 +3,11 @@ import { getStoredSuperAdminRole, getStoredSuperAdminToken } from "../utils/sess
 
 function SuperAdminProtectedRoute({ children }) {
   const location = useLocation();
-  const token = getStoredSuperAdminToken();
+  const token =
+    getStoredSuperAdminToken() ||
+    localStorage.getItem("token") ||
+    localStorage.getItem("authToken") ||
+    localStorage.getItem("accessToken");
   const role = getStoredSuperAdminRole();
 
   if (!token) {

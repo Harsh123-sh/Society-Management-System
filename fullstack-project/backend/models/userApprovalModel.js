@@ -19,7 +19,7 @@ class UserApprovalModel {
         `INSERT INTO user_approvals (
           user_id, society_id, approval_type, requested_by, 
           documents_json, status
-        ) VALUES (?, ?, ?, ?, ?, 'pending')`,
+        ) VALUES (?, ?, ?, ?, ?, 'pending') RETURNING id`,
         [
           userId,
           societyId,
@@ -29,7 +29,7 @@ class UserApprovalModel {
         ]
       );
 
-      return this.getApprovalById(result.insertId);
+      return this.getApprovalById(result[0]?.id);
     } catch (error) {
       throw error;
     }

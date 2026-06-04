@@ -187,12 +187,12 @@ async function createUser({
   }
 
   const { rows: result } = await db.query(
-    `INSERT INTO users (${fields.join(", ")}) VALUES (${fields.map(() => "?").join(", ")})`,
+    `INSERT INTO users (${fields.join(", ")}) VALUES (${fields.map(() => "?").join(", ")}) RETURNING id`,
     values
   );
 
   return {
-    id: result.insertId,
+    id: result[0]?.id,
     name,
     email,
     role: selectedRole,
@@ -289,13 +289,14 @@ async function createOwnerProperty({ userId, flatId, livingStartDate }) {
   const { rows: result } = await db.query(
     `INSERT INTO owner_properties (user_id, flat_id, living_start_date)
      VALUES (?, ?, ?)
-     ON DUPLICATE KEY UPDATE
-       flat_id = VALUES(flat_id),
-       living_start_date = VALUES(living_start_date)`,
+     ON CONFLICT (flat_id) DO UPDATE SET
+       user_id = EXCLUDED.user_id,
+       living_start_date = EXCLUDED.living_start_date
+     RETURNING id`,
     [userId, flatId, livingStartDate || null]
   );
 
-  return result.insertId || flatId;
+  return result[0]?.id || flatId;
 }
 
 async function syncOwnerPropertyMapping(userId, flatId = null) {
@@ -401,12 +402,12 @@ async function updateUserById(id, { name, email, phone, profilePhotoUrl, familyM
 }
 
 async function deleteOwnerPropertyById(propertyId) {
-  const { rows: result } = await db.query(
+  const result = await db.query(
     `DELETE FROM owner_properties WHERE id = ?`,
     [propertyId]
   );
 
-  return result.affectedRows > 0;
+  return result.rowCount > 0;
 }
 
 async function getUserByEmail(email) {
@@ -431,7 +432,7 @@ async function getUserByEmail(email) {
        s.builder_id
      FROM users u
      LEFT JOIN societies s ON s.id = u.society_id
-     WHERE u.email = $1
+     WHERE LOWER(TRIM(u.email)) = LOWER(TRIM($1))
      LIMIT 1`,
     [email]
   );
@@ -475,7 +476,7 @@ async function getSuperAdminByEmail(email) {
        s.builder_id
      FROM users u
      LEFT JOIN societies s ON s.id = u.society_id
-     WHERE u.email = $1
+     WHERE LOWER(TRIM(u.email)) = LOWER(TRIM($1))
        AND u.role = 'super_admin'
        AND u.status = 'active'
        AND u.is_verified = true

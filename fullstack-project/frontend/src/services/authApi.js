@@ -139,6 +139,10 @@ superAdminApi.interceptors.request.use((config) => {
   const token = getStoredSuperAdminToken();
   const requestPath = String(config.url || "");
 
+  if (!config.headers) {
+    config.headers = {};
+  }
+
   if (!token && !SUPER_ADMIN_PUBLIC_PATHS.some((path) => requestPath.includes(path))) {
     clearSuperAdminSession();
     window.location.href = "/super-admin/login";

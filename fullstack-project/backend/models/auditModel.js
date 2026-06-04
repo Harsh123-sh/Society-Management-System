@@ -202,7 +202,7 @@ async function getActivitySummary(builderId = null, societyId = null, hours = 24
   const filters = [];
   const params = [];
 
-  filters.push(`created_at >= DATE_SUB(NOW(), INTERVAL ? HOUR)`);
+  filters.push(`created_at >= CURRENT_TIMESTAMP - ? * INTERVAL '1 hour'`);
   params.push(hours);
 
   if (builderId) {

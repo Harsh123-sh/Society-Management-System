@@ -180,13 +180,21 @@ export function getStoredSuperAdminUser() {
 }
 
 export function getStoredSuperAdminRole() {
-  const role = localStorage.getItem("superAdminRole");
-  if (role) return normalizeRole(role);
-  return normalizeRole(getStoredSuperAdminUser()?.role);
+  const role =
+    localStorage.getItem("superAdminRole") ||
+    localStorage.getItem("role") ||
+    getStoredSuperAdminUser()?.role;
+  return normalizeRole(role);
 }
 
 export function getStoredSuperAdminToken() {
-  return localStorage.getItem("superAdminToken");
+  return (
+    localStorage.getItem("superAdminToken") ||
+    localStorage.getItem("token") ||
+    localStorage.getItem("authToken") ||
+    localStorage.getItem("accessToken") ||
+    null
+  );
 }
 
 export function clearAuthSession() {

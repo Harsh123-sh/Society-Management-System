@@ -5,7 +5,7 @@ const bcrypt = require("bcryptjs");
 (async () => {
   try {
     const email = "sachwani25harsh@gmail.com";
-    const password = "Harsh52#Sachwani";
+    const password = "Harsh52Sachwani";
 
     const hashedPassword = await bcrypt.hash(password, 10);
 

@@ -52,7 +52,7 @@ async function generateSocietyCode(societyName) {
     `SELECT code
      FROM societies
      WHERE code LIKE ?
-     ORDER BY CAST(SUBSTRING_INDEX(code, '-', -1) AS UNSIGNED) DESC, id DESC
+     ORDER BY CAST(COALESCE(NULLIF(split_part(code, '-', 2), ''), '0') AS INTEGER) DESC, id DESC
      LIMIT 1`,
     [`${prefix}-%`]
   );
@@ -369,13 +369,19 @@ async function createSociety(req, res) {
       pincode,
       contact_email,
       contact_phone,
+      contactEmail,
+      contactPhone,
       chairmanName,
-      chairmanEmail,
+      chairman_email,
+      chairmanEmail: chairmanEmailCamel,
       secretaryName,
-      secretaryEmail,
+      secretary_email,
+      secretaryEmail: secretaryEmailCamel,
       subscriptionPlan = "starter",
+      subscription_plan,
       status = "active",
       defaultLanguage = "en",
+      default_language,
     } = req.body || {};
 
     const societyName = normalizeText(society_name || name);
@@ -384,6 +390,8 @@ async function createSociety(req, res) {
     }
 
     const normalizedStatus = normalizeSocietyStatus(status, "active");
+    const normalizedSubscriptionPlan = normalizeText(subscriptionPlan || subscription_plan) || "starter";
+    const normalizedDefaultLanguage = normalizeText(defaultLanguage || default_language) || "en";
 
     const normalizedCode = code ? normalizeCode(code) : await generateSocietyCode(societyName);
 
@@ -404,22 +412,22 @@ async function createSociety(req, res) {
       city: normalizeText(city),
       state: normalizeText(state),
       pincode: normalizeText(pincode),
-      contactEmail: normalizeText(contact_email),
-      contactPhone: normalizeText(contact_phone),
+      contactEmail: normalizeText(contact_email || contactEmail),
+      contactPhone: normalizeText(contact_phone || contactPhone),
       status: normalizedStatus,
-      subscriptionPlan,
-      defaultLanguage,
+      subscriptionPlan: normalizedSubscriptionPlan,
+      defaultLanguage: normalizedDefaultLanguage,
       createdBy: req.user.id,
     });
 
     await tenantModel.updateTenantSubscription(society.id, {
-      planName: subscriptionPlan,
-      status: status === "active" ? "active" : "trial",
+      planName: normalizedSubscriptionPlan,
+      status: normalizedStatus === "active" ? "active" : "trial",
       billingCycle: "monthly",
       renewalAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30),
       providerName: "platform",
       limits: {
-        seats: subscriptionPlan === "enterprise" ? 5000 : subscriptionPlan === "premium" ? 2500 : 500,
+        seats: normalizedSubscriptionPlan === "enterprise" ? 5000 : normalizedSubscriptionPlan === "premium" ? 2500 : 500,
       },
     });
 
@@ -470,7 +478,11 @@ async function createSociety(req, res) {
 
     console.error("[SuperAdmin] Failed to create society", error.code || error.message, error.sqlMessage || "");
 
-    return res.status(500).json({ success: false, message: "Failed to create society" });
+    return res.status(500).json({
+      success: false,
+      message: error?.message || "Failed to create society",
+      details: error?.sqlMessage || null,
+    });
   }
 }
 

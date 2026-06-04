@@ -455,7 +455,7 @@ function UsersPage() {
                       </span>
                     </td>
                     <td className="px-4 py-4 align-top">
-                      <div className="flex min-w-[180px] flex-col gap-2">
+                      <div className="flex min-w-0 flex-col gap-2">
                         <select
                           className="rounded-xl border border-slate-300 px-3 py-2 text-xs font-medium text-slate-700 outline-none"
                           value={pendingRoleByUser[user.id] || user.role || "resident"}
@@ -572,7 +572,7 @@ function UsersPage() {
                         {user.deleted_at ? new Date(user.deleted_at).toLocaleString() : "-"}
                       </td>
                       <td className="px-4 py-3">
-                        <div className="flex min-w-[180px] flex-col gap-2">
+                      <div className="flex min-w-0 flex-col gap-2">
                           <button
                             type="button"
                             disabled={updatingUserId === user.id}
