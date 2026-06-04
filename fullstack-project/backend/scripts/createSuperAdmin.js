@@ -1,114 +1,46 @@
-const path = require('path');
-// Load environment variables from backend/.env
-require('dotenv').config({ path: path.resolve(__dirname, '..', '.env') });
+require("dotenv").config({ path: __dirname + "/../.env" });
+const pool = require("../config/db");
+const bcrypt = require("bcryptjs");
 
-const readline = require('readline');
-const bcrypt = require('bcrypt');
-const pool = require('../db');
-
-function ask(question) {
-  const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-  return new Promise((resolve) => rl.question(question, (ans) => { rl.close(); resolve(ans.trim()); }));
-}
-
-function askHidden(question) {
-  return new Promise((resolve) => {
-    process.stdout.write(question);
-    let password = '';
-
-    // Enable raw mode to suppress echo
-    if (process.stdin.isTTY) {
-      process.stdin.setRawMode(true);
-    }
-    process.stdin.resume();
-
-    const onDataHandler = function (char) {
-      char = char + '';
-      switch (char) {
-        case '\n':
-        case '\r':
-        case '\u0004': // EOF
-          process.stdin.removeListener('data', onDataHandler);
-          if (process.stdin.isTTY) {
-            process.stdin.setRawMode(false);
-          }
-          process.stdin.pause();
-          process.stdout.write('\n');
-          resolve(password);
-          break;
-        case '\u0003': // Ctrl+C
-          process.stdin.removeListener('data', onDataHandler);
-          if (process.stdin.isTTY) {
-            process.stdin.setRawMode(false);
-          }
-          process.stdin.pause();
-          process.exit();
-          break;
-        case '\u0008': // Backspace
-        case '\u007f': // Delete
-          password = password.slice(0, -1);
-          break;
-        default:
-          // Do not echo or display anything
-          password += char;
-          break;
-      }
-    };
-    process.stdin.on('data', onDataHandler);
-  });
-}
-
-async function createSuperAdmin() {
+(async () => {
   try {
-    console.log('Create Super Admin - interactive');
+    const email = "sachwani25harsh@gmail.com";
+    const password = "Harsh52#Sachwani";
 
-    const envEmail = process.env.SUPER_ADMIN_EMAIL;
-    const envPassword = process.env.SUPER_ADMIN_PASSWORD;
-    const envName = process.env.SUPER_ADMIN_FULL_NAME;
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-    const email = envEmail || await ask('Super Admin email: ');
-    const full_name = envName || await ask('Full name: ');
-    const password = envPassword || await askHidden('Password (input hidden): ');
+    const existing = await pool.query(
+      "SELECT id FROM users WHERE email = $1",
+      [email]
+    );
 
-    if (!email || !password || !full_name) {
-      console.error('Email, full name and password are required.');
-      process.exit(1);
-    }
+    if (existing.rows.length > 0) {
+      await pool.query(
+        `UPDATE users
+         SET password = $1,
+             role = 'super_admin',
+             status = 'active',
+             is_verified = true
+         WHERE email = $2`,
+        [hashedPassword, email]
+      );
 
-    // Normalize email
-    const normEmail = email.toLowerCase();
-
-    // Check if user already exists
-    const [rows] = await pool.execute('SELECT id FROM users WHERE email = ? LIMIT 1', [normEmail]);
-    if (rows && rows.length > 0) {
-      console.error('A user with this email already exists. Aborting to prevent duplicate Super Admin.');
-      process.exit(1);
-    }
-
-    const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS, 10) || 12;
-    const password_hash = await bcrypt.hash(password, saltRounds);
-
-    const role = 'super_admin';
-    const status = 'active';
-
-    const insertSql = `INSERT INTO users (name, email, password, role, status, is_verified) VALUES (?, ?, ?, ?, ?, ?)`;
-    const [result] = await pool.execute(insertSql, [full_name, normEmail, password_hash, role, status, 1]);
-
-    if (result && result.insertId) {
-      console.log('\nSuper Admin created successfully');
-      console.log('Email:', normEmail);
-      console.log('Password:', envPassword ? '******** (from env)' : password);
-      console.log('User ID:', result.insertId);
-      console.log('\nSecurity notes: Do not expose this script as a public registration endpoint.');
-      process.exit(0);
+      console.log("✅ Super Admin password updated");
     } else {
-      console.error('Failed to insert Super Admin.');
-      process.exit(1);
+      await pool.query(
+        `INSERT INTO users (name, email, password, role, status, is_verified)
+         VALUES ($1, $2, $3, $4, $5, $6)`,
+        ["Super Admin", email, hashedPassword, "super_admin", "active", true]
+      );
+
+      console.log("✅ Super Admin created");
     }
+
+    console.log("Email:", email);
+    console.log("Password:", password);
+    process.exit(0);
   } catch (err) {
-    console.error('Error creating Super Admin:', err.message || err);
+    console.error("ERROR:", err.message);
     process.exit(1);
   }
-}
-
-createSuperAdmin();
+})();

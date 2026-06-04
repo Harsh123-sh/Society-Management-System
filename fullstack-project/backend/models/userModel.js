@@ -438,7 +438,7 @@ async function getUserByEmail(email) {
 
   const user = rows[0] || null;
   if (user) {
-    console.log("[userModel.getUserByEmail] fetched super admin record", {
+    console.log("[userModel.getUserByEmail] fetched user record", {
       id: user.id,
       email: user.email,
       role: user.role,
@@ -448,6 +448,53 @@ async function getUserByEmail(email) {
     });
   } else {
     console.log("[userModel.getUserByEmail] no user found for email", email);
+  }
+
+  return user;
+}
+
+async function getSuperAdminByEmail(email) {
+  const { rows } = await db.query(
+    `SELECT
+       u.id,
+       u.name,
+       u.full_name,
+       u.email,
+       u.password,
+       u.role,
+       u.status,
+       u.is_verified,
+       u.resident_type,
+       u.society_id,
+       u.flat_id,
+       u.flat_number,
+       s.code AS society_code,
+       s.slug AS society_slug,
+       s.subdomain AS society_subdomain,
+       s.name AS society_name,
+       s.builder_id
+     FROM users u
+     LEFT JOIN societies s ON s.id = u.society_id
+     WHERE u.email = $1
+       AND u.role = 'super_admin'
+       AND u.status = 'active'
+       AND u.is_verified = true
+     LIMIT 1`,
+    [email]
+  );
+
+  const user = rows[0] || null;
+  if (user) {
+    console.log("[userModel.getSuperAdminByEmail] fetched super admin record", {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      status: user.status,
+      is_verified: user.is_verified,
+      society_id: user.society_id,
+    });
+  } else {
+    console.log("[userModel.getSuperAdminByEmail] no active verified super admin found for email", email);
   }
 
   return user;
@@ -1103,6 +1150,7 @@ module.exports = {
   getDeletedUsers,
   createUser,
   getUserByEmail,
+  getSuperAdminByEmail,
   getUserById,
   updateUserRoleById,
   updateUserStatusById,

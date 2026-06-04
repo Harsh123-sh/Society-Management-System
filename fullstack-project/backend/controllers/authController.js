@@ -462,26 +462,41 @@ async function loginSuperAdmin(req, res) {
       });
     }
 
-    const user = await userModel.getUserByEmail(email);
+    const user = await userModel.getSuperAdminByEmail(email);
     console.log("[loginSuperAdmin] fetched user record", {
       email,
+      userFound: Boolean(user),
       userId: user?.id || null,
       role: user?.role || null,
       status: user?.status || null,
       is_verified: user?.is_verified || null,
     });
 
-    if (!user || user.role !== "super_admin") {
+    if (!user) {
       return res.status(401).json({
         success: false,
         message: "Invalid super admin credentials",
       });
     }
 
-    if (!user.is_verified) {
-      return res.status(403).json({
+    if (user.role !== "super_admin") {
+      console.error("[loginSuperAdmin] unexpected role mismatch", { email, role: user.role });
+      return res.status(401).json({
         success: false,
-        message: "Please verify your email first",
+        message: "Invalid super admin credentials",
+      });
+    }
+
+    if (user.status !== "active" || !user.is_verified) {
+      console.error("[loginSuperAdmin] super admin status/verification mismatch", {
+        email,
+        role: user.role,
+        status: user.status,
+        is_verified: user.is_verified,
+      });
+      return res.status(401).json({
+        success: false,
+        message: "Invalid super admin credentials",
       });
     }
 
