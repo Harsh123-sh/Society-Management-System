@@ -70,7 +70,9 @@ function getPreferredThemeMode() {
 }
 
 function normalizeThemeState(partialState = {}) {
-  const themeMode = partialState.themeMode || partialState.theme || getPreferredThemeMode();
+  const rawThemeMode = partialState.themeMode || partialState.theme || getPreferredThemeMode();
+  const themeMode = rawThemeMode === 'auto' ? 'auto' : rawThemeMode;
+  const effectiveThemeMode = themeMode === 'auto' ? getPreferredThemeMode() : themeMode;
   const density = partialState.density || DEFAULT_THEME_STATE.density;
   const layoutMode = partialState.layoutMode || partialState.layout || DEFAULT_THEME_STATE.layoutMode;
   const accentColor = partialState.accentColor || partialState.accent || DEFAULT_THEME_STATE.accentColor;
@@ -87,7 +89,7 @@ function normalizeThemeState(partialState = {}) {
     themeJson: {
       ...DEFAULT_THEME_STATE.themeJson,
       ...(partialState.themeJson || {}),
-      mode: themeMode,
+      mode: themeMode === 'auto' ? effectiveThemeMode : themeMode,
       layout: layoutMode,
       density,
     },
@@ -125,7 +127,8 @@ function applyThemeState(partialState) {
   const nextState = normalizeThemeState(partialState);
   const root = document.documentElement;
   const body = document.body;
-  const isDark = nextState.themeMode === 'dark';
+  const effectiveThemeMode = nextState.themeMode === 'auto' ? getPreferredThemeMode() : nextState.themeMode;
+  const isDark = effectiveThemeMode === 'dark';
 
   root.style.setProperty('--app-accent-rgb', nextState.accentColor);
   root.style.setProperty('--app-primary-rgb', hexToRgbString(nextState.primaryColor));
@@ -153,26 +156,32 @@ function applyThemeState(partialState) {
   root.style.setProperty('--hero-bg', isDark ? 'linear-gradient(135deg, #020617, #064e3b)' : 'linear-gradient(135deg, #ffffff, #ecfdf5)');
   root.style.setProperty('--background', isDark ? '#020617' : '#f8fafc');
   root.style.setProperty('--surface', isDark ? '#0f172a' : '#ffffff');
+  root.style.setProperty('--text', isDark ? '#f8fafc' : '#0f172a');
   root.style.setProperty('--border', isDark ? '#334155' : '#e2e8f0');
   root.style.setProperty('--app-font-sans', nextState.fontFamily || 'Manrope');
   root.style.setProperty('--app-layout-mode', nextState.layoutMode || 'glass');
   root.style.setProperty('--app-logo-url', nextState.logoUrl || '');
   root.style.setProperty('--app-radius', nextState.themeJson?.radius || '24px');
-  root.style.colorScheme = nextState.themeMode;
+  root.style.setProperty('--brand-rgb', nextState.accentColor);
+  root.style.setProperty('--hero-start', nextState.primaryColor);
+  root.style.setProperty('--hero-end', nextState.secondaryColor);
+  root.style.colorScheme = effectiveThemeMode;
 
-  root.dataset.theme = nextState.themeMode;
+  root.dataset.theme = effectiveThemeMode;
+  root.dataset.themeMode = nextState.themeMode;
   root.dataset.density = nextState.density;
   root.dataset.layout = nextState.layoutMode;
   root.classList.toggle('dark', isDark);
   root.classList.toggle('light', !isDark);
 
   if (body) {
-    body.dataset.theme = nextState.themeMode;
+    body.dataset.theme = effectiveThemeMode;
+    body.dataset.themeMode = nextState.themeMode;
     body.dataset.density = nextState.density;
     body.dataset.layout = nextState.layoutMode;
     body.classList.toggle('dark', isDark);
     body.classList.toggle('light', !isDark);
-    body.style.colorScheme = nextState.themeMode;
+    body.style.colorScheme = effectiveThemeMode;
   }
 
   return nextState;

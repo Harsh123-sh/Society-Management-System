@@ -2,59 +2,16 @@ import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { getStoredRole, getStoredUser } from '../utils/session';
 import { societyPresets } from '../theme/societyPresets';
 import { fetchCurrentTheme, fetchThemeCatalog, generateTheme, updateTheme } from '../services/themeApi';
-
-const THEME_STORAGE_KEY = 'society_theme_engine_v1';
-
-const defaultPreferences = {
-  selectedSocietyId: "",
-  themeMode: 'light',
-  density: 'comfortable',
-  layoutMode: 'glass',
-  fontFamily: 'Manrope',
-  logoUrl: '',
-  faviconUrl: '',
-  primaryColor: societyPresets[0].heroStart,
-  secondaryColor: societyPresets[0].heroEnd,
-  accentColor: '20 184 166',
-  themeJson: {
-    mode: 'light',
-    layout: 'glass',
-    density: 'comfortable',
-    navigationStyle: 'floating',
-    radius: '24px',
-  },
-};
+import { applyThemeState, normalizeThemeState, readStoredThemeState, writeStoredThemeState } from '../utils/themeState';
 
 const ThemeContext = createContext(null);
-const APPEARANCE_STORAGE_KEY = 'society_theme_engine_v2';
-
-function safeParse(rawValue) {
-  if (!rawValue) return null;
-  try {
-    return JSON.parse(rawValue);
-  } catch {
-    return null;
-  }
-}
 
 function loadPreferences() {
   if (typeof window === 'undefined') {
-    return defaultPreferences;
+    return normalizeThemeState();
   }
 
-  const saved = safeParse(localStorage.getItem(THEME_STORAGE_KEY));
-  const appearance = safeParse(localStorage.getItem(APPEARANCE_STORAGE_KEY));
-  const resolvedThemeMode = appearance?.themeMode || appearance?.theme || saved?.themeMode || saved?.theme || defaultPreferences.themeMode;
-  return {
-    ...defaultPreferences,
-    ...(saved || {}),
-    themeMode: resolvedThemeMode,
-    themeJson: {
-      ...defaultPreferences.themeJson,
-      ...(saved?.themeJson || {}),
-      mode: resolvedThemeMode,
-    },
-  };
+  return readStoredThemeState();
 }
 
 function hexToRgbString(color) {
@@ -86,74 +43,16 @@ function hexToRgbString(color) {
 
 function savePreferences(preferences) {
   if (typeof window === 'undefined') return;
-  localStorage.setItem(THEME_STORAGE_KEY, JSON.stringify(preferences));
-  localStorage.setItem(
-    APPEARANCE_STORAGE_KEY,
-    JSON.stringify({
-      themeMode: preferences.themeMode || 'light',
-      density: preferences.density || defaultPreferences.density,
-      layoutMode: preferences.layoutMode || defaultPreferences.layoutMode,
-      fontFamily: preferences.fontFamily || defaultPreferences.fontFamily,
-      logoUrl: preferences.logoUrl || '',
-      faviconUrl: preferences.faviconUrl || '',
-      primaryColor: preferences.primaryColor || defaultPreferences.primaryColor,
-      secondaryColor: preferences.secondaryColor || defaultPreferences.secondaryColor,
-      accentColor: preferences.accentColor || defaultPreferences.accentColor,
-      themeJson: {
-        ...defaultPreferences.themeJson,
-        ...(preferences.themeJson || {}),
-        mode: preferences.themeMode || 'light',
-      },
-    })
-  );
-}
-
-function applyThemeVariables(preferences) {
-  if (typeof document === 'undefined') return;
-
-  const root = document.documentElement;
-  const body = document.body;
-  const primaryRgb = preferences.accentColor || '20 184 166';
-  const surfaceRgb = preferences.themeMode === 'dark' ? '8 15 28' : '255 255 255';
-
-  root.style.setProperty('--app-accent-rgb', primaryRgb);
-  root.style.setProperty('--app-surface-rgb', surfaceRgb);
-  root.style.setProperty('--app-primary-color', preferences.primaryColor || '#0f766e');
-  root.style.setProperty('--app-secondary-color', preferences.secondaryColor || '#2563eb');
-  root.style.setProperty('--app-font-sans', preferences.fontFamily || 'Manrope');
-  root.style.setProperty('--app-layout-mode', preferences.layoutMode || 'glass');
-  root.style.setProperty('--app-logo-url', preferences.logoUrl || '');
-  root.style.setProperty('--bg-main', preferences.themeMode === 'dark' ? '#020617' : '#f8fafc');
-  root.style.setProperty('--bg-card', preferences.themeMode === 'dark' ? '#0f172a' : '#ffffff');
-  root.style.setProperty('--bg-sidebar', preferences.themeMode === 'dark' ? '#020617' : '#ffffff');
-  root.style.setProperty('--bg-header', preferences.themeMode === 'dark' ? '#0f172a' : '#ffffff');
-  root.style.setProperty('--text-primary', preferences.themeMode === 'dark' ? '#f8fafc' : '#0f172a');
-  root.style.setProperty('--text-secondary', preferences.themeMode === 'dark' ? '#cbd5e1' : '#475569');
-  root.style.setProperty('--text-muted', preferences.themeMode === 'dark' ? '#94a3b8' : '#64748b');
-  root.style.setProperty('--border-color', preferences.themeMode === 'dark' ? '#334155' : '#e2e8f0');
-  root.style.setProperty('--input-bg', preferences.themeMode === 'dark' ? '#111827' : '#ffffff');
-  root.style.setProperty('--input-border', preferences.themeMode === 'dark' ? '#334155' : '#e2e8f0');
-  root.style.setProperty('--input-placeholder', preferences.themeMode === 'dark' ? '#94a3b8' : '#64748b');
-  root.style.setProperty('--button-bg', preferences.themeMode === 'dark' ? '#1e293b' : '#ffffff');
-  root.style.setProperty('--button-text', preferences.themeMode === 'dark' ? '#f8fafc' : '#0f172a');
-  root.style.setProperty('--hero-bg', preferences.themeMode === 'dark' ? 'linear-gradient(135deg, #020617, #064e3b)' : 'linear-gradient(135deg, #ffffff, #ecfdf5)');
-
-  const themeMode = preferences.themeMode || 'light';
-  root.dataset.theme = themeMode;
-  root.dataset.themeMode = themeMode;
-  root.classList.toggle('dark', themeMode === 'dark');
-  root.classList.toggle('light', themeMode === 'light');
-  body.dataset.theme = themeMode;
-  body.dataset.density = preferences.density;
-  body.dataset.layout = preferences.layoutMode;
-  body.classList.toggle('dark', themeMode === 'dark');
-  body.classList.toggle('light', themeMode === 'light');
-  body.style.setProperty('--app-font-sans', preferences.fontFamily || 'Manrope');
+  writeStoredThemeState(preferences);
 }
 
 export function ThemeProvider({ children }) {
   const [preferences, setPreferences] = useState(loadPreferences);
   const [catalog, setCatalog] = useState([]);
+  const [systemThemeMode, setSystemThemeMode] = useState(() => {
+    if (typeof window === 'undefined') return 'light';
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  });
 
   const selectedSociety = useMemo(() => {
     const selected = catalog.find((item) => String(item.id) === String(preferences.selectedSocietyId));
@@ -175,9 +74,25 @@ export function ThemeProvider({ children }) {
   }, [catalog, preferences.selectedSocietyId]);
 
   useEffect(() => {
-    applyThemeVariables(preferences);
+    applyThemeState(preferences);
     savePreferences(preferences);
   }, [preferences]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleChange = (event) => setSystemThemeMode(event.matches ? 'dark' : 'light');
+
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, []);
+
+  useEffect(() => {
+    if (preferences.themeMode === 'auto') {
+      applyThemeState(preferences);
+    }
+  }, [preferences, systemThemeMode]);
 
   useEffect(() => {
     const role = getStoredRole();

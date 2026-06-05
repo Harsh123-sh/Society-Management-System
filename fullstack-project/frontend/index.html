@@ -12,10 +12,11 @@
           var raw = localStorage.getItem(storageKey);
           var systemTheme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
           var preferences = raw ? JSON.parse(raw) : {};
-          var theme = preferences.themeMode || systemTheme;
+          var themeMode = preferences.themeMode || preferences.theme || systemTheme;
+          var theme = themeMode === 'auto' ? systemTheme : themeMode;
           var density = preferences.density || 'comfortable';
-          var layout = preferences.layoutMode || 'glass';
-          var accent = preferences.accentColor || '79 70 229';
+          var layout = preferences.layoutMode || preferences.layout || 'glass';
+          var accent = preferences.accentColor || preferences.accent || '79 70 229';
           var primary = preferences.primaryColor || '#4f46e5';
           var secondary = preferences.secondaryColor || '#2563eb';
           var isDark = theme === 'dark';
@@ -36,14 +37,40 @@
           document.documentElement.style.setProperty('--app-text-rgb', text);
           document.documentElement.style.setProperty('--app-text-muted-rgb', textMuted);
           document.documentElement.style.setProperty('--app-card-rgb', surface);
+          document.documentElement.style.setProperty('--bg-main', isDark ? '#020617' : '#f8fafc');
+          document.documentElement.style.setProperty('--bg-card', isDark ? '#0f172a' : '#ffffff');
+          document.documentElement.style.setProperty('--bg-sidebar', isDark ? '#020617' : '#ffffff');
+          document.documentElement.style.setProperty('--bg-header', isDark ? '#0f172a' : '#ffffff');
+          document.documentElement.style.setProperty('--text-primary', isDark ? '#f8fafc' : '#0f172a');
+          document.documentElement.style.setProperty('--text-secondary', isDark ? '#cbd5e1' : '#475569');
+          document.documentElement.style.setProperty('--text-muted', isDark ? '#94a3b8' : '#64748b');
+          document.documentElement.style.setProperty('--border-color', isDark ? '#334155' : '#e2e8f0');
+          document.documentElement.style.setProperty('--input-bg', isDark ? '#111827' : '#ffffff');
+          document.documentElement.style.setProperty('--input-border', isDark ? '#334155' : '#e2e8f0');
+          document.documentElement.style.setProperty('--input-placeholder', isDark ? '#94a3b8' : '#64748b');
+          document.documentElement.style.setProperty('--button-bg', isDark ? '#1e293b' : '#ffffff');
+          document.documentElement.style.setProperty('--button-text', isDark ? '#f8fafc' : '#0f172a');
+          document.documentElement.style.setProperty('--hero-bg', isDark ? 'linear-gradient(135deg, #020617, #064e3b)' : 'linear-gradient(135deg, #ffffff, #ecfdf5)');
+          document.documentElement.style.setProperty('--background', isDark ? '#020617' : '#f8fafc');
+          document.documentElement.style.setProperty('--surface', isDark ? '#0f172a' : '#ffffff');
+          document.documentElement.style.setProperty('--text', isDark ? '#f8fafc' : '#0f172a');
+          document.documentElement.style.setProperty('--border', isDark ? '#334155' : '#e2e8f0');
+          document.documentElement.style.setProperty('--app-font-sans', 'Manrope, Space Grotesk, Segoe UI, sans-serif');
+          document.documentElement.style.setProperty('--app-layout-mode', layout);
+          document.documentElement.style.setProperty('--app-logo-url', preferences.logoUrl || '');
           document.documentElement.style.setProperty('--app-radius', '24px');
+          document.documentElement.style.setProperty('--brand-rgb', accent);
+          document.documentElement.style.setProperty('--hero-start', primary);
+          document.documentElement.style.setProperty('--hero-end', secondary);
           document.documentElement.dataset.theme = theme;
+          document.documentElement.dataset.themeMode = themeMode;
           document.documentElement.dataset.density = density;
           document.documentElement.dataset.layout = layout;
           document.documentElement.style.colorScheme = theme;
 
           if (document.body) {
             document.body.dataset.theme = theme;
+            document.body.dataset.themeMode = themeMode;
             document.body.dataset.density = density;
             document.body.dataset.layout = layout;
           }

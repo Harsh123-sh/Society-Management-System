@@ -75,6 +75,10 @@
   /* ACCESSIBILITY */
   --focus-ring: 3px;
   --focus-color: rgba(6, 182, 212, 0.12);
+  --brand-rgb: 6 182 212;
+  --hero-start: #ffffff;
+  --hero-end: #ecfdf5;
+  --app-font-sans: "Manrope", "Space Grotesk", "Segoe UI", sans-serif;
 }
 
 /* ==========================================
@@ -178,12 +182,12 @@ html[data-theme="dark"] {
 body {
   margin: 0;
   min-height: 100vh;
-  font-family: "Manrope", "Space Grotesk", "Segoe UI", sans-serif;
-  color: var(--text);
-  background-color: var(--background);
+  font-family: var(--app-font-sans, "Manrope", "Space Grotesk", "Segoe UI", sans-serif);
+  color: var(--text-primary);
+  background-color: var(--bg-main);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  transition: background-color 250ms ease, color 250ms ease;
+  transition: background-color 250ms ease, color 250ms ease, border-color 250ms ease, box-shadow 250ms ease;
 }
 
 button,
