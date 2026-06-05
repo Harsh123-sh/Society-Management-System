@@ -599,8 +599,8 @@ async function getSocietyDetails(req, res) {
       db.query(
         `SELECT
           COUNT(*) AS total_complaints,
-          COUNT(CASE WHEN status = 'pending' THEN 1 END) AS pending_complaints,
-          COUNT(CASE WHEN status = 'resolved' THEN 1 END) AS resolved_complaints
+          COUNT(CASE WHEN c.status = 'pending' THEN 1 END) AS pending_complaints,
+          COUNT(CASE WHEN c.status = 'resolved' THEN 1 END) AS resolved_complaints
          FROM complaints c
          JOIN users u ON u.id = c.resident_id
          WHERE u.society_id = $1`,
