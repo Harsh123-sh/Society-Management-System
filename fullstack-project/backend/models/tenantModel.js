@@ -420,7 +420,7 @@ async function recordSocietyAnalytics(societyId, metrics = {}, metricDate = new 
 
 async function getSocietyAnalytics(societyId) {
   const result = await db.query(
-  `SELECT society_id, metric_date, metrics_json, created_at
+  `SELECT society_id, metric_date, metrics_json
    FROM society_analytics
    WHERE society_id = $1
    ORDER BY metric_date DESC`,

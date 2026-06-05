@@ -270,6 +270,7 @@ async function ensureSchema() {
         society_id INT NOT NULL,
         metric_date DATE NOT NULL,
         metrics_json JSONB,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         UNIQUE (society_id, metric_date)
       );
     `);
