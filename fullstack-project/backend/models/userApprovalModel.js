@@ -19,7 +19,7 @@ class UserApprovalModel {
         `INSERT INTO user_approvals (
           user_id, society_id, approval_type, requested_by, 
           documents_json, status
-        ) VALUES (?, ?, ?, ?, ?, 'pending') RETURNING id`,
+        ) VALUES ($1, $2, $3, $4, $5, 'pending') RETURNING id`,
         [
           userId,
           societyId,
@@ -43,7 +43,7 @@ class UserApprovalModel {
                 requested_by, approved_by, approval_comments,
                 documents_json, created_at, approved_at, updated_at
          FROM user_approvals
-         WHERE id = ?`,
+         WHERE id = $1`,
         [approvalId]
       );
 
@@ -67,19 +67,19 @@ class UserApprovalModel {
   // Get pending approvals for a society
   static async getPendingApprovals(societyId, filter = {}) {
     try {
+      const params = [societyId];
       const conditions = [
-        "ua.society_id = ?",
+        `ua.society_id = $${params.length}`,
         "ua.status = 'pending'"
       ];
-      const params = [societyId];
 
       if (filter.approvalType) {
-        conditions.push("ua.approval_type = ?");
+        conditions.push(`ua.approval_type = $${params.length + 1}`);
         params.push(filter.approvalType);
       }
 
       if (filter.residentType) {
-        conditions.push("u.resident_type = ?");
+        conditions.push(`u.resident_type = $${params.length + 1}`);
         params.push(filter.residentType);
       }
 
@@ -112,18 +112,18 @@ class UserApprovalModel {
       // Update approval
       await db.query(
         `UPDATE user_approvals 
-         SET status = 'approved', approved_by = ?, 
-             approval_comments = ?, approved_at = CURRENT_TIMESTAMP,
+         SET status = 'approved', approved_by = $1, 
+             approval_comments = $2, approved_at = CURRENT_TIMESTAMP,
              updated_at = CURRENT_TIMESTAMP
-         WHERE id = ?`,
+         WHERE id = $3`,
         [approvedBy, comments, approvalId]
       );
 
-      // Update user status
+      // Update user status and verification
       await db.query(
         `UPDATE users
-         SET status = 'active'
-         WHERE id = ?`,
+         SET status = 'active', is_verified = TRUE
+         WHERE id = $1`,
         [approval.user_id]
       );
 
@@ -142,10 +142,10 @@ class UserApprovalModel {
       // Update approval
       await db.query(
         `UPDATE user_approvals 
-         SET status = 'rejected', approved_by = ?, 
-             approval_comments = ?, approved_at = CURRENT_TIMESTAMP,
+         SET status = 'rejected', approved_by = $1, 
+             approval_comments = $2, approved_at = CURRENT_TIMESTAMP,
              updated_at = CURRENT_TIMESTAMP
-         WHERE id = ?`,
+         WHERE id = $3`,
         [rejectedBy, reason, approvalId]
       );
 
@@ -153,7 +153,7 @@ class UserApprovalModel {
       await db.query(
         `UPDATE users
          SET status = 'rejected'
-         WHERE id = ?`,
+         WHERE id = $1`,
         [approval.user_id]
       );
 
@@ -170,18 +170,18 @@ class UserApprovalModel {
       await db.query(
         `UPDATE users 
          SET kyc_status = 'verified', 
-             kyc_document_url = ?,
+             kyc_document_url = $1,
              kyc_document_type = 'ownership_proof',
-             kyc_verified_by = ?,
+             kyc_verified_by = $2,
              kyc_verified_at = CURRENT_TIMESTAMP
-         WHERE id = ? AND society_id = ?`,
+         WHERE id = $3 AND society_id = $4`,
         [documentUrl, verifiedBy, userId, societyId]
       );
 
       // Create approval if not exists
       const { rows: existing } = await db.query(
         `SELECT id FROM user_approvals 
-         WHERE user_id = ? AND approval_type = 'owner_verification'`,
+         WHERE user_id = $1 AND approval_type = 'owner_verification'`,
         [userId]
       );
 
@@ -207,11 +207,11 @@ class UserApprovalModel {
       await db.query(
         `UPDATE users 
          SET kyc_status = 'verified', 
-             kyc_document_url = ?,
+             kyc_document_url = $1,
              kyc_document_type = 'rent_agreement',
-             kyc_verified_by = ?,
+             kyc_verified_by = $2,
              kyc_verified_at = CURRENT_TIMESTAMP
-         WHERE id = ? AND society_id = ?`,
+         WHERE id = $3 AND society_id = $4`,
         [rentAgreementUrl, verifiedBy, userId, societyId]
       );
 
@@ -228,7 +228,7 @@ class UserApprovalModel {
         `SELECT id, approval_type, status, approval_comments,
                 approved_by, created_at, approved_at
          FROM user_approvals
-         WHERE user_id = ?
+         WHERE user_id = $1
          ORDER BY created_at DESC`,
         [userId]
       );
@@ -248,7 +248,7 @@ class UserApprovalModel {
           status,
           COUNT(*) as count
          FROM user_approvals
-         WHERE society_id = ?
+         WHERE society_id = $1
          GROUP BY approval_type, status`,
         [societyId]
       );
@@ -267,7 +267,7 @@ class UserApprovalModel {
       for (const userId of userIds) {
         const { rows: approvals } = await db.query(
           `SELECT id FROM user_approvals 
-           WHERE user_id = ? AND society_id = ? AND status = 'pending'
+           WHERE user_id = $1 AND society_id = $2 AND status = 'pending'
            LIMIT 1`,
           [userId, societyId]
         );

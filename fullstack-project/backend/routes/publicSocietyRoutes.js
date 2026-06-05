@@ -97,7 +97,7 @@ router.get("/societies/:societyId/landing-stats", async (req, res) => {
 
     const { rows: complaintSummaryRows } = await db.query(
       `SELECT COUNT(*) AS total_complaints,
-              SUM(c.status = 'resolved') AS resolved_complaints
+              SUM(CASE WHEN c.status = 'resolved' THEN 1 ELSE 0 END) AS resolved_complaints
        FROM complaints c
        JOIN users resident ON resident.id = c.resident_id
        WHERE resident.society_id = ?`,
@@ -118,7 +118,7 @@ router.get("/societies/:societyId/landing-stats", async (req, res) => {
       `SELECT COUNT(*) AS total_visitors
        FROM visitors v
        LEFT JOIN flats f ON f.id = v.flat_id
-       WHERE f.society_id = ? AND DATE(v.entry_time) = CURDATE()`,
+       WHERE f.society_id = ? AND DATE(v.entry_time) = CURRENT_DATE`,
       [societyId]
     );
 
@@ -200,7 +200,7 @@ router.get("/societies/:societyId/live-preview", async (req, res) => {
     const { rows: flatRows } = await db.query(
       `SELECT
          COUNT(*) AS total_flats,
-         COALESCE(SUM(status = 'occupied'), 0) AS occupied_flats
+         COALESCE(SUM(CASE WHEN status = 'occupied' THEN 1 ELSE 0 END), 0) AS occupied_flats
        FROM flats
        WHERE society_id = ?`,
       [societyId]
@@ -218,7 +218,7 @@ router.get("/societies/:societyId/live-preview", async (req, res) => {
       `SELECT COUNT(*) AS today_visitors
        FROM visitors v
        JOIN flats f ON f.id = v.flat_id
-       WHERE f.society_id = ? AND DATE(v.entry_time) = CURDATE()`,
+       WHERE f.society_id = ? AND DATE(v.entry_time) = CURRENT_DATE`,
       [societyId]
     );
 

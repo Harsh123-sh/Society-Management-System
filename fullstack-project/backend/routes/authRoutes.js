@@ -26,6 +26,7 @@ router.post("/super-admin/login", loginValidation, validationMiddleware, authCon
 router.post("/forgot-password", emailOnlyValidation, validationMiddleware, authController.forgotPassword);
 router.post("/reset-password", resetPasswordValidation, validationMiddleware, authController.resetPassword);
 router.post("/refresh-token", authenticateToken, authController.refreshToken);
+router.post("/logout", authenticateToken, authController.logout);
 router.get("/profile", authenticateToken, authController.getProfile);
 router.get(
   "/admin-only",

@@ -35,21 +35,36 @@ async function issueAndSendOtp({ userId, email, purpose }) {
 }
 
 function signToken(user) {
-  return jwt.sign(
-    {
-      id: user.id,
-      email: user.email,
-      role: user.role,
-      residentType: user.resident_type || null,
-      status: user.status || null,
-      societyId: user.society_id,
-      societyCode: user.society_code || null,
-      societySlug: user.society_slug || null,
-      builderId: user.builder_id || null,
-    },
-    process.env.JWT_SECRET,
-    { expiresIn: process.env.JWT_EXPIRES_IN || "1d" }
-  );
+  // Normalize token payload to use snake_case for DB-backed fields
+  const payload = {
+    id: user.id,
+    email: user.email,
+    role: user.role,
+    resident_type: user.resident_type || null,
+    status: user.status || null,
+    society_id: user.society_id || user.societyId || null,
+    society_code: user.society_code || user.societyCode || null,
+    society_slug: user.society_slug || user.societySlug || null,
+    builder_id: user.builder_id || user.builderId || null,
+  };
+
+  return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN || "1d" });
+}
+
+async function logout(req, res) {
+  try {
+    const authHeader = req.headers.authorization || "";
+    const token = authHeader.startsWith("Bearer ") ? authHeader.split(" ")[1] : null;
+    if (!token) {
+      return res.status(400).json({ success: false, message: "No token provided" });
+    }
+    const tokenBlacklist = require("../utils/tokenBlacklist");
+    // Blacklist for token remaining lifetime (default 24h)
+    tokenBlacklist.blacklistToken(token, 24 * 60 * 60);
+    return res.json({ success: true, message: "Logged out" });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: "Internal server error" });
+  }
 }
 
 async function register(req, res) {
@@ -735,4 +750,5 @@ module.exports = {
   refreshToken,
   adminOnly,
   staffOrAdmin,
+  logout,
 };

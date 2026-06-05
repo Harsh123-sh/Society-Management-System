@@ -343,8 +343,7 @@ If the user asks for data they don't have permission to access, politely inform 
   async getSocietyStaffContext(societyId) {
     try {
       const { rows: staff } = await db.query(
-        `SELECT role, COUNT(*) as count, GROUP_CONCAT(name) as names
-         FROM users 
+          `SELECT role, COUNT(*) as count, STRING_AGG(name, ', ') as names
          WHERE society_id = ? AND role IN ('secretary', 'admin', 'staff')
          GROUP BY role`,
         [societyId]
@@ -382,7 +381,7 @@ If the user asks for data they don't have permission to access, politely inform 
             COUNT(*) as total_visitors,
             SUM(CASE WHEN status = 'in_premises' THEN 1 ELSE 0 END) as current_in_premises
            FROM visitors 
-           WHERE security_id = ? AND DATE(entry_time) = CURDATE()`,
+           WHERE security_id = ? AND DATE(entry_time) = CURRENT_DATE`,
           [userId]
         );
 

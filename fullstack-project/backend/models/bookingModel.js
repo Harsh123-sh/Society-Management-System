@@ -13,7 +13,7 @@ async function createBooking(payload) {
     status,
   } = payload;
 
-  const [result] = await db.promise().query(
+  const { rows: result } = await db.query(
     `INSERT INTO bookings (
       resource_type, resource_id, booked_by, booking_date, start_time, end_time,
       purpose, number_of_guests, status, created_at
@@ -62,12 +62,12 @@ async function getBookings(filters = {}) {
   }
 
   query += " ORDER BY b.booking_date DESC, b.start_time DESC, b.id DESC";
-  const [rows] = await db.promise().query(query, params);
+  const { rows } = await db.query(query, params);
   return rows;
 }
 
 async function getBookingById(bookingId) {
-  const [rows] = await db.promise().query(
+  const { rows } = await db.query(
     `SELECT
       b.*,
       u.name AS booked_by_name,
@@ -85,17 +85,17 @@ async function getBookingById(bookingId) {
 }
 
 async function updateBookingStatus(bookingId, status, approvedBy = null) {
-  const [result] = await db.promise().query(
+  const { rowCount } = await db.query(
     `UPDATE bookings
-     SET status = ?, approved_by = ?, approved_at = IF(? IN ('approved','confirmed'), NOW(), approved_at)
+     SET status = ?, approved_by = ?, approved_at = CASE WHEN ? IN ('approved','confirmed') THEN NOW() ELSE approved_at END
      WHERE id = ?`,
     [status, approvedBy, status, bookingId]
   );
-  return result.affectedRows > 0;
+  return rowCount > 0;
 }
 
 async function updateBooking(bookingId, payload) {
-  const [result] = await db.promise().query(
+  const { rowCount } = await db.query(
     `UPDATE bookings
      SET resource_type = COALESCE(?, resource_type),
          resource_id = COALESCE(?, resource_id),
@@ -118,22 +118,22 @@ async function updateBooking(bookingId, payload) {
       bookingId,
     ]
   );
-  return result.affectedRows > 0;
+  return rowCount > 0;
 }
 
 async function deleteBooking(bookingId) {
-  const [result] = await db.promise().query(`DELETE FROM bookings WHERE id = ?`, [bookingId]);
-  return result.affectedRows > 0;
+  const { rowCount } = await db.query(`DELETE FROM bookings WHERE id = ?`, [bookingId]);
+  return rowCount > 0;
 }
 
 async function getBookingStats() {
-  const [rows] = await db.promise().query(
+  const { rows } = await db.query(
     `SELECT
       COUNT(*) AS total_bookings,
       SUM(CASE WHEN status = 'approved' THEN 1 ELSE 0 END) AS approved_bookings,
       SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) AS pending_bookings,
       SUM(CASE WHEN status = 'confirmed' THEN 1 ELSE 0 END) AS confirmed_bookings,
-      SUM(CASE WHEN booking_date >= CURDATE() THEN 1 ELSE 0 END) AS upcoming_bookings
+      SUM(CASE WHEN booking_date >= CURRENT_DATE THEN 1 ELSE 0 END) AS upcoming_bookings
      FROM bookings`
   );
 

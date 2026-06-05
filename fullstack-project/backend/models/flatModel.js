@@ -13,64 +13,140 @@ async function createFlat({
   approvalStatus = "pending",
   createdBy,
 }) {
+  const insertColumns = ["society_id", "wing", "flat_number"];
+  const insertValues = [societyId || null, wing || null, flatNumber];
+  const placeholders = ["?", "?", "?"];
+
+  const flatColumns = await getFlatTableColumns();
+
+  if (flatColumns.has("block") && buildingName !== undefined) {
+    insertColumns.push("block");
+    insertValues.push(buildingName);
+    placeholders.push("?");
+  } else if (flatColumns.has("building_name") && buildingName !== undefined) {
+    insertColumns.push("building_name");
+    insertValues.push(buildingName);
+    placeholders.push("?");
+  }
+
+  if (flatColumns.has("wing_id") && wingId !== undefined) {
+    insertColumns.push("wing_id");
+    insertValues.push(wingId || null);
+    placeholders.push("?");
+  }
+
+  if (flatColumns.has("floor") && floor !== undefined) {
+    insertColumns.push("floor");
+    insertValues.push(floor || null);
+    placeholders.push("?");
+  }
+
+  if (flatColumns.has("flat_type") && flatType !== undefined) {
+    insertColumns.push("flat_type");
+    insertValues.push(flatType || null);
+    placeholders.push("?");
+  }
+
+  if (flatColumns.has("status")) {
+    insertColumns.push("status");
+    insertValues.push("vacant");
+    placeholders.push("?");
+  }
+
+  if (flatColumns.has("approval_status")) {
+    insertColumns.push("approval_status");
+    insertValues.push(approvalStatus);
+    placeholders.push("?");
+  }
+
+  if (flatColumns.has("occupancy_status")) {
+    insertColumns.push("occupancy_status");
+    insertValues.push(occupancyStatus);
+    placeholders.push("?");
+  }
+
+  if (flatColumns.has("created_by")) {
+    insertColumns.push("created_by");
+    insertValues.push(createdBy || null);
+    placeholders.push("?");
+  }
+
   const { rows: result } = await db.query(
-    `INSERT INTO flats (
-      society_id,
-      tower_id,
-      building_name,
-      wing,
-      wing_id,
-      flat_number,
-      floor,
-      flat_type,
-      status,
-      approval_status,
-      occupancy_status,
-      created_by
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'vacant', ?, ?, ?)` ,
-    [
-      societyId || null,
-      towerId || null,
-      buildingName,
-      wing || null,
-      wingId || null,
-      flatNumber,
-      floor || null,
-      flatType || null,
-      approvalStatus,
-      occupancyStatus,
-      createdBy,
-    ]
+    `INSERT INTO flats (${insertColumns.join(", ")}) VALUES (${placeholders.join(", ")})`,
+    insertValues
   );
 
   return result.insertId;
 }
 
+let flatTableColumnsCache = null;
+
+async function getFlatTableColumns() {
+  if (!flatTableColumnsCache) {
+    const { rows } = await db.query(
+      `SELECT column_name
+       FROM information_schema.columns
+       WHERE table_catalog = current_database()
+         AND table_schema = 'public'
+         AND table_name = 'flats'`
+    );
+
+    flatTableColumnsCache = new Set(rows.map((row) => row.column_name));
+  }
+
+  return flatTableColumnsCache;
+}
+
+async function hasFlatColumn(columnName) {
+  const flatColumns = await getFlatTableColumns();
+  return flatColumns.has(columnName);
+}
+
 async function getFlatByWingAndFlatNumber({ societyId, wingId, wing, flatNumber }) {
+  const filters = ["f.society_id = ?"];
+  const params = [societyId];
+
+  if (wingId) {
+    filters.push("f.wing_id = ?");
+    params.push(wingId);
+  } else if (String(wing).trim()) {
+    filters.push("UPPER(f.wing) = ?");
+    params.push(String(wing).trim().toUpperCase());
+  }
+
+  filters.push("f.flat_number = ?");
+  params.push(String(flatNumber).trim());
+
+  const whereClause = `WHERE ${filters.join(" AND ")}`;
+
   const { rows } = await db.query(
-        `SELECT id, society_id, tower_id, building_name, wing, wing_id, flat_number, floor, flat_type, status,
-          occupancy_status, approval_status, approved_by, approved_at, archived_at, created_at, created_by
-     FROM flats
-     WHERE society_id = ?
-       AND ((? IS NULL) OR (wing_id = ?))
-       AND ((? IS NULL) OR (wing = ?))
-       AND flat_number = ?
+    `SELECT f.*
+     FROM flats f
+     ${whereClause}
      LIMIT 1`,
-    [societyId, wingId || null, wingId || null, wing || null, wing || null, flatNumber]
+    params
   );
 
   return rows[0] || null;
 }
 
 async function getFlatById(flatId, { societyId = null } = {}) {
+  const filters = ["f.id = ?"];
+  const params = [flatId];
+
+  if (societyId) {
+    filters.push("f.society_id = ?");
+    params.push(societyId);
+  }
+
+  const whereClause = `WHERE ${filters.join(" AND ")}`;
+
   const { rows } = await db.query(
-        `SELECT id, society_id, tower_id, building_name, wing, wing_id, flat_number, floor, flat_type, status,
-          occupancy_status, approval_status, approved_by, approved_at, archived_at, created_at, created_by
-     FROM flats
-     WHERE id = ?
-       ${societyId ? "AND society_id = ?" : ""}
+    `SELECT f.*
+     FROM flats f
+     ${whereClause}
      LIMIT 1`,
-    [flatId, ...(societyId ? [societyId] : [])]
+    params
   );
 
   return rows[0] || null;
@@ -92,24 +168,41 @@ async function getCurrentAssignment(flatId) {
 }
 
 async function getNextAvailableFlat({ societyId, preferredFlatId = null } = {}) {
-  const filters = ["f.society_id = ?", "f.archived_at IS NULL", "f.occupancy_status = 'vacant'"];
+  const filters = ["f.society_id = ?"];
   const params = [societyId];
+  const supportsArchived = await hasFlatColumn("archived_at");
+  const supportsOccupancy = await hasFlatColumn("occupancy_status");
+  const supportsApproval = await hasFlatColumn("approval_status");
+
+  if (supportsArchived) {
+    filters.push("f.archived_at IS NULL");
+  }
+
+  if (supportsOccupancy) {
+    filters.push("f.occupancy_status = 'vacant'");
+  } else {
+    filters.push("f.status = 'vacant'");
+  }
 
   if (preferredFlatId) {
     const preferred = await getFlatById(preferredFlatId, { societyId });
-    if (preferred && preferred.occupancy_status === "vacant" && !preferred.archived_at) {
+    if (
+      preferred &&
+      ((supportsOccupancy && preferred.occupancy_status === "vacant") ||
+        (!supportsOccupancy && preferred.status === "vacant")) &&
+      (!supportsArchived || !preferred.archived_at)
+    ) {
       return preferred;
     }
   }
 
+  const whereClause = `WHERE ${filters.join(" AND ")}`;
+
   const { rows } = await db.query(
-    `SELECT f.id, f.society_id, f.tower_id, f.building_name, f.wing, f.wing_id, f.flat_number, f.floor, f.flat_type,
-            f.status, f.occupancy_status, f.approval_status, f.approved_by, f.approved_at, f.archived_at, f.created_at, f.created_by,
-            t.tower_name, t.tower_code
+    `SELECT f.*
      FROM flats f
-     LEFT JOIN towers t ON t.id = f.tower_id
-     WHERE ${filters.join(" AND ")}
-     ORDER BY f.tower_id ASC, CAST(f.floor AS UNSIGNED) ASC, CAST(f.flat_number AS UNSIGNED) ASC, f.flat_number ASC
+     ${whereClause}
+     ORDER BY f.flat_number ASC
      LIMIT 1`,
     params
   );
@@ -126,7 +219,7 @@ async function assignResidentToFlat({ flatId, residentId, residentType = "owner"
     await connection.query(
       `UPDATE flat_residents
        SET is_active = 0,
-           move_out_date = COALESCE(move_out_date, CURDATE())
+           move_out_date = COALESCE(move_out_date, CURRENT_DATE)
        WHERE flat_id = ? AND is_active = 1`,
       [flatId]
     );
@@ -142,14 +235,16 @@ async function assignResidentToFlat({ flatId, residentId, residentType = "owner"
       [flatId, residentId, moveInDate || new Date(), assignedBy]
     );
 
-    await connection.query(
-      "UPDATE flats SET status = 'occupied' WHERE id = ?",
-      [flatId]
-    );
+    const updateParts = ["status = 'occupied'"];
+    const updateParams = [flatId];
+    if (await hasFlatColumn("occupancy_status")) {
+      updateParts.unshift("occupancy_status = ?");
+      updateParams.unshift(residentType === "tenant" ? "tenant_occupied" : "owner_occupied");
+    }
 
     await connection.query(
-      "UPDATE flats SET occupancy_status = ? WHERE id = ?",
-      [residentType === "tenant" ? "tenant_occupied" : "owner_occupied", flatId]
+      `UPDATE flats SET ${updateParts.join(", ")} WHERE id = ?`,
+      updateParams
     );
 
     await connection.commit();
@@ -181,12 +276,20 @@ async function unassignResidentFromFlat(flatId) {
     await connection.query(
       `UPDATE flat_residents
        SET is_active = 0,
-           move_out_date = COALESCE(move_out_date, CURDATE())
+           move_out_date = COALESCE(move_out_date, CURRENT_DATE)
        WHERE flat_id = ? AND is_active = 1`,
       [flatId]
     );
 
-    await connection.query("UPDATE flats SET status = 'vacant', occupancy_status = 'vacant' WHERE id = ?", [flatId]);
+    const resetParts = ["status = 'vacant'"];
+    if (await hasFlatColumn("occupancy_status")) {
+      resetParts.push("occupancy_status = 'vacant'");
+    }
+
+    await connection.query(
+      `UPDATE flats SET ${resetParts.join(", ")} WHERE id = ?`,
+      [flatId]
+    );
 
     await connection.commit();
     return true;

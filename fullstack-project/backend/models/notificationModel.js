@@ -346,7 +346,7 @@ async function getDueEventReminders(limit = 200) {
     `SELECT *
      FROM notification_events
      WHERE dispatched_at IS NULL
-       AND DATE_SUB(event_at, INTERVAL remind_before_minutes MINUTE) <= NOW()
+       AND event_at - make_interval(mins => remind_before_minutes) <= NOW()
      ORDER BY event_at ASC
      LIMIT ?`,
     [Number(limit || 200)]

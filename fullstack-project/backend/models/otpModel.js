@@ -1,13 +1,13 @@
 const db = require("../config/db");
 
 async function createOtp({ userId, email, otpHash, purpose, expiresAt }) {
-  const { rows: result } = await db.query(
+  const { rows } = await db.query(
     `INSERT INTO user_otps (user_id, email, otp_hash, purpose, expires_at)
-     VALUES (?, ?, ?, ?, ?)`,
+     VALUES (?, ?, ?, ?, ?) RETURNING id`,
     [userId || null, email, otpHash, purpose, expiresAt]
   );
 
-  return result.insertId;
+  return rows[0]?.id || null;
 }
 
 async function invalidateActiveOtps(email, purpose) {

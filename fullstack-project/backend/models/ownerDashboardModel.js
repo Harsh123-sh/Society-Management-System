@@ -139,7 +139,7 @@ async function getOwnerBills(ownerId) {
        b.created_at,
        CASE
          WHEN b.status = 'paid' THEN 'paid'
-         WHEN b.due_date < CURDATE() THEN 'overdue'
+         WHEN b.due_date < CURRENT_DATE THEN 'overdue'
          ELSE 'due'
        END AS due_status
      FROM bills b
@@ -317,8 +317,8 @@ async function getOwnerActivityTimeline(ownerId, limit = 25) {
      FROM (
        SELECT
          'bill' AS activity_type,
-         CONCAT('Bill ', b.status) AS title,
-         CONCAT(b.title, ' (', b.total_amount, ')') AS detail,
+         'Bill ' || b.status AS title,
+         b.title || ' (' || COALESCE(b.total_amount::text, '') || ')' AS detail,
          COALESCE(b.paid_at, b.created_at) AS happened_at
        FROM bills b
        WHERE b.resident_id = ?
@@ -327,7 +327,7 @@ async function getOwnerActivityTimeline(ownerId, limit = 25) {
 
        SELECT
          'complaint' AS activity_type,
-         CONCAT('Complaint ', c.status) AS title,
+         'Complaint ' || c.status AS title,
          c.title AS detail,
          c.updated_at AS happened_at
        FROM complaints c
@@ -337,8 +337,8 @@ async function getOwnerActivityTimeline(ownerId, limit = 25) {
 
        SELECT
          'visitor' AS activity_type,
-         CONCAT('Visitor preapproval ', vpa.status) AS title,
-         CONCAT(vpa.visitor_name, ' for ', f.building_name, '-', f.flat_number) AS detail,
+         'Visitor preapproval ' || vpa.status AS title,
+         vpa.visitor_name || ' for ' || f.building_name || '-' || f.flat_number AS detail,
          vpa.created_at AS happened_at
        FROM visitor_preapprovals vpa
        JOIN flats f ON f.id = vpa.flat_id
@@ -349,7 +349,7 @@ async function getOwnerActivityTimeline(ownerId, limit = 25) {
        SELECT
          'property' AS activity_type,
          'Ownership linked' AS title,
-         CONCAT(f.building_name, '-', f.flat_number) AS detail,
+         f.building_name || '-' || f.flat_number AS detail,
          op.created_at AS happened_at
        FROM owner_properties op
        JOIN flats f ON f.id = op.flat_id
@@ -362,7 +362,7 @@ async function getOwnerActivityTimeline(ownerId, limit = 25) {
        SELECT
          'system' AS activity_type,
          al.action AS title,
-         COALESCE(JSON_UNQUOTE(JSON_EXTRACT(al.metadata, '$.message')), '') AS detail,
+         COALESCE(al.metadata->>'message', '') AS detail,
          al.created_at AS happened_at
        FROM activity_logs al
        WHERE al.user_id = ?

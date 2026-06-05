@@ -50,18 +50,18 @@ async function getBillStatusBreakdown() {
 
 async function getMonthlyComplaintsAndBills(lastMonths = 6) {
   const { rows: complaintRows } = await db.query(
-    `SELECT DATE_FORMAT(created_at, '%Y-%m') AS month_key, COUNT(*) AS total
+    `SELECT TO_CHAR(created_at, 'YYYY-MM') AS month_key, COUNT(*) AS total
      FROM complaints
-     WHERE created_at >= DATE_SUB(CURDATE(), INTERVAL ? MONTH)
+     WHERE created_at >= NOW() - make_interval(months => ?)
      GROUP BY month_key
      ORDER BY month_key ASC`,
     [lastMonths]
   );
 
   const { rows: billRows } = await db.query(
-    `SELECT DATE_FORMAT(created_at, '%Y-%m') AS month_key, COUNT(*) AS total
+    `SELECT TO_CHAR(created_at, 'YYYY-MM') AS month_key, COUNT(*) AS total
      FROM bills
-     WHERE created_at >= DATE_SUB(CURDATE(), INTERVAL ? MONTH)
+     WHERE created_at >= NOW() - make_interval(months => ?)
      GROUP BY month_key
      ORDER BY month_key ASC`,
     [lastMonths]
@@ -120,8 +120,11 @@ async function getVisitorAnalytics(startDate, endDate) {
   );
 
   const { rows: peakHours } = await db.query(
-    `SELECT HOUR(created_at) AS hour, COUNT(*) AS count FROM visitors 
-     WHERE created_at BETWEEN ? AND ? GROUP BY HOUR(created_at) ORDER BY hour ASC`,
+    `SELECT EXTRACT(HOUR FROM created_at)::int AS hour, COUNT(*) AS count
+     FROM visitors
+     WHERE created_at BETWEEN ? AND ?
+     GROUP BY EXTRACT(HOUR FROM created_at)
+     ORDER BY hour ASC`,
     [startDate, endDate]
   );
 
@@ -153,9 +156,9 @@ async function getFinancialAnalytics(startDate, endDate) {
   );
 
   const { rows: monthlyRevenue } = await db.query(
-    `SELECT DATE_FORMAT(paid_date, '%Y-%m') AS month, COALESCE(SUM(amount), 0) AS total
+    `SELECT TO_CHAR(paid_date, 'YYYY-MM') AS month, COALESCE(SUM(amount), 0) AS total
      FROM bills WHERE status = 'paid' AND paid_date BETWEEN ? AND ?
-     GROUP BY DATE_FORMAT(paid_date, '%Y-%m') ORDER BY month ASC`,
+     GROUP BY TO_CHAR(paid_date, 'YYYY-MM') ORDER BY month ASC`,
     [startDate, endDate]
   );
 

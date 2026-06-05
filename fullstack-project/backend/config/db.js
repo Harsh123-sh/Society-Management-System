@@ -30,7 +30,15 @@ const pool = new Pool({
 
 const originalQuery = pool.query.bind(pool);
 
+function addInsertReturningId(queryText) {
+  if (/^\s*INSERT\s+INTO/i.test(queryText) && !/RETURNING\s+/i.test(queryText)) {
+    return queryText.trim().replace(/;?$/u, " RETURNING id");
+  }
+  return queryText;
+}
+
 function formatPostgresQuery(queryText, params = []) {
+  queryText = addInsertReturningId(queryText);
   if (!params || params.length === 0 || !queryText.includes("?")) {
     return { text: queryText, values: params };
   }
@@ -48,7 +56,33 @@ pool.query = async (queryText, params = []) => {
   const { text, values } = formatPostgresQuery(queryText, params);
 
   try {
-    return await originalQuery(text, values);
+    const result = await originalQuery(text, values);
+    // Map pg semantics to some MySQL-compatible properties used across the codebase
+    if (result) {
+      // rowCount -> affectedRows for legacy checks
+      if (result.rowCount !== undefined && result.affectedRows === undefined) {
+        result.affectedRows = result.rowCount;
+      }
+
+      // If INSERT RETURNING id was used, expose insertId on both result and rows for compatibility
+      if (Array.isArray(result.rows) && result.rows[0] && result.rows[0].id !== undefined && result.insertId === undefined) {
+        result.insertId = result.rows[0].id;
+        try {
+          result.rows.insertId = result.rows[0].id;
+        } catch (e) {
+          // ignore if rows isn't writable in this shape
+        }
+      }
+
+      // Also provide an array-like first element with affectedRows/insertId for code that expects mysql2 [result, fields] style
+      if (result[0] === undefined) {
+        result[0] = {};
+      }
+      if (result.affectedRows !== undefined) result[0].affectedRows = result.affectedRows;
+      if (result.insertId !== undefined) result[0].insertId = result.insertId;
+    }
+
+    return result;
   } catch (error) {
     console.error("[DB] Query failed:", {
       text,
@@ -58,6 +92,48 @@ pool.query = async (queryText, params = []) => {
     });
     throw error;
   }
+};
+
+pool.getConnection = async () => {
+  const client = await pool.connect();
+
+  return {
+    query: async (queryText, params = []) => {
+      const { text, values } = formatPostgresQuery(queryText, params);
+      const result = await client.query(text, values);
+      // Map pg semantics to MySQL-compatible properties
+      if (result) {
+        if (result.rowCount !== undefined && result.affectedRows === undefined) {
+          result.affectedRows = result.rowCount;
+        }
+
+        if (Array.isArray(result.rows) && result.rows[0] && result.rows[0].id !== undefined && result.insertId === undefined) {
+          result.insertId = result.rows[0].id;
+          try {
+            result.rows.insertId = result.rows[0].id;
+          } catch (e) {}
+        }
+
+        if (result[0] === undefined) result[0] = {};
+        if (result.affectedRows !== undefined) result[0].affectedRows = result.affectedRows;
+        if (result.insertId !== undefined) result[0].insertId = result.insertId;
+      }
+
+      return result;
+    },
+    beginTransaction: async () => {
+      await client.query("BEGIN");
+    },
+    commit: async () => {
+      await client.query("COMMIT");
+    },
+    rollback: async () => {
+      await client.query("ROLLBACK");
+    },
+    release: () => {
+      client.release();
+    },
+  };
 };
 
 pool.on("error", (error) => {

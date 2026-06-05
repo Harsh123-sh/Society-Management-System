@@ -207,7 +207,7 @@ async function runArchiveMaintenance() {
         `UPDATE complaints
          SET status = 'archived', archived_at = NOW(), archived_from_status = COALESCE(NULLIF(status, 'archived'), 'closed'), updated_at = NOW()
          WHERE status IN ('resolved', 'closed')
-           AND COALESCE(resolved_at, updated_at) <= DATE_SUB(NOW(), INTERVAL ? DAY)`,
+           AND COALESCE(resolved_at, updated_at) <= NOW() - make_interval(days => ?)`,
         [rule.archive_after_days || rule.retention_days || 30]
       );
     }
@@ -217,7 +217,7 @@ async function runArchiveMaintenance() {
         `UPDATE notices
          SET status = 'archived', archived_at = NOW(), archived_from_status = COALESCE(NULLIF(status, 'archived'), 'expired'), updated_at = NOW()
          WHERE status = 'expired'
-           AND COALESCE(expires_at, updated_at) <= DATE_SUB(NOW(), INTERVAL ? DAY)`,
+           AND COALESCE(expires_at, updated_at) <= NOW() - make_interval(days => ?)`,
         [rule.archive_after_days || rule.retention_days || 30]
       );
     }

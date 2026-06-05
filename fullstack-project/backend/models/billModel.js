@@ -414,7 +414,7 @@ async function applyLateFeeAutomation({ runBy = null, lateFeeType = "percentage"
     `SELECT id, total_amount
      FROM bills
      WHERE status IN ('unpaid', 'overdue', 'partially_paid')
-       AND DATE(due_date) < DATE_SUB(CURDATE(), INTERVAL ? DAY)`,
+       AND DATE(due_date) < CURRENT_DATE - make_interval(days => ?)`,
     [Number(graceDays || 0)]
   );
 
@@ -458,7 +458,7 @@ async function createPaymentReminders({ createdBy = null, dueSoonDays = 3 }) {
      FROM bills b
      JOIN users u ON u.id = b.resident_id
      WHERE b.status IN ('unpaid', 'overdue', 'partially_paid')
-       AND DATE(b.due_date) <= DATE_ADD(CURDATE(), INTERVAL ? DAY)`,
+       AND DATE(b.due_date) <= CURRENT_DATE + make_interval(days => ?)`,
     [Number(dueSoonDays || 3)]
   );
 
@@ -497,7 +497,7 @@ async function createPaymentReminders({ createdBy = null, dueSoonDays = 3 }) {
 }
 
 async function getBillingDashboard() {
-  const [[totals]] = await db.query(
+  const { rows: [totals] } = await db.query(
     `SELECT
         COUNT(*) AS totalBills,
         COALESCE(SUM(total_amount), 0) AS totalInvoiced,
@@ -515,12 +515,12 @@ async function getBillingDashboard() {
   );
 
   const { rows: monthlyCollections } = await db.query(
-    `SELECT DATE_FORMAT(created_at, '%Y-%m') AS month,
+    `SELECT TO_CHAR(created_at, 'YYYY-MM') AS month,
             COALESCE(SUM(total_amount), 0) AS invoiced,
             COALESCE(SUM(paid_amount), 0) AS collected
      FROM bills
-     WHERE created_at >= DATE_SUB(CURDATE(), INTERVAL 8 MONTH)
-     GROUP BY DATE_FORMAT(created_at, '%Y-%m')
+     WHERE created_at >= NOW() - make_interval(months => 8)
+     GROUP BY TO_CHAR(created_at, 'YYYY-MM')
      ORDER BY month ASC`
   );
 
@@ -577,7 +577,7 @@ async function getResidentPaymentPortal(residentId) {
 async function getFinancialAnalyticsData() {
   const { rows: collectionEfficiency } = await db.query(
     `SELECT
-        DATE_FORMAT(created_at, '%Y-%m') AS month,
+        TO_CHAR(created_at, 'YYYY-MM') AS month,
         COALESCE(SUM(total_amount), 0) AS invoiced,
         COALESCE(SUM(paid_amount), 0) AS collected,
         CASE
@@ -585,8 +585,8 @@ async function getFinancialAnalyticsData() {
           ELSE ROUND((COALESCE(SUM(paid_amount), 0) / COALESCE(SUM(total_amount), 0)) * 100, 2)
         END AS collectionRate
      FROM bills
-     WHERE created_at >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)
-     GROUP BY DATE_FORMAT(created_at, '%Y-%m')
+     WHERE created_at >= NOW() - make_interval(months => 12)
+     GROUP BY TO_CHAR(created_at, 'YYYY-MM')
      ORDER BY month ASC`
   );
 
@@ -597,7 +597,7 @@ async function getFinancialAnalyticsData() {
      FROM bills b
      JOIN users u ON u.id = b.resident_id
      WHERE b.status IN ('overdue', 'unpaid', 'partially_paid')
-       AND DATE(b.due_date) < CURDATE()
+       AND DATE(b.due_date) < CURRENT_DATE
      GROUP BY b.resident_id, u.name, u.email
      ORDER BY outstandingAmount DESC
      LIMIT 10`

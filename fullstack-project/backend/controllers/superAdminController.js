@@ -51,7 +51,7 @@ async function generateSocietyCode(societyName) {
   const { rows } = await db.query(
     `SELECT code
      FROM societies
-     WHERE code LIKE ?
+     WHERE code ILIKE $1
      ORDER BY CAST(COALESCE(NULLIF(split_part(code, '-', 2), ''), '0') AS INTEGER) DESC, id DESC
      LIMIT 1`,
     [`${prefix}-%`]
@@ -166,7 +166,7 @@ async function getPlatformStats(req, res) {
         COUNT(CASE WHEN status = 'active' THEN 1 END) AS active_subscriptions,
         COUNT(CASE WHEN status = 'trial' THEN 1 END) AS trial_subscriptions,
         COUNT(CASE WHEN status = 'past_due' THEN 1 END) AS past_due_subscriptions,
-        COUNT(CASE WHEN renewal_at IS NOT NULL AND renewal_at <= DATE_ADD(NOW(), INTERVAL 14 DAY) THEN 1 END) AS expiring_soon
+        COUNT(CASE WHEN renewal_at IS NOT NULL AND renewal_at <= NOW() + INTERVAL '14 days' THEN 1 END) AS expiring_soon
       FROM society_subscriptions
     `);
 
@@ -251,23 +251,23 @@ async function listSocieties(req, res) {
     const params = [];
 
     if (search) {
-      filters.push("(s.name LIKE ? OR s.code LIKE ? OR s.city LIKE ? OR s.state LIKE ? OR s.address LIKE ? OR s.pincode LIKE ?)");
+      filters.push("(s.name ILIKE $" + (params.length + 1) + " OR s.code ILIKE $" + (params.length + 2) + " OR s.city ILIKE $" + (params.length + 3) + " OR s.state ILIKE $" + (params.length + 4) + " OR s.address ILIKE $" + (params.length + 5) + " OR s.pincode ILIKE $" + (params.length + 6) + ")");
       const like = `%${search}%`;
       params.push(like, like, like, like, like, like);
     }
 
     if (status === "deleted") {
-      filters.push("s.status = ?");
+      filters.push(`s.status = $${params.length + 1}`);
       params.push(status);
     } else if (SOCIETY_STATUSES.has(status)) {
-      filters.push("s.status = ?");
+      filters.push(`s.status = $${params.length + 1}`);
       params.push(status);
     } else {
       filters.push("s.status <> 'deleted'");
     }
 
     if (plan) {
-      filters.push("s.subscription_plan = ?");
+      filters.push(`s.subscription_plan = $${params.length + 1}`);
       params.push(plan);
     }
 
@@ -277,6 +277,9 @@ async function listSocieties(req, res) {
       `SELECT COUNT(*) AS count FROM societies s ${whereClause}`,
       params
     );
+
+    const limitIndex = params.length + 1;
+    const offsetIndex = params.length + 2;
 
     const { rows } = await db.query(
       `SELECT
@@ -337,7 +340,7 @@ async function listSocieties(req, res) {
        ) revenue ON revenue.society_id = s.id
        ${whereClause}
        ORDER BY ${orderColumn} ${sortOrder}
-       LIMIT ? OFFSET ?`,
+       LIMIT $${limitIndex} OFFSET $${offsetIndex}`,
       [...params, pageSize, offset]
     );
 
@@ -572,7 +575,7 @@ async function getSocietyDetails(req, res) {
       return res.status(404).json({ success: false, message: "Society not found" });
     }
 
-    const [[userRows], [flatRows], [complaintRows], [visitorRows], [paymentRows], [noticeRows], [subscriptionRows]] = await Promise.all([
+    const results = await Promise.all([
       db.query(
         `SELECT
           COUNT(*) AS total_users,
@@ -581,7 +584,7 @@ async function getSocietyDetails(req, res) {
           COUNT(CASE WHEN role = 'secretary' THEN 1 END) AS secretary_count,
           COUNT(CASE WHEN role = 'security' AND status = 'active' THEN 1 END) AS active_security_staff
          FROM users
-         WHERE society_id = ?`,
+         WHERE society_id = $1`,
         [societyId]
       ),
       db.query(
@@ -590,7 +593,7 @@ async function getSocietyDetails(req, res) {
           COUNT(CASE WHEN status = 'occupied' THEN 1 END) AS occupied_flats,
           COUNT(CASE WHEN status = 'vacant' THEN 1 END) AS vacant_flats
          FROM flats
-         WHERE society_id = ?`,
+         WHERE society_id = $1`,
         [societyId]
       ),
       db.query(
@@ -600,14 +603,14 @@ async function getSocietyDetails(req, res) {
           COUNT(CASE WHEN status = 'resolved' THEN 1 END) AS resolved_complaints
          FROM complaints c
          JOIN users u ON u.id = c.resident_id
-         WHERE u.society_id = ?`,
+         WHERE u.society_id = $1`,
         [societyId]
       ),
       db.query(
         `SELECT COUNT(*) AS total_visitors
          FROM visitors v
          LEFT JOIN flats f ON f.id = v.flat_id
-         WHERE f.society_id = ?`,
+         WHERE f.society_id = $1`,
         [societyId]
       ),
       db.query(
@@ -617,23 +620,31 @@ async function getSocietyDetails(req, res) {
           COALESCE(SUM(bp.amount), 0) AS total_payments
          FROM bill_payments bp
          INNER JOIN bills b ON b.id = bp.bill_id
-         WHERE b.society_id = ? AND bp.status IN ('authorized', 'captured')`,
+         WHERE b.society_id = $1 AND bp.status IN ('authorized', 'captured')`,
         [societyId]
       ),
       db.query(
         `SELECT COUNT(*) AS total_notices
          FROM notices
-         WHERE society_id = ?`,
+         WHERE society_id = $1`,
         [societyId]
       ),
       db.query(
         `SELECT id, plan_name, status, billing_cycle, renewal_at, provider_name, provider_subscription_id
          FROM society_subscriptions
-         WHERE society_id = ?
+         WHERE society_id = $1
          LIMIT 1`,
         [societyId]
       ),
     ]);
+
+    const userRows = results[0].rows;
+    const flatRows = results[1].rows;
+    const complaintRows = results[2].rows;
+    const visitorRows = results[3].rows;
+    const paymentRows = results[4].rows;
+    const noticeRows = results[5].rows;
+    const subscriptionRows = results[6].rows;
 
     const detail = await tenantModel.getTenantContextBySocietyId(societyId);
     const analytics = await tenantModel.getSocietyAnalytics(societyId);
@@ -707,11 +718,16 @@ async function getPendingApprovals(req, res) {
     if (!(await ensureSuperAdmin(req, res))) return;
 
     const role = normalizeText(req.query.role);
-    const roleFilter = role && ["admin", "secretary"].includes(role) ? " AND u.role = ?" : "";
-    const params = roleFilter ? [role] : [];
+    const validRoles = ["admin", "secretary"];
+    const approvalParams = [];
+    let approvalRoleClause = "";
+    if (role && validRoles.includes(role)) {
+      approvalParams.push(role);
+      approvalRoleClause = ` AND u.role = $${approvalParams.length}`;
+    }
 
-    const { rows } = await db.query(
-      `SELECT ua.id, ua.user_id, ua.society_id, ua.approval_type, ua.status, ua.created_at,
+    const { rows: approvalRows } = await db.query(
+      `SELECT ua.id AS approval_id, u.id AS user_id, ua.society_id, ua.approval_type, ua.status, ua.created_at,
               u.name, u.email, u.role, u.resident_type,
               s.code AS society_code, s.name AS society_name
        FROM user_approvals ua
@@ -719,10 +735,54 @@ async function getPendingApprovals(req, res) {
        JOIN societies s ON s.id = ua.society_id
        WHERE ua.status = 'pending'
          AND ua.approval_type = 'registration'
-         AND u.role IN ('admin', 'secretary')${roleFilter}
+         AND u.role IN ('admin', 'secretary')${approvalRoleClause}
        ORDER BY ua.created_at ASC`,
-      params
+      approvalParams
     );
+
+    const directParams = [];
+    let directRoleClause = validRoles.map((r) => `'${r}'`).join(", ");
+    if (role && validRoles.includes(role)) {
+      directParams.push(role);
+      directRoleClause = `$1`;
+    }
+
+    const directQuery = `
+      SELECT u.id AS user_id, u.society_id, u.name, u.email, u.role, u.resident_type,
+             s.code AS society_code, s.name AS society_name, u.created_at
+      FROM users u
+      JOIN societies s ON s.id = u.society_id
+      WHERE u.status = 'pending'
+        AND u.role IN (${directRoleClause})
+        AND NOT EXISTS (
+          SELECT 1 FROM user_approvals ua
+          WHERE ua.user_id = u.id
+            AND ua.status = 'pending'
+            AND ua.approval_type = 'registration'
+        )
+      ORDER BY u.created_at ASC`;
+
+    const { rows: directRows } = await db.query(directQuery, directParams);
+
+    const rows = [
+      ...approvalRows.map((item) => ({
+        id: item.approval_id,
+        approval_id: item.approval_id,
+        user_id: item.user_id,
+        source: "approval",
+        ...item,
+      })),
+      ...directRows.map((item) => ({
+        id: -item.user_id,
+        approval_id: null,
+        user_id: item.user_id,
+        society_id: item.society_id,
+        approval_type: "registration",
+        status: "pending",
+        source: "user",
+        ...item,
+      })),
+    ];
 
     const counts = rows.reduce((acc, item) => {
       const key = item.role === "admin" ? "chairman" : item.role;
@@ -736,6 +796,7 @@ async function getPendingApprovals(req, res) {
       meta: { total: rows.length, counts },
     });
   } catch (error) {
+    console.error("[SuperAdmin] Failed to fetch pending approvals", error.message || error);
     return res.status(500).json({ success: false, message: "Failed to fetch pending approvals" });
   }
 }
@@ -745,31 +806,50 @@ async function approvePendingUser(req, res) {
     if (!(await ensureSuperAdmin(req, res))) return;
 
     const approvalId = Number(req.params.approvalId);
-    const approvalRow = await UserApprovalModel.getApprovalById(approvalId);
-    if (!approvalRow || approvalRow.status !== "pending") {
+    if (!Number.isInteger(approvalId)) {
+      return res.status(400).json({ success: false, message: "Invalid approval id" });
+    }
+
+    let approvalRow = await UserApprovalModel.getApprovalById(approvalId);
+    let directUser = null;
+    if (!approvalRow) {
+      const userId = Math.abs(approvalId);
+      const { rows: userRows } = await db.query(`SELECT id, role, status FROM users WHERE id = $1 LIMIT 1`, [userId]);
+      directUser = userRows[0] || null;
+    }
+
+    if (approvalRow) {
+      const { rows: approvalUserRows } = await db.query(`SELECT role FROM users WHERE id = $1 LIMIT 1`, [approvalRow.user_id]);
+      const approvalUserRole = approvalUserRows[0]?.role || null;
+      if (!["admin", "secretary"].includes(approvalUserRole) || approvalRow.approval_type !== "registration") {
+        return res.status(403).json({
+          success: false,
+          message: "Super admin can approve only chairman/secretary registration requests",
+        });
+      }
+
+      if (approvalRow.status !== "pending") {
+        return res.status(404).json({ success: false, message: "Approval not found" });
+      }
+
+      const approval = await UserApprovalModel.approveUser(approvalId, req.user.id, req.body?.comments || null);
+      if (!approval) {
+        return res.status(404).json({ success: false, message: "Approval not found" });
+      }
+
+      return res.json({ success: true, message: "User approved successfully", data: approval });
+    }
+
+    if (!directUser || directUser.status !== "pending" || !["admin", "secretary"].includes(directUser.role)) {
       return res.status(404).json({ success: false, message: "Approval not found" });
     }
 
-    const { rows: approvalUserRows } = await db.query(
-      `SELECT role FROM users WHERE id = ? LIMIT 1`,
-      [approvalRow.user_id]
-    );
+    await db.query(`UPDATE users SET status = 'active', is_verified = TRUE WHERE id = $1`, [directUser.id]);
+    const response = { user_id: directUser.id, role: directUser.role, status: "active", approved_by: req.user.id };
 
-    const approvalUserRole = approvalUserRows[0]?.role || null;
-    if (!["admin", "secretary"].includes(approvalUserRole) || approvalRow.approval_type !== "registration") {
-      return res.status(403).json({
-        success: false,
-        message: "Super admin can approve only chairman/secretary registration requests",
-      });
-    }
-
-    const approval = await UserApprovalModel.approveUser(approvalId, req.user.id, req.body?.comments || null);
-    if (!approval) {
-      return res.status(404).json({ success: false, message: "Approval not found" });
-    }
-
-    return res.json({ success: true, message: "User approved successfully", data: approval });
+    return res.json({ success: true, message: "User approved successfully", data: response });
   } catch (error) {
+    console.error("[SuperAdmin] Failed to approve pending user", error.message || error);
     return res.status(500).json({ success: false, message: "Failed to approve user" });
   }
 }
@@ -784,31 +864,50 @@ async function rejectPendingUser(req, res) {
       return res.status(400).json({ success: false, message: "Rejection reason is required" });
     }
 
-    const approvalRow = await UserApprovalModel.getApprovalById(approvalId);
-    if (!approvalRow || approvalRow.status !== "pending") {
+    if (!Number.isInteger(approvalId)) {
+      return res.status(400).json({ success: false, message: "Invalid approval id" });
+    }
+
+    let approvalRow = await UserApprovalModel.getApprovalById(approvalId);
+    let directUser = null;
+    if (!approvalRow) {
+      const userId = Math.abs(approvalId);
+      const { rows: userRows } = await db.query(`SELECT id, role, status FROM users WHERE id = $1 LIMIT 1`, [userId]);
+      directUser = userRows[0] || null;
+    }
+
+    if (approvalRow) {
+      const { rows: approvalUserRows } = await db.query(`SELECT role FROM users WHERE id = $1 LIMIT 1`, [approvalRow.user_id]);
+      const approvalUserRole = approvalUserRows[0]?.role || null;
+      if (!["admin", "secretary"].includes(approvalUserRole) || approvalRow.approval_type !== "registration") {
+        return res.status(403).json({
+          success: false,
+          message: "Super admin can reject only chairman/secretary registration requests",
+        });
+      }
+
+      if (approvalRow.status !== "pending") {
+        return res.status(404).json({ success: false, message: "Approval not found" });
+      }
+
+      const approval = await UserApprovalModel.rejectUser(approvalId, req.user.id, reason);
+      if (!approval) {
+        return res.status(404).json({ success: false, message: "Approval not found" });
+      }
+
+      return res.json({ success: true, message: "User rejected successfully", data: approval });
+    }
+
+    if (!directUser || directUser.status !== "pending" || !["admin", "secretary"].includes(directUser.role)) {
       return res.status(404).json({ success: false, message: "Approval not found" });
     }
 
-    const { rows: approvalUserRows } = await db.query(
-      `SELECT role FROM users WHERE id = ? LIMIT 1`,
-      [approvalRow.user_id]
-    );
+    await db.query(`UPDATE users SET status = 'rejected' WHERE id = $1`, [directUser.id]);
+    const response = { user_id: directUser.id, role: directUser.role, status: "rejected", rejected_by: req.user.id, rejection_reason: reason };
 
-    const approvalUserRole = approvalUserRows[0]?.role || null;
-    if (!["admin", "secretary"].includes(approvalUserRole) || approvalRow.approval_type !== "registration") {
-      return res.status(403).json({
-        success: false,
-        message: "Super admin can reject only chairman/secretary registration requests",
-      });
-    }
-
-    const approval = await UserApprovalModel.rejectUser(approvalId, req.user.id, reason);
-    if (!approval) {
-      return res.status(404).json({ success: false, message: "Approval not found" });
-    }
-
-    return res.json({ success: true, message: "User rejected successfully", data: approval });
+    return res.json({ success: true, message: "User rejected successfully", data: response });
   } catch (error) {
+    console.error("[SuperAdmin] Failed to reject pending user", error.message || error);
     return res.status(500).json({ success: false, message: "Failed to reject user" });
   }
 }
@@ -827,13 +926,13 @@ async function getActivityLogs(req, res) {
     const params = [];
 
     if (search) {
-      filters.push("(al.action LIKE ? OR u.name LIKE ? OR u.email LIKE ? OR al.details LIKE ?)");
+      filters.push(`(al.action ILIKE $${params.length + 1} OR u.name ILIKE $${params.length + 2} OR u.email ILIKE $${params.length + 3} OR al.details ILIKE $${params.length + 4})`);
       const like = `%${search}%`;
       params.push(like, like, like, like);
     }
 
     if (action) {
-      filters.push("al.action = ?");
+      filters.push(`al.action = $${params.length + 1}`);
       params.push(action);
     }
 
@@ -850,7 +949,7 @@ async function getActivityLogs(req, res) {
        LEFT JOIN users u ON u.id = al.user_id
        ${whereClause}
        ORDER BY al.created_at DESC
-       LIMIT ? OFFSET ?`,
+       LIMIT $${params.length + 1} OFFSET $${params.length + 2}`,
       [...params, pageSize, offset]
     );
 
@@ -914,7 +1013,7 @@ async function getPlatformAnalytics(req, res) {
     if (!(await ensureSuperAdmin(req, res))) return;
 
     const { rows: societyGrowth } = await db.query(`
-      SELECT DATE_FORMAT(created_at, '%Y-%m') AS period, COUNT(*) AS total
+      SELECT to_char(created_at, 'YYYY-MM') AS period, COUNT(*) AS total
       FROM societies
       GROUP BY period
       ORDER BY period DESC
@@ -922,7 +1021,7 @@ async function getPlatformAnalytics(req, res) {
     `);
 
     const { rows: userGrowth } = await db.query(`
-      SELECT DATE_FORMAT(created_at, '%Y-%m') AS period, COUNT(*) AS total
+      SELECT to_char(created_at, 'YYYY-MM') AS period, COUNT(*) AS total
       FROM users
       GROUP BY period
       ORDER BY period DESC
@@ -930,7 +1029,7 @@ async function getPlatformAnalytics(req, res) {
     `);
 
     const { rows: complaintTrend } = await db.query(`
-      SELECT DATE_FORMAT(created_at, '%Y-%m') AS period, COUNT(*) AS total
+      SELECT to_char(created_at, 'YYYY-MM') AS period, COUNT(*) AS total
       FROM complaints
       GROUP BY period
       ORDER BY period DESC
@@ -938,7 +1037,7 @@ async function getPlatformAnalytics(req, res) {
     `);
 
     const { rows: revenueTrend } = await db.query(`
-      SELECT DATE_FORMAT(bp.created_at, '%Y-%m') AS period, COALESCE(SUM(bp.amount), 0) AS total
+      SELECT to_char(bp.created_at, 'YYYY-MM') AS period, COALESCE(SUM(bp.amount), 0) AS total
       FROM bill_payments bp
       WHERE bp.status IN ('authorized', 'captured')
       GROUP BY period
@@ -947,9 +1046,9 @@ async function getPlatformAnalytics(req, res) {
     `);
 
     const { rows: loginTrend } = await db.query(`
-      SELECT DATE_FORMAT(created_at, '%Y-%m') AS period, COUNT(*) AS total
+      SELECT to_char(created_at, 'YYYY-MM') AS period, COUNT(*) AS total
       FROM audit_logs
-      WHERE action LIKE '%login%'
+      WHERE action ILIKE '%login%'
          OR action IN ('security_login', 'login_success', 'super_admin_login')
       GROUP BY period
       ORDER BY period DESC
@@ -981,7 +1080,7 @@ async function getSocietyAnalytics(req, res) {
       return res.status(404).json({ success: false, message: "Society not found" });
     }
 
-    const [[userStats], [flatStats], [complaintStats], [visitorStats], [billStats], [activityStats], [subscriptionStats]] = await Promise.all([
+    const analyticsResults = await Promise.all([
       db.query(
         `SELECT
           COUNT(*) AS total_users,
@@ -990,7 +1089,7 @@ async function getSocietyAnalytics(req, res) {
           COUNT(CASE WHEN role = 'secretary' THEN 1 END) AS secretary_count,
           COUNT(CASE WHEN role = 'security' AND status = 'active' THEN 1 END) AS active_security_staff
          FROM users
-         WHERE society_id = ?`,
+         WHERE society_id = $1`,
         [societyId]
       ),
       db.query(
@@ -999,7 +1098,7 @@ async function getSocietyAnalytics(req, res) {
           COUNT(CASE WHEN status = 'occupied' THEN 1 END) AS occupied_flats,
           COUNT(CASE WHEN status = 'vacant' THEN 1 END) AS vacant_flats
          FROM flats
-         WHERE society_id = ?`,
+         WHERE society_id = $1`,
         [societyId]
       ),
       db.query(
@@ -1008,7 +1107,7 @@ async function getSocietyAnalytics(req, res) {
                 COUNT(CASE WHEN status = 'resolved' THEN 1 END) AS resolved_complaints
          FROM complaints c
          JOIN users u ON u.id = c.resident_id
-         WHERE u.society_id = ?`,
+         WHERE u.society_id = $1`,
         [societyId]
       ),
       db.query(
@@ -1017,7 +1116,7 @@ async function getSocietyAnalytics(req, res) {
           COUNT(CASE WHEN status = 'in_premises' THEN 1 END) AS active_visitors
          FROM visitors v
          LEFT JOIN flats f ON f.id = v.flat_id
-         WHERE f.society_id = ?`,
+         WHERE f.society_id = $1`,
         [societyId]
       ),
       db.query(
@@ -1027,23 +1126,31 @@ async function getSocietyAnalytics(req, res) {
           COUNT(CASE WHEN payment_status = 'unpaid' THEN 1 END) AS unpaid_bills,
           COALESCE(SUM(CASE WHEN payment_status = 'paid' THEN paid_amount ELSE 0 END), 0) AS monthly_collection
          FROM bills
-         WHERE society_id = ?`,
+         WHERE society_id = $1`,
         [societyId]
       ),
       db.query(
         `SELECT COUNT(*) AS total_activity
          FROM audit_logs
-         WHERE society_id = ?`,
+         WHERE society_id = $1`,
         [societyId]
       ),
       db.query(
         `SELECT plan_name, status, billing_cycle, renewal_at, provider_name
          FROM society_subscriptions
-         WHERE society_id = ?
+         WHERE society_id = $1
          LIMIT 1`,
         [societyId]
       ),
     ]);
+
+    const userStats = analyticsResults[0].rows;
+    const flatStats = analyticsResults[1].rows;
+    const complaintStats = analyticsResults[2].rows;
+    const visitorStats = analyticsResults[3].rows;
+    const billStats = analyticsResults[4].rows;
+    const activityStats = analyticsResults[5].rows;
+    const subscriptionStats = analyticsResults[6].rows;
 
     console.log("[SuperAdmin] Society analytics loaded", {
       societyId,

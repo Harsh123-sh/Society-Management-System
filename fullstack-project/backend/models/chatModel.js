@@ -335,15 +335,15 @@ async function getThreadMessages({ threadId, currentUserId, limit = 200, search 
             receiver.name AS receiver_name,
             receiver.role AS receiver_role,
             COALESCE((
-              SELECT JSON_ARRAYAGG(JSON_OBJECT('user_id', r.user_id, 'reaction', r.reaction, 'created_at', r.created_at))
+              SELECT jsonb_agg(jsonb_build_object('user_id', r.user_id, 'reaction', r.reaction, 'created_at', r.created_at))
               FROM chat_message_reactions r
               WHERE r.message_id = m.id
-            ), JSON_ARRAY()) AS reactions_json,
+            ), '[]'::jsonb) AS reactions_json,
             COALESCE((
-              SELECT JSON_ARRAYAGG(JSON_OBJECT('user_id', rc.user_id, 'delivered_at', rc.delivered_at, 'read_at', rc.read_at))
+              SELECT jsonb_agg(jsonb_build_object('user_id', rc.user_id, 'delivered_at', rc.delivered_at, 'read_at', rc.read_at))
               FROM chat_message_receipts rc
               WHERE rc.message_id = m.id
-            ), JSON_ARRAY()) AS receipts_json,
+            ), '[]'::jsonb) AS receipts_json,
             reply.message AS reply_message,
             reply.message_type AS reply_message_type,
             pinned_by.name AS pinned_by_name,
@@ -472,15 +472,15 @@ async function getMessageById(messageId) {
             pinned_by.name AS pinned_by_name,
             deleter.name AS deleted_for_all_by_name,
             COALESCE((
-              SELECT JSON_ARRAYAGG(JSON_OBJECT('user_id', r.user_id, 'reaction', r.reaction, 'created_at', r.created_at))
+              SELECT jsonb_agg(jsonb_build_object('user_id', r.user_id, 'reaction', r.reaction, 'created_at', r.created_at))
               FROM chat_message_reactions r
               WHERE r.message_id = m.id
-            ), JSON_ARRAY()) AS reactions_json,
+            ), '[]'::jsonb) AS reactions_json,
             COALESCE((
-              SELECT JSON_ARRAYAGG(JSON_OBJECT('user_id', rc.user_id, 'delivered_at', rc.delivered_at, 'read_at', rc.read_at))
+              SELECT jsonb_agg(jsonb_build_object('user_id', rc.user_id, 'delivered_at', rc.delivered_at, 'read_at', rc.read_at))
               FROM chat_message_receipts rc
               WHERE rc.message_id = m.id
-            ), JSON_ARRAY()) AS receipts_json
+            ), '[]'::jsonb) AS receipts_json
      FROM chat_messages m
      JOIN users sender ON sender.id = m.sender_id
      LEFT JOIN users receiver ON receiver.id = m.receiver_id

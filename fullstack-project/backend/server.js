@@ -3,6 +3,7 @@ const http = require("http");
 const app = require("./App");
 const { initChatSocket } = require("./sockets/chatSocket");
 const archiveModel = require("./models/archiveModel");
+const { validateSchema } = require("./utils/schemaValidator");
 
 let ensureSchema = null;
 try {
@@ -34,20 +35,21 @@ async function initializeSchema() {
       await ensureSchema();
       console.log("✓ Database schema initialized");
     }
+
+    await validateSchema();
   } catch (error) {
-    console.warn(`⚠ Schema initialization failed: ${error.message}`);
-    console.warn("Server will continue running. Database tables may be missing.");
-    // Retry schema initialization after 30 seconds
-    setTimeout(initializeSchema, 30000);
+    console.error(`⚠ Schema validation failed: ${error.message}`);
+    if (Array.isArray(error.details) && error.details.length) {
+      error.details.forEach((detail) => console.error(`  - ${detail}`));
+    }
+    process.exit(1);
   }
 }
 
 (async () => {
   try {
     // Start schema initialization in background
-    initializeSchema().catch(error => {
-      console.warn(`Background schema init error: ${error.message}`);
-    });
+    await initializeSchema();
 
     await archiveModel.runArchiveMaintenance().catch((error) => {
       console.warn(`Archive maintenance skipped on startup: ${error.message}`);

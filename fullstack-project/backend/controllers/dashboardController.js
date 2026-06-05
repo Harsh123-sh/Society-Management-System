@@ -114,7 +114,7 @@ async function getSocietyDashboard(req, res) {
       `SELECT id, name, email, role, status
        FROM users
        WHERE society_id = ? AND role IN ('admin', 'secretary')
-       ORDER BY FIELD(role, 'admin', 'secretary'), id ASC`,
+       ORDER BY CASE WHEN role = 'admin' THEN 1 WHEN role = 'secretary' THEN 2 ELSE 3 END, id ASC`,
       [req.society.id]
     );
 
@@ -485,7 +485,7 @@ async function getSecurityDashboard(req, res) {
     const { rows: alerts } = await db.query(
       `SELECT id, alert_type, severity, message, location, triggered_at, status
        FROM security_alerts
-       WHERE society_id = ? AND triggered_at > DATE_SUB(NOW(), INTERVAL 7 DAY)
+       WHERE society_id = ? AND triggered_at > NOW() - INTERVAL '7 days'
        ORDER BY triggered_at DESC
        LIMIT 10`,
       [req.user.society_id]

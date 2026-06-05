@@ -429,7 +429,9 @@ async function getUserByEmail(email) {
        s.slug AS society_slug,
        s.subdomain AS society_subdomain,
        s.name AS society_name,
-       s.builder_id
+       s.builder_id,
+       u.created_at,
+       u.updated_at
      FROM users u
      LEFT JOIN societies s ON s.id = u.society_id
      WHERE LOWER(TRIM(u.email)) = LOWER(TRIM($1))
@@ -506,7 +508,7 @@ async function getUserById(id) {
         `SELECT u.id, u.name, u.email, u.role, u.resident_type, u.status, u.is_verified,
           u.society_id, u.flat_id, u.flat_number, s.code AS society_code, s.slug AS society_slug,
           s.subdomain AS society_subdomain, s.name AS society_name, s.builder_id,
-            u.deleted_at, u.deleted_by, u.delete_reason, u.original_email, u.created_at
+            u.created_at, u.updated_at
      FROM users u
      LEFT JOIN societies s ON s.id = u.society_id
      WHERE u.id = $1
@@ -517,7 +519,7 @@ async function getUserById(id) {
 }
 
 async function verifyUserByEmail(email) {
-  await db.query("UPDATE users SET is_verified = 1, status = 'pending' WHERE email = ?", [email]);
+  await db.query("UPDATE users SET is_verified = TRUE, status = 'pending' WHERE email = ?", [email]);
 }
 
 async function hasOwnerForFlat({ societyId, flatNumber }) {
@@ -639,7 +641,7 @@ async function softDeleteUserById({ userId, deletedBy, deleteReason }) {
     await connection.query(
       `UPDATE flat_residents
        SET is_active = 0,
-           move_out_date = COALESCE(move_out_date, CURDATE())
+           move_out_date = COALESCE(move_out_date, CURRENT_DATE)
        WHERE resident_id = ? AND is_active = 1`,
       [userId]
     );
@@ -674,7 +676,7 @@ async function softDeleteUserById({ userId, deletedBy, deleteReason }) {
 
     await connection.query(
       `INSERT INTO activity_logs (user_id, action, entity_type, entity_id, metadata)
-       VALUES (?, 'user_soft_deleted', 'user', ?, JSON_OBJECT('deletedBy', ?, 'archivedEmail', ?, 'reason', ?))`,
+       VALUES (?, 'user_soft_deleted', 'user', ?, json_build_object('deletedBy', ?, 'archivedEmail', ?, 'reason', ?))`,
       [deletedBy || null, userId, deletedBy || null, archivedEmail, deleteReason || null]
     );
 
@@ -763,7 +765,7 @@ async function restoreUserById({ userId, restoredBy }) {
 
     await connection.query(
       `INSERT INTO activity_logs (user_id, action, entity_type, entity_id, metadata)
-       VALUES (?, 'user_restored', 'user', ?, JSON_OBJECT('restoredBy', ?, 'restoredEmail', ?))`,
+       VALUES (?, 'user_restored', 'user', ?, json_build_object('restoredBy', ?, 'restoredEmail', ?))`,
       [restoredBy || null, userId, restoredBy || null, restoreEmail]
     );
 
@@ -810,12 +812,12 @@ async function permanentlyDeleteUserById({ userId, deletedBy }) {
 
     await connection.query(
       `UPDATE users
-       SET delete_reason = CONCAT(COALESCE(delete_reason, ''),
+       SET delete_reason = COALESCE(delete_reason, '') ||
          CASE
            WHEN COALESCE(delete_reason, '') = '' THEN ''
            ELSE ' | '
-         END,
-         'PERMANENT_DELETE_FINALIZED')
+         END ||
+         'PERMANENT_DELETE_FINALIZED',
            permanently_deleted_at = NOW()
        WHERE id = ?`,
       [userId]
@@ -823,7 +825,7 @@ async function permanentlyDeleteUserById({ userId, deletedBy }) {
 
     await connection.query(
       `INSERT INTO activity_logs (user_id, action, entity_type, entity_id, metadata)
-       VALUES (?, 'user_permanent_delete_finalized', 'user', ?, JSON_OBJECT('deletedBy', ?))`,
+       VALUES (?, 'user_permanent_delete_finalized', 'user', ?, json_build_object('deletedBy', ?))`,
       [deletedBy || null, userId, deletedBy || null]
     );
 

@@ -164,6 +164,83 @@ async function ensureSchema() {
     `);
 
     await db.query(`
+      CREATE TABLE IF NOT EXISTS flats (
+        id SERIAL PRIMARY KEY,
+        society_id INT,
+        wing VARCHAR(100),
+        flat_number VARCHAR(50),
+        floor VARCHAR(50),
+        block VARCHAR(50),
+        status VARCHAR(50) DEFAULT 'available',
+        resident_id INT,
+        area_sqft NUMERIC(12,2),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS bills (
+        id SERIAL PRIMARY KEY,
+        society_id INT,
+        user_id INT,
+        amount NUMERIC(12,2) NOT NULL DEFAULT 0,
+        currency VARCHAR(10) DEFAULT 'INR',
+        due_date TIMESTAMP,
+        status VARCHAR(50) DEFAULT 'pending',
+        description TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS bill_payments (
+        id SERIAL PRIMARY KEY,
+        bill_id INT NOT NULL,
+        amount NUMERIC(12,2) NOT NULL DEFAULT 0,
+        status VARCHAR(50) DEFAULT 'pending',
+        payment_method VARCHAR(100),
+        transaction_id VARCHAR(200),
+        gateway_payment_id VARCHAR(200),
+        details JSONB,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
+    await db.query(`ALTER TABLE bill_payments ADD COLUMN IF NOT EXISTS gateway_payment_id VARCHAR(200);`);
+
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS user_approvals (
+        id SERIAL PRIMARY KEY,
+        user_id INT,
+        society_id INT,
+        approval_type VARCHAR(100),
+        requested_by INT,
+        status VARCHAR(50) DEFAULT 'pending',
+        reason TEXT,
+        details JSONB,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS complaints (
+        id SERIAL PRIMARY KEY,
+        resident_id INT,
+        society_id INT,
+        title VARCHAR(255),
+        description TEXT,
+        category VARCHAR(100),
+        status VARCHAR(50) DEFAULT 'pending',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
+    await db.query(`
       CREATE TABLE IF NOT EXISTS society_subscriptions (
         society_id INT PRIMARY KEY,
         plan_name VARCHAR(50),
@@ -224,6 +301,7 @@ async function ensureSchema() {
         email VARCHAR(150) NOT NULL UNIQUE,
         password VARCHAR(255),
         phone VARCHAR(20),
+        address VARCHAR(255),
         resident_type VARCHAR(50),
         role VARCHAR(50) NOT NULL DEFAULT 'member',
         status VARCHAR(50) NOT NULL DEFAULT 'active',
@@ -231,6 +309,17 @@ async function ensureSchema() {
         society_id INT,
         flat_id INT,
         flat_number VARCHAR(50),
+        original_email VARCHAR(255),
+        deleted_at TIMESTAMP,
+        deleted_by INT,
+        delete_reason TEXT,
+        permanently_deleted_at TIMESTAMP,
+        last_login TIMESTAMP,
+        profile_photo_url VARCHAR(500),
+        family_members JSONB,
+        approval_status VARCHAR(50),
+        approved_at TIMESTAMP,
+        kyc_status VARCHAR(50),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
@@ -238,10 +327,38 @@ async function ensureSchema() {
 
     await db.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS name VARCHAR(200);`);
     await db.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS full_name VARCHAR(200);`);
+    await db.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS address VARCHAR(255);`);
     await db.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS resident_type VARCHAR(50);`);
     await db.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS is_verified BOOLEAN NOT NULL DEFAULT false;`);
     await db.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS flat_id INT;`);
     await db.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS flat_number VARCHAR(50);`);
+    await db.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS original_email VARCHAR(255);`);
+    await db.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP;`);
+    await db.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS deleted_by INT;`);
+    await db.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS delete_reason TEXT;`);
+    await db.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS permanently_deleted_at TIMESTAMP;`);
+    await db.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login TIMESTAMP;`);
+    await db.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_photo_url VARCHAR(500);`);
+    await db.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS family_members JSONB;`);
+    await db.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS approval_status VARCHAR(50);`);
+    await db.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS approved_at TIMESTAMP;`);
+    await db.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS kyc_status VARCHAR(50);`);
+
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS user_otps (
+        id SERIAL PRIMARY KEY,
+        user_id INT REFERENCES users(id) ON DELETE CASCADE,
+        email VARCHAR(255) NOT NULL,
+        otp_hash VARCHAR(255) NOT NULL,
+        purpose VARCHAR(50) NOT NULL,
+        expires_at TIMESTAMP NOT NULL,
+        used_at TIMESTAMP NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    await db.query(`CREATE INDEX IF NOT EXISTS idx_user_otps_email_purpose ON user_otps(email, purpose);`);
+    await db.query(`CREATE INDEX IF NOT EXISTS idx_user_otps_expires_at ON user_otps(expires_at);`);
 
     console.log("✓ PostgreSQL schema initialized successfully");
   } catch (error) {

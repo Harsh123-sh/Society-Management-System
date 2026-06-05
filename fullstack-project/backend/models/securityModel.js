@@ -17,7 +17,7 @@ async function getTodayAttendance(userId) {
   const { rows } = await db.query(
     `SELECT id, security_user_id, attendance_date, check_in_at, check_out_at, status, notes
      FROM security_attendance
-     WHERE security_user_id = ? AND attendance_date = CURDATE()
+     WHERE security_user_id = ? AND attendance_date = CURRENT_DATE
      LIMIT 1`,
     [userId]
   );
@@ -27,7 +27,7 @@ async function getTodayAttendance(userId) {
 
 async function checkIn(userId, notes) {
   const { rows: existing } = await db.query(
-    `SELECT id FROM security_attendance WHERE security_user_id = ? AND attendance_date = CURDATE() LIMIT 1`,
+    `SELECT id FROM security_attendance WHERE security_user_id = ? AND attendance_date = CURRENT_DATE LIMIT 1`,
     [userId]
   );
 
@@ -45,7 +45,7 @@ async function checkIn(userId, notes) {
 
   await db.query(
     `INSERT INTO security_attendance (security_user_id, attendance_date, check_in_at, status, notes)
-     VALUES (?, CURDATE(), NOW(), 'checked_in', ?)`,
+     VALUES (?, CURRENT_DATE, NOW(), 'checked_in', ?)`,
     [userId, notes || null]
   );
 
@@ -56,7 +56,7 @@ async function checkOut(userId, notes) {
   await db.query(
     `UPDATE security_attendance
      SET check_out_at = NOW(), status = 'checked_out', notes = COALESCE(?, notes)
-     WHERE security_user_id = ? AND attendance_date = CURDATE()`,
+     WHERE security_user_id = ? AND attendance_date = CURRENT_DATE`,
     [notes || null, userId]
   );
 

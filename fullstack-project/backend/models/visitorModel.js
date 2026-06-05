@@ -29,6 +29,28 @@ async function safeArray(queryPromise, fallback = [], label = "visitor model que
   }
 }
 
+let flatTableColumnsCache = null;
+
+async function getFlatTableColumns() {
+  if (!flatTableColumnsCache) {
+    const { rows } = await db.query(
+      `SELECT column_name
+       FROM information_schema.columns
+       WHERE table_catalog = current_database()
+         AND table_schema = 'public'
+         AND table_name = 'flats'`
+    );
+    flatTableColumnsCache = new Set(rows.map((row) => row.column_name));
+  }
+
+  return flatTableColumnsCache;
+}
+
+async function hasFlatColumn(columnName) {
+  const flatColumns = await getFlatTableColumns();
+  return flatColumns.has(columnName);
+}
+
 function createSignature(value) {
   return crypto.createHash("sha256").update(normalizeText(value)).digest("hex");
 }
@@ -50,21 +72,22 @@ async function uploadQrData(payload) {
 async function getFlatByWingAndFlatNumber({ societyId, builderId, wingId, wing, flatNumber }) {
   const filters = [];
   const params = [];
+  const flatColumns = await getFlatTableColumns();
 
-  if (societyId) {
+  if (societyId && flatColumns.has("society_id")) {
     filters.push("f.society_id = ?");
     params.push(societyId);
   }
 
-  if (builderId) {
+  if (builderId && flatColumns.has("builder_id")) {
     filters.push("f.builder_id = ?");
     params.push(builderId);
   }
 
-  if (wingId) {
+  if (wingId && flatColumns.has("wing_id")) {
     filters.push("f.wing_id = ?");
     params.push(wingId);
-  } else if (normalizeText(wing)) {
+  } else if (normalizeText(wing) && flatColumns.has("wing")) {
     filters.push("UPPER(f.wing) = ?");
     params.push(normalizeText(wing).toUpperCase());
   }
@@ -72,13 +95,16 @@ async function getFlatByWingAndFlatNumber({ societyId, builderId, wingId, wing, 
   filters.push("f.flat_number = ?");
   params.push(normalizeText(flatNumber));
 
+  if (flatColumns.has("approval_status")) {
+    filters.push("f.approval_status = 'approved'");
+  }
+
   const whereClause = filters.length ? `WHERE ${filters.join(" AND ")}` : "";
 
   const { rows } = await db.query(
-    `SELECT f.id, f.society_id, f.builder_id, f.building_name, f.wing, f.wing_id, f.flat_number
+    `SELECT f.*
      FROM flats f
      ${whereClause}
-       AND f.approval_status = 'approved'
      ORDER BY f.id ASC
      LIMIT 1`,
     params
@@ -111,7 +137,7 @@ async function getVisitorById(visitorId) {
             v.security_id, v.flat_id, v.preapproval_id, v.photo_url, v.face_capture_url,
             v.face_match_confidence, v.qr_pass_id, v.otp_verified_at, v.blacklist_flag,
             u.name AS security_name, u.email AS security_email,
-            f.building_name, f.wing, f.flat_number,
+            COALESCE(f.building_name, f.block) AS building_name, f.wing, f.flat_number,
             vp.pass_token, vp.qr_code_url, vp.expires_at AS qr_expires_at
      FROM visitors v
      LEFT JOIN users u ON u.id = v.security_id
@@ -774,7 +800,7 @@ async function createVisitorAnalyticsSnapshot({ societyId } = {}) {
     db.query(
       `SELECT
         COUNT(*) AS total_visits,
-        SUM(CASE WHEN DATE(entry_time) = CURDATE() THEN 1 ELSE 0 END) AS today_visits,
+        SUM(CASE WHEN DATE(entry_time) = CURRENT_DATE THEN 1 ELSE 0 END) AS today_visits,
         SUM(CASE WHEN status = 'in_premises' THEN 1 ELSE 0 END) AS active_visits,
         SUM(CASE WHEN blacklist_flag = 1 THEN 1 ELSE 0 END) AS blacklist_hits,
         SUM(CASE WHEN approval_status = 'approved' THEN 1 ELSE 0 END) AS approved_visits

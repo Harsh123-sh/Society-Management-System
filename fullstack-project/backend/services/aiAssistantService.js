@@ -279,15 +279,14 @@ async function searchKnowledgeBase({ societyId, query }) {
 
 async function predictMaintenanceIssues({ societyId }) {
   const { rows } = await db.query(
-    `SELECT DATE_FORMAT(c.created_at, '%Y-%m') AS month_key,
+      `SELECT TO_CHAR(c.created_at, 'YYYY-MM') AS month_key,
             COUNT(*) AS total,
             SUM(CASE WHEN c.title LIKE '%water%' OR c.description LIKE '%water%' THEN 1 ELSE 0 END) AS water_issues,
             SUM(CASE WHEN c.title LIKE '%lift%' OR c.description LIKE '%lift%' THEN 1 ELSE 0 END) AS lift_issues,
             SUM(CASE WHEN c.title LIKE '%electric%' OR c.description LIKE '%electric%' THEN 1 ELSE 0 END) AS electrical_issues
      FROM complaints c
      JOIN users u ON u.id = c.resident_id
-     WHERE c.created_at >= DATE_SUB(CURDATE(), INTERVAL 180 DAY)
-       AND (? IS NULL OR u.society_id = ?)
+     WHERE c.created_at >= NOW() - make_interval(days => 180)
      GROUP BY month_key
      ORDER BY month_key ASC`,
     [societyId || null, societyId || null]

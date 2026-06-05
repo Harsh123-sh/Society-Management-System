@@ -20,7 +20,7 @@ const queries = [
   ],
   [
     "subscriptionStats",
-    "SELECT COUNT(*) AS total_subscriptions, COUNT(CASE WHEN status = 'active' THEN 1 END) AS active_subscriptions, COUNT(CASE WHEN status = 'trial' THEN 1 END) AS trial_subscriptions, COUNT(CASE WHEN status = 'past_due' THEN 1 END) AS past_due_subscriptions, COUNT(CASE WHEN renewal_at IS NOT NULL AND renewal_at <= DATE_ADD(NOW(), INTERVAL 14 DAY) THEN 1 END) AS expiring_soon FROM society_subscriptions",
+    "SELECT COUNT(*) AS total_subscriptions, COUNT(CASE WHEN status = 'active' THEN 1 END) AS active_subscriptions, COUNT(CASE WHEN status = 'trial' THEN 1 END) AS trial_subscriptions, COUNT(CASE WHEN status = 'past_due' THEN 1 END) AS past_due_subscriptions, COUNT(CASE WHEN renewal_at IS NOT NULL AND renewal_at <= NOW() + INTERVAL '14 days' THEN 1 END) AS expiring_soon FROM society_subscriptions",
   ],
   [
     "revenueRows",
