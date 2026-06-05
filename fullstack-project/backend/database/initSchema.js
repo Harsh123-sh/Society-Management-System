@@ -266,10 +266,11 @@ async function ensureSchema() {
 
     await db.query(`
       CREATE TABLE IF NOT EXISTS society_analytics (
+        id SERIAL PRIMARY KEY,
         society_id INT NOT NULL,
         metric_date DATE NOT NULL,
         metrics_json JSONB,
-        PRIMARY KEY (society_id, metric_date)
+        UNIQUE (society_id, metric_date)
       );
     `);
 

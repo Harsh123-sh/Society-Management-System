@@ -419,13 +419,13 @@ async function recordSocietyAnalytics(societyId, metrics = {}, metricDate = new 
 }
 
 async function getSocietyAnalytics(societyId) {
-  const { rows } = await db.query(
-    `SELECT id, society_id, metric_date, metrics_json, created_at
-     FROM society_analytics
-     WHERE society_id = $1
-     ORDER BY metric_date DESC, id DESC`,
-    [societyId]
-  );
+  const result = await db.query(
+  `SELECT society_id, metric_date, metrics_json, created_at
+   FROM society_analytics
+   WHERE society_id = $1
+   ORDER BY metric_date DESC`,
+  [societyId]
+);
 
   return rows.map((row) => ({
     id: row.id,

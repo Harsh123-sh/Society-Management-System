@@ -118,7 +118,7 @@ router.get("/societies/:societyId/landing-stats", async (req, res) => {
       `SELECT COUNT(*) AS total_visitors
        FROM visitors v
        LEFT JOIN flats f ON f.id = v.flat_id
-       WHERE f.society_id = ? AND DATE(v.entry_time) = CURRENT_DATE`,
+       WHERE f.society_id = ? AND DATE(v.check_in_time) = CURRENT_DATE`,
       [societyId]
     );
 
