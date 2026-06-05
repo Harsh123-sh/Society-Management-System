@@ -22,6 +22,22 @@ async function getUserTableColumns() {
   return userTableColumnsCache;
 }
 
+let existingTablesCache = null;
+
+async function tableExists(tableName) {
+  if (!existingTablesCache) {
+    const { rows } = await db.query(
+      `SELECT table_name
+       FROM information_schema.tables
+       WHERE table_catalog = current_database()
+         AND table_schema = 'public'`
+    );
+    existingTablesCache = new Set(rows.map((row) => row.table_name));
+  }
+
+  return existingTablesCache.has(tableName);
+}
+
 function buildDeletedEmail(originalEmail, userId) {
   const timestamp = Date.now();
   const suffix = `__deleted_${timestamp}_${userId}`;
@@ -286,6 +302,10 @@ async function getFlatByWingAndNumber({ societyId, wingId, wing, flatNumber }) {
 }
 
 async function createOwnerProperty({ userId, flatId, livingStartDate }) {
+  if (!(await tableExists("owner_properties"))) {
+    return null;
+  }
+
   const { rows: result } = await db.query(
     `INSERT INTO owner_properties (user_id, flat_id, living_start_date)
      VALUES (?, ?, ?)
@@ -402,6 +422,10 @@ async function updateUserById(id, { name, email, phone, profilePhotoUrl, familyM
 }
 
 async function deleteOwnerPropertyById(propertyId) {
+  if (!(await tableExists("owner_properties"))) {
+    return false;
+  }
+
   const result = await db.query(
     `DELETE FROM owner_properties WHERE id = ?`,
     [propertyId]
@@ -538,10 +562,32 @@ async function hasOwnerForFlat({ societyId, flatNumber }) {
 }
 
 async function hasOwnerForFlatId(flatId) {
+  if (await tableExists("owner_properties")) {
+    try {
+      const { rows } = await db.query(
+        `SELECT id
+         FROM owner_properties
+         WHERE flat_id = ?
+         LIMIT 1`,
+        [flatId]
+      );
+
+      return rows.length > 0;
+    } catch (error) {
+      if (error?.code === "42P01" || /relation "owner_properties"/i.test(error?.message || "")) {
+        // Fallback when the table is absent or the schema is inconsistent
+      } else {
+        throw error;
+      }
+    }
+  }
+
   const { rows } = await db.query(
     `SELECT id
-     FROM owner_properties
+     FROM users
      WHERE flat_id = ?
+       AND resident_type = 'owner'
+       AND status IN ('pending', 'active', 'rejected')
      LIMIT 1`,
     [flatId]
   );
@@ -550,6 +596,10 @@ async function hasOwnerForFlatId(flatId) {
 }
 
 async function getOwnerPropertyRows(ownerId) {
+  if (!(await tableExists("owner_properties"))) {
+    return [];
+  }
+
   const { rows } = await db.query(
     `SELECT
        op.id AS owner_property_id,
