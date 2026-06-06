@@ -3,6 +3,105 @@ const fs = require("fs");
 const path = require("path");
 const db = require("../config/db");
 
+function splitSqlStatements(sql) {
+  const statements = [];
+  let current = "";
+  let singleQuoted = false;
+  let doubleQuoted = false;
+  let lineComment = false;
+  let blockComment = false;
+  let dollarQuoteTag = null;
+
+  for (let i = 0; i < sql.length; i += 1) {
+    const char = sql[i];
+    const next = sql[i + 1];
+
+    if (lineComment) {
+      current += char;
+      if (char === "\n") lineComment = false;
+      continue;
+    }
+
+    if (blockComment) {
+      current += char;
+      if (char === "*" && next === "/") {
+        current += next;
+        i += 1;
+        blockComment = false;
+      }
+      continue;
+    }
+
+    if (dollarQuoteTag) {
+      if (sql.startsWith(dollarQuoteTag, i)) {
+        current += dollarQuoteTag;
+        i += dollarQuoteTag.length - 1;
+        dollarQuoteTag = null;
+      } else {
+        current += char;
+      }
+      continue;
+    }
+
+    if (!singleQuoted && !doubleQuoted && char === "-" && next === "-") {
+      current += char + next;
+      i += 1;
+      lineComment = true;
+      continue;
+    }
+
+    if (!singleQuoted && !doubleQuoted && char === "/" && next === "*") {
+      current += char + next;
+      i += 1;
+      blockComment = true;
+      continue;
+    }
+
+    if (!singleQuoted && !doubleQuoted && char === "$") {
+      const match = sql.slice(i).match(/^\$[A-Za-z_][A-Za-z0-9_]*\$|^\$\$/);
+      if (match) {
+        dollarQuoteTag = match[0];
+        current += dollarQuoteTag;
+        i += dollarQuoteTag.length - 1;
+        continue;
+      }
+    }
+
+    if (!doubleQuoted && char === "'" && sql[i - 1] !== "\\") {
+      singleQuoted = !singleQuoted;
+    } else if (!singleQuoted && char === '"') {
+      doubleQuoted = !doubleQuoted;
+    }
+
+    if (!singleQuoted && !doubleQuoted && char === ";") {
+      const statement = current.trim();
+      if (statement) statements.push(`${statement};`);
+      current = "";
+      continue;
+    }
+
+    current += char;
+  }
+
+  const trailing = current.trim();
+  if (trailing) statements.push(trailing);
+  return statements;
+}
+
+async function runMigrationStatement(sql, label) {
+  const statement = sql.trim();
+  if (!statement) return true;
+
+  try {
+    await db.query(statement);
+    return true;
+  } catch (error) {
+    console.error(`[Migration failed] ${label}: ${error.message}`);
+    console.error(`[Failed SQL] ${statement}`);
+    return false;
+  }
+}
+
 // PostgreSQL ENUM type creators
 async function createEnumTypes() {
   try {
@@ -71,9 +170,22 @@ async function runMissingSchemaMigrations() {
   try {
     const sql = fs.readFileSync(migrationFile, "utf8");
     if (sql && sql.trim()) {
-      console.log("Applying missing schema migrations...");
-      await db.query(sql);
-      console.log("✓ Missing schema migrations applied");
+      console.log(`Starting migration: ${migrationFile}`);
+      const statements = splitSqlStatements(sql);
+      let failures = 0;
+
+      for (const [index, statement] of statements.entries()) {
+        const ok = await runMigrationStatement(
+          statement,
+          `missing schema statement ${index + 1}/${statements.length}`
+        );
+        if (!ok) failures += 1;
+      }
+      if (failures > 0) {
+        console.warn(`Migration completed with ${failures} failed statement(s): ${migrationFile}`);
+      } else {
+        console.log(`Migration completed: ${migrationFile}`);
+      }
     }
   } catch (error) {
     console.warn(`Warning applying missing schema migrations: ${error.message}`);

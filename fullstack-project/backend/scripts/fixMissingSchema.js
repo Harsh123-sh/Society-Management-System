@@ -1,8 +1,28 @@
 require("dotenv").config({ path: __dirname + "/../.env" });
 const pool = require("../config/db");
 
+const query = pool.query.bind(pool);
+let failedMigrations = 0;
+
+async function runMigration(sql, params) {
+  const statement = typeof sql === "string" ? sql.trim() : sql;
+
+  try {
+    return await query(sql, params);
+  } catch (err) {
+    failedMigrations += 1;
+    console.error(`[Migration failed] ${err.message}`);
+    console.error(`[Failed SQL] ${statement}`);
+    return null;
+  }
+}
+
+pool.query = runMigration;
+
 (async () => {
   try {
+    console.log("Starting migration: fixMissingSchema");
+
     await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS builder_id INTEGER;`);
 
     await pool.query(`ALTER TABLE visitors ADD COLUMN IF NOT EXISTS entry_time TIMESTAMP;`);
@@ -362,10 +382,14 @@ await pool.query(`ALTER TABLE visitors ADD COLUMN IF NOT EXISTS visitor_type VAR
       );
     `);
 
-    console.log("Missing schema fixed successfully");
+    if (failedMigrations > 0) {
+      console.warn(`Migration completed with ${failedMigrations} failed statement(s): fixMissingSchema`);
+    } else {
+      console.log("Migration completed: fixMissingSchema");
+    }
     process.exit(0);
   } catch (err) {
-    console.error("Schema fix error:", err.message);
+    console.error(`[Migration failed] fixMissingSchema fatal error: ${err.message}`);
     process.exit(1);
   }
 })();

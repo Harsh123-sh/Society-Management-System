@@ -3,16 +3,12 @@
 -- Create missing columns on existing tables and create missing tables used in logs.
 
 -- Provide MySQL-like DATEDIFF function (days) for analytics SQL that uses DATEDIFF()
-DO $$
-BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_proc WHERE proname = 'datediff') THEN
-    EXECUTE $$
-      CREATE FUNCTION datediff(ts1 TIMESTAMP, ts2 TIMESTAMP) RETURNS INT AS $fn$
-        SELECT CAST(EXTRACT(EPOCH FROM (ts1 - ts2))/86400 AS INT);
-      $fn$ LANGUAGE SQL IMMUTABLE STRICT;
-    $$;
-  END IF;
-END $$;
+CREATE OR REPLACE FUNCTION datediff(ts1 TIMESTAMP, ts2 TIMESTAMP)
+RETURNS INT
+LANGUAGE SQL
+AS $$
+SELECT CAST(EXTRACT(EPOCH FROM (ts1 - ts2))/86400 AS INT);
+$$;
 
 -- Ensure bills.payment_method and enhance chat/security tables for analytics
 DO $$
