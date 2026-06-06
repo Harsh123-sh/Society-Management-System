@@ -455,7 +455,18 @@ BEGIN
   END IF;
 END $$;
 
--- 10) visitors.security_id, entry_time, exit_time
+-- 10) bill_payments.paid_at
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'bill_payments' AND column_name = 'paid_at'
+  ) THEN
+    ALTER TABLE bill_payments ADD COLUMN paid_at TIMESTAMP NULL;
+  END IF;
+END $$;
+
+-- 11) visitors.security_id, entry_time, exit_time
 DO $$
 BEGIN
   IF NOT EXISTS (

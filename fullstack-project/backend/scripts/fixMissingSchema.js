@@ -71,6 +71,9 @@ await pool.query(`ALTER TABLE towers ADD COLUMN IF NOT EXISTS starting_floor INT
 await pool.query(`ALTER TABLE towers ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT 'active';`);
 await pool.query(`ALTER TABLE towers ADD COLUMN IF NOT EXISTS created_by INTEGER;`);
 await pool.query(`ALTER TABLE towers ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;`);
+await pool.query(`ALTER TABLE bill_payments ADD COLUMN IF NOT EXISTS paid_at TIMESTAMP;`);
+await pool.query(`ALTER TABLE bill_payments ADD COLUMN IF NOT EXISTS resident_id INTEGER;`);
+await pool.query(`ALTER TABLE bill_payments ADD COLUMN IF NOT EXISTS payment_method VARCHAR(50);`);
 
     await pool.query(`
       CREATE TABLE IF NOT EXISTS notifications (

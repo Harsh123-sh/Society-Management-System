@@ -219,6 +219,7 @@ async function ensureSchema() {
         payment_method VARCHAR(100),
         transaction_id VARCHAR(200),
         gateway_payment_id VARCHAR(200),
+        paid_at TIMESTAMP NULL,
         details JSONB,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
