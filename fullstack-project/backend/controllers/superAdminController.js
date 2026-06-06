@@ -147,8 +147,8 @@ async function getPlatformStats(req, res) {
     const { rows: complaintStatsRows } = await db.query(`
       SELECT
         COUNT(*) AS total_complaints,
-        COUNT(CASE WHEN status = 'pending' THEN 1 END) AS pending_complaints,
-        COUNT(CASE WHEN status = 'resolved' THEN 1 END) AS resolved_complaints
+        COUNT(CASE WHEN c.status = 'pending' THEN 1 END) AS pending_complaints,
+        COUNT(CASE WHEN c.status = 'resolved' THEN 1 END) AS resolved_complaints
       FROM complaints
     `);
 
@@ -1113,7 +1113,7 @@ async function getSocietyAnalytics(req, res) {
       db.query(
         `SELECT
           COUNT(*) AS total_visitors,
-          COUNT(CASE WHEN status = 'in_premises' THEN 1 END) AS active_visitors
+          COUNT(CASE WHEN v.status = 'in_premises' THEN 1 END) AS active_visitors
          FROM visitors v
          LEFT JOIN flats f ON f.id = v.flat_id
          WHERE f.society_id = $1`,
