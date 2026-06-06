@@ -96,6 +96,10 @@ CREATE TABLE IF NOT EXISTS parking_slots (
   id SERIAL PRIMARY KEY,
   society_id INT,
   flat_id INT,
+  owner_id INT NULL,
+  wing VARCHAR(100),
+  floor VARCHAR(50),
+  block VARCHAR(50),
   slot_number VARCHAR(100),
   type VARCHAR(50),
   status VARCHAR(50) DEFAULT 'available',
@@ -131,7 +135,116 @@ BEGIN
   CREATE INDEX IF NOT EXISTS idx_parking_slots_society_status ON parking_slots(society_id, status);
 END $$;
 
--- 6) towers table
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_class WHERE relname = 'parking_slots') THEN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'parking_slots' AND column_name = 'owner_id') THEN
+      ALTER TABLE parking_slots ADD COLUMN owner_id INT NULL;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.table_constraints tc
+      JOIN information_schema.key_column_usage kcu ON tc.constraint_name = kcu.constraint_name
+      WHERE tc.table_name = 'parking_slots' AND tc.constraint_type = 'FOREIGN KEY' AND kcu.column_name = 'owner_id') THEN
+      ALTER TABLE parking_slots ADD CONSTRAINT fk_parking_slots_owner FOREIGN KEY (owner_id) REFERENCES users(id) ON DELETE SET NULL ON UPDATE CASCADE;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'parking_slots' AND column_name = 'wing') THEN
+      ALTER TABLE parking_slots ADD COLUMN wing VARCHAR(100);
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'parking_slots' AND column_name = 'floor') THEN
+      ALTER TABLE parking_slots ADD COLUMN floor VARCHAR(50);
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'parking_slots' AND column_name = 'block') THEN
+      ALTER TABLE parking_slots ADD COLUMN block VARCHAR(50);
+    END IF;
+  END IF;
+END $$;
+
+-- 6) documents table
+CREATE TABLE IF NOT EXISTS documents (
+  id SERIAL PRIMARY KEY,
+  user_id INT NOT NULL,
+  society_id INT NULL,
+  document_type VARCHAR(80) NOT NULL,
+  file_url VARCHAR(500) NOT NULL,
+  status VARCHAR(50) NOT NULL DEFAULT 'pending',
+  notes TEXT NULL,
+  reviewed_by INT NULL,
+  reviewed_at TIMESTAMP NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_class WHERE relname = 'documents') THEN
+    IF NOT EXISTS (
+      SELECT 1 FROM information_schema.columns WHERE table_name = 'documents' AND column_name = 'user_id'
+    ) THEN
+      ALTER TABLE documents ADD COLUMN user_id INT NOT NULL;
+    END IF;
+    IF NOT EXISTS (
+      SELECT 1 FROM information_schema.columns WHERE table_name = 'documents' AND column_name = 'society_id'
+    ) THEN
+      ALTER TABLE documents ADD COLUMN society_id INT NULL;
+    END IF;
+    IF NOT EXISTS (
+      SELECT 1 FROM information_schema.columns WHERE table_name = 'documents' AND column_name = 'document_type'
+    ) THEN
+      ALTER TABLE documents ADD COLUMN document_type VARCHAR(80) NOT NULL;
+    END IF;
+    IF NOT EXISTS (
+      SELECT 1 FROM information_schema.columns WHERE table_name = 'documents' AND column_name = 'file_url'
+    ) THEN
+      ALTER TABLE documents ADD COLUMN file_url VARCHAR(500) NOT NULL;
+    END IF;
+    IF NOT EXISTS (
+      SELECT 1 FROM information_schema.columns WHERE table_name = 'documents' AND column_name = 'status'
+    ) THEN
+      ALTER TABLE documents ADD COLUMN status VARCHAR(50) NOT NULL DEFAULT 'pending';
+    END IF;
+    IF NOT EXISTS (
+      SELECT 1 FROM information_schema.columns WHERE table_name = 'documents' AND column_name = 'notes'
+    ) THEN
+      ALTER TABLE documents ADD COLUMN notes TEXT NULL;
+    END IF;
+    IF NOT EXISTS (
+      SELECT 1 FROM information_schema.columns WHERE table_name = 'documents' AND column_name = 'reviewed_by'
+    ) THEN
+      ALTER TABLE documents ADD COLUMN reviewed_by INT NULL;
+    END IF;
+    IF NOT EXISTS (
+      SELECT 1 FROM information_schema.columns WHERE table_name = 'documents' AND column_name = 'reviewed_at'
+    ) THEN
+      ALTER TABLE documents ADD COLUMN reviewed_at TIMESTAMP NULL;
+    END IF;
+    IF NOT EXISTS (
+      SELECT 1 FROM information_schema.columns WHERE table_name = 'documents' AND column_name = 'created_at'
+    ) THEN
+      ALTER TABLE documents ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
+    END IF;
+
+    IF EXISTS (SELECT 1 FROM pg_class WHERE relname = 'users') THEN
+      IF NOT EXISTS (
+        SELECT 1 FROM information_schema.table_constraints tc
+        JOIN information_schema.key_column_usage kcu ON tc.constraint_name = kcu.constraint_name
+        WHERE tc.table_name = 'documents' AND tc.constraint_type = 'FOREIGN KEY' AND kcu.column_name = 'user_id'
+      ) THEN
+        ALTER TABLE documents ADD CONSTRAINT fk_documents_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE;
+      END IF;
+
+      IF NOT EXISTS (
+        SELECT 1 FROM information_schema.table_constraints tc
+        JOIN information_schema.key_column_usage kcu ON tc.constraint_name = kcu.constraint_name
+        WHERE tc.table_name = 'documents' AND tc.constraint_type = 'FOREIGN KEY' AND kcu.column_name = 'reviewed_by'
+      ) THEN
+        ALTER TABLE documents ADD CONSTRAINT fk_documents_reviewed_by FOREIGN KEY (reviewed_by) REFERENCES users(id) ON DELETE SET NULL ON UPDATE CASCADE;
+      END IF;
+    END IF;
+
+    CREATE INDEX IF NOT EXISTS idx_documents_society_status ON documents(society_id, status);
+    CREATE INDEX IF NOT EXISTS idx_documents_user_status ON documents(user_id, status);
+  END IF;
+END $$;
+
+-- 7) towers table
 CREATE TABLE IF NOT EXISTS towers (
   id SERIAL PRIMARY KEY,
   society_id INT,

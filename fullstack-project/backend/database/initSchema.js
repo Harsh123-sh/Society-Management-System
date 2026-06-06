@@ -196,6 +196,24 @@ async function ensureSchema() {
     `);
 
     await db.query(`
+      CREATE TABLE IF NOT EXISTS parking_slots (
+        id SERIAL PRIMARY KEY,
+        society_id INT,
+        flat_id INT,
+        owner_id INT NULL,
+        wing VARCHAR(100),
+        floor VARCHAR(50),
+        block VARCHAR(50),
+        slot_number VARCHAR(100),
+        type VARCHAR(50) DEFAULT 'available',
+        status VARCHAR(50) DEFAULT 'available',
+        deleted_at TIMESTAMP NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
+    await db.query(`
       CREATE TABLE IF NOT EXISTS bills (
         id SERIAL PRIMARY KEY,
         society_id INT,
@@ -254,6 +272,21 @@ async function ensureSchema() {
         status VARCHAR(50) DEFAULT 'pending',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS documents (
+        id SERIAL PRIMARY KEY,
+        user_id INT NOT NULL,
+        society_id INT NULL,
+        document_type VARCHAR(80) NOT NULL,
+        file_url VARCHAR(500) NOT NULL,
+        status VARCHAR(50) NOT NULL DEFAULT 'pending',
+        notes TEXT NULL,
+        reviewed_by INT NULL,
+        reviewed_at TIMESTAMP NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
 

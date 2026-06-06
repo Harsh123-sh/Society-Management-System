@@ -74,6 +74,25 @@ await pool.query(`ALTER TABLE towers ADD COLUMN IF NOT EXISTS updated_at TIMESTA
 await pool.query(`ALTER TABLE bill_payments ADD COLUMN IF NOT EXISTS paid_at TIMESTAMP;`);
 await pool.query(`ALTER TABLE bill_payments ADD COLUMN IF NOT EXISTS resident_id INTEGER;`);
 await pool.query(`ALTER TABLE bill_payments ADD COLUMN IF NOT EXISTS payment_method VARCHAR(50);`);
+await pool.query(`ALTER TABLE parking_slots ADD COLUMN IF NOT EXISTS owner_id INTEGER;`);
+await pool.query(`ALTER TABLE parking_slots ADD COLUMN IF NOT EXISTS wing VARCHAR(50);`);
+
+await pool.query(`
+  CREATE TABLE IF NOT EXISTS documents (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    society_id INTEGER REFERENCES societies(id) ON DELETE CASCADE,
+    document_type VARCHAR(100),
+    file_url TEXT,
+    status VARCHAR(50) DEFAULT 'pending',
+    notes TEXT,
+    reviewed_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
+    reviewed_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  );
+`);
+
 
     await pool.query(`
       CREATE TABLE IF NOT EXISTS notifications (
