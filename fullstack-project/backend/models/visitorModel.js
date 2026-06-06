@@ -802,7 +802,7 @@ async function createVisitorAnalyticsSnapshot({ societyId } = {}) {
         COUNT(*) AS total_visits,
         SUM(CASE WHEN DATE(entry_time) = CURRENT_DATE THEN 1 ELSE 0 END) AS today_visits,
         SUM(CASE WHEN status = 'in_premises' THEN 1 ELSE 0 END) AS active_visits,
-        SUM(CASE WHEN blacklist_flag = 1 THEN 1 ELSE 0 END) AS blacklist_hits,
+        SUM(CASE WHEN blacklist_flag = true THEN 1 ELSE 0 END) AS blacklist_hits,
         SUM(CASE WHEN approval_status = 'approved' THEN 1 ELSE 0 END) AS approved_visits
        FROM visitors ${societyFilter}`,
       societyParams

@@ -86,7 +86,91 @@ await pool.query(`ALTER TABLE complaints ADD COLUMN IF NOT EXISTS updated_at TIM
 await pool.query(`ALTER TABLE bills ADD COLUMN IF NOT EXISTS payment_method VARCHAR(50) DEFAULT 'cash';`);
 
 await pool.query(`ALTER TABLE security_alerts ADD COLUMN IF NOT EXISTS location VARCHAR(255);`);
+await pool.query(`ALTER TABLE visitor_qr_passes ADD COLUMN IF NOT EXISTS preapproval_id INTEGER;`);
+await pool.query(`ALTER TABLE visitor_qr_passes ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT 'active';`);
+await pool.query(`ALTER TABLE visitor_qr_passes ADD COLUMN IF NOT EXISTS expires_at TIMESTAMP;`);
+await pool.query(`ALTER TABLE visitor_qr_passes ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;`);
+await pool.query(`
+CREATE TABLE IF NOT EXISTS visitor_preapprovals (
+  id SERIAL PRIMARY KEY,
+  owner_id INTEGER,
+  flat_id INTEGER,
+  visitor_name VARCHAR(150),
+  phone VARCHAR(50),
+  purpose TEXT,
+  visit_date DATE,
+  expected_arrival_time TIMESTAMP,
+  vehicle_number VARCHAR(50),
+  notes TEXT,
+  status VARCHAR(50) DEFAULT 'pending',
+  approved_at TIMESTAMP,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  approval_token TEXT,
+  qr_pass_token TEXT,
+  otp_code_hash TEXT,
+  otp_expires_at TIMESTAMP
+);
+`);
 
+await pool.query(`
+CREATE TABLE IF NOT EXISTS visitor_emergency_alerts (
+  id SERIAL PRIMARY KEY,
+  triggered_by INTEGER,
+  alert_type VARCHAR(100),
+  severity VARCHAR(50),
+  message TEXT,
+  location TEXT,
+  status VARCHAR(50) DEFAULT 'open',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+`);
+
+await pool.query(`
+CREATE TABLE IF NOT EXISTS visitor_blacklist_entries (
+  id SERIAL PRIMARY KEY,
+  visitor_name VARCHAR(150),
+  phone VARCHAR(50),
+  reason TEXT,
+  flat_id INTEGER,
+  status VARCHAR(50) DEFAULT 'active',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+`);
+
+await pool.query(`
+CREATE TABLE IF NOT EXISTS visitor_delivery_entries (
+  id SERIAL PRIMARY KEY,
+  visitor_id INTEGER,
+  delivery_type VARCHAR(100),
+  package_id VARCHAR(100),
+  recipient_name VARCHAR(150),
+  delivery_partner VARCHAR(150),
+  flat_id INTEGER,
+  status VARCHAR(50),
+  notes TEXT,
+  created_by INTEGER,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+`);
+
+await pool.query(`
+CREATE TABLE IF NOT EXISTS visitor_vehicle_entries (
+  id SERIAL PRIMARY KEY,
+  visitor_id INTEGER,
+  preapproval_id INTEGER,
+  vehicle_number VARCHAR(50),
+  vehicle_type VARCHAR(50),
+  owner_name VARCHAR(150),
+  flat_id INTEGER,
+  entry_method VARCHAR(50),
+  status VARCHAR(50),
+  entry_time TIMESTAMP,
+  exit_time TIMESTAMP,
+  created_by INTEGER,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+`);
 
 await pool.query(`
   CREATE TABLE IF NOT EXISTS chats (
