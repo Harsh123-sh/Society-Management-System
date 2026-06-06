@@ -158,7 +158,7 @@ async function getCurrentAssignment(flatId) {
             u.name AS resident_name, u.email AS resident_email
      FROM flat_residents fr
      JOIN users u ON u.id = fr.resident_id
-     WHERE fr.flat_id = ? AND fr.is_active = 1
+     WHERE fr.flat_id = ? AND fr.is_active = TRUE
      ORDER BY fr.id DESC
      LIMIT 1`,
     [flatId]
@@ -218,9 +218,9 @@ async function assignResidentToFlat({ flatId, residentId, residentType = "owner"
 
     await connection.query(
       `UPDATE flat_residents
-       SET is_active = 0,
+       SET is_active = FALSE,
            move_out_date = COALESCE(move_out_date, CURRENT_DATE)
-       WHERE flat_id = ? AND is_active = 1`,
+       WHERE flat_id = ? AND is_active = TRUE`,
       [flatId]
     );
 
@@ -264,7 +264,7 @@ async function unassignResidentFromFlat(flatId) {
     await connection.beginTransaction();
 
     const [activeRows] = await connection.query(
-      "SELECT id FROM flat_residents WHERE flat_id = ? AND is_active = 1 LIMIT 1",
+      "SELECT id FROM flat_residents WHERE flat_id = ? AND is_active = TRUE LIMIT 1",
       [flatId]
     );
 
@@ -275,9 +275,9 @@ async function unassignResidentFromFlat(flatId) {
 
     await connection.query(
       `UPDATE flat_residents
-       SET is_active = 0,
+       SET is_active = FALSE,
            move_out_date = COALESCE(move_out_date, CURRENT_DATE)
-       WHERE flat_id = ? AND is_active = 1`,
+       WHERE flat_id = ? AND is_active = TRUE`,
       [flatId]
     );
 
@@ -350,7 +350,7 @@ async function getFlatsWithOccupancy({ societyId, towerId, wingId, wing, search,
      FROM flats f
      LEFT JOIN societies s ON s.id = f.society_id
        LEFT JOIN towers t ON t.id = f.tower_id
-     LEFT JOIN flat_residents fr ON fr.flat_id = f.id AND fr.is_active = 1
+     LEFT JOIN flat_residents fr ON fr.flat_id = f.id AND fr.is_active = TRUE
      LEFT JOIN users u ON u.id = fr.resident_id
                LEFT JOIN parking_slots ps ON ps.flat_id = f.id AND ps.deleted_at IS NULL
      ${whereClause}
@@ -458,9 +458,9 @@ async function getResidentPropertySummary(residentId) {
      JOIN flats f ON f.id = fr.flat_id
      LEFT JOIN societies s ON s.id = f.society_id
      JOIN users owner ON owner.id = fr.resident_id
-     LEFT JOIN flat_residents fr_tenant ON fr_tenant.flat_id = fr.flat_id AND fr_tenant.is_active = 1 AND fr_tenant.resident_id <> fr.resident_id
+     LEFT JOIN flat_residents fr_tenant ON fr_tenant.flat_id = fr.flat_id AND fr_tenant.is_active = TRUE AND fr_tenant.resident_id <> fr.resident_id
      LEFT JOIN users tenant ON tenant.id = fr_tenant.resident_id AND tenant.role = 'resident' AND tenant.resident_type = 'tenant'
-     WHERE fr.resident_id = ? AND fr.is_active = 1
+     WHERE fr.resident_id = ? AND fr.is_active = TRUE
      ORDER BY f.building_name ASC, f.flat_number ASC`,
     [residentId]
   );

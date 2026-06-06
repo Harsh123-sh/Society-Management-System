@@ -201,12 +201,125 @@ BEGIN
     ) THEN
       ALTER TABLE notifications ADD CONSTRAINT fk_notifications_target_user FOREIGN KEY (target_user_id) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE;
     END IF;
+
+    IF NOT EXISTS (
+      SELECT 1 FROM information_schema.columns
+      WHERE table_name = 'notifications' AND column_name = 'created_by'
+    ) THEN
+      ALTER TABLE notifications ADD COLUMN created_by INT NULL;
+      ALTER TABLE notifications ADD CONSTRAINT fk_notifications_created_by FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL ON UPDATE CASCADE;
+    END IF;
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'notifications' AND column_name = 'archived_by'
+  ) THEN
+    ALTER TABLE notifications ADD COLUMN archived_by INT NULL;
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'notifications' AND column_name = 'archived_at'
+  ) THEN
+    ALTER TABLE notifications ADD COLUMN archived_at TIMESTAMP NULL;
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'notifications' AND column_name = 'archived_from_status'
+  ) THEN
+    ALTER TABLE notifications ADD COLUMN archived_from_status VARCHAR(50) NULL;
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'notifications' AND column_name = 'deleted_at'
+  ) THEN
+    ALTER TABLE notifications ADD COLUMN deleted_at TIMESTAMP NULL;
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'notifications' AND column_name = 'deleted_by'
+  ) THEN
+    ALTER TABLE notifications ADD COLUMN deleted_by INT NULL;
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'notifications' AND column_name = 'deletion_reason'
+  ) THEN
+    ALTER TABLE notifications ADD COLUMN deletion_reason TEXT NULL;
   END IF;
 
   CREATE INDEX IF NOT EXISTS idx_notifications_target_role ON notifications(target_role);
 END $$;
 
--- 9) bills.resident_id (some DBs had different column names)
+-- 9) notices lifecycle columns
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'notices' AND column_name = 'created_by'
+  ) THEN
+    ALTER TABLE notices ADD COLUMN created_by INT NULL;
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'notices' AND column_name = 'archived_by'
+  ) THEN
+    ALTER TABLE notices ADD COLUMN archived_by INT NULL;
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'notices' AND column_name = 'archived_at'
+  ) THEN
+    ALTER TABLE notices ADD COLUMN archived_at TIMESTAMP NULL;
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'notices' AND column_name = 'archived_from_status'
+  ) THEN
+    ALTER TABLE notices ADD COLUMN archived_from_status VARCHAR(50) NULL;
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'notices' AND column_name = 'deleted_at'
+  ) THEN
+    ALTER TABLE notices ADD COLUMN deleted_at TIMESTAMP NULL;
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'notices' AND column_name = 'deleted_by'
+  ) THEN
+    ALTER TABLE notices ADD COLUMN deleted_by INT NULL;
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'notices' AND column_name = 'deletion_reason'
+  ) THEN
+    ALTER TABLE notices ADD COLUMN deletion_reason TEXT NULL;
+  END IF;
+
+  IF EXISTS (SELECT 1 FROM pg_class WHERE relname = 'users') THEN
+    IF NOT EXISTS (
+      SELECT 1 FROM information_schema.table_constraints tc
+      JOIN information_schema.key_column_usage kcu ON tc.constraint_name = kcu.constraint_name
+      WHERE tc.table_name = 'notices' AND tc.constraint_type = 'FOREIGN KEY' AND kcu.column_name = 'created_by'
+    ) THEN
+      ALTER TABLE notices ADD CONSTRAINT fk_notices_created_by FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL ON UPDATE CASCADE;
+    END IF;
+  END IF;
+END $$;
+
+-- 10) bills.resident_id (some DBs had different column names)
 DO $$
 BEGIN
   IF NOT EXISTS (
@@ -225,6 +338,88 @@ BEGIN
     ) THEN
       ALTER TABLE bills ADD CONSTRAINT fk_bills_resident FOREIGN KEY (resident_id) REFERENCES users(id) ON DELETE SET NULL ON UPDATE CASCADE;
     END IF;
+
+    IF NOT EXISTS (
+      SELECT 1 FROM information_schema.columns
+      WHERE table_name = 'bills' AND column_name = 'created_by'
+    ) THEN
+      ALTER TABLE bills ADD COLUMN created_by INT NULL;
+      ALTER TABLE bills ADD CONSTRAINT fk_bills_created_by FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL ON UPDATE CASCADE;
+    END IF;
+  END IF;
+END $$;
+
+-- 9b) bills additional columns
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'bills' AND column_name = 'bill_type'
+  ) THEN
+    ALTER TABLE bills ADD COLUMN bill_type VARCHAR(50) DEFAULT 'maintenance';
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'bills' AND column_name = 'invoice_number'
+  ) THEN
+    ALTER TABLE bills ADD COLUMN invoice_number VARCHAR(120);
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'bills' AND column_name = 'title'
+  ) THEN
+    ALTER TABLE bills ADD COLUMN title VARCHAR(255);
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'bills' AND column_name = 'billing_month'
+  ) THEN
+    ALTER TABLE bills ADD COLUMN billing_month DATE NULL;
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'bills' AND column_name = 'payment_status'
+  ) THEN
+    ALTER TABLE bills ADD COLUMN payment_status VARCHAR(50) DEFAULT 'pending';
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'bills' AND column_name = 'total_amount'
+  ) THEN
+    ALTER TABLE bills ADD COLUMN total_amount NUMERIC(12,2) DEFAULT 0;
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'bills' AND column_name = 'paid_amount'
+  ) THEN
+    ALTER TABLE bills ADD COLUMN paid_amount NUMERIC(12,2) DEFAULT 0;
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'bills' AND column_name = 'late_fee_amount'
+  ) THEN
+    ALTER TABLE bills ADD COLUMN late_fee_amount NUMERIC(12,2) DEFAULT 0;
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'bills' AND column_name = 'reminder_count'
+  ) THEN
+    ALTER TABLE bills ADD COLUMN reminder_count INT DEFAULT 0;
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'bills' AND column_name = 'paid_at'
+  ) THEN
+    ALTER TABLE bills ADD COLUMN paid_at TIMESTAMP NULL;
   END IF;
 END $$;
 
@@ -237,6 +432,22 @@ BEGIN
   ) THEN
     ALTER TABLE visitors ADD COLUMN security_id INT NULL;
     CREATE INDEX IF NOT EXISTS idx_visitors_security_id ON visitors(security_id);
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'visitors' AND column_name = 'preapproval_id'
+  ) THEN
+    ALTER TABLE visitors ADD COLUMN preapproval_id INT NULL;
+    CREATE INDEX IF NOT EXISTS idx_visitors_preapproval_id ON visitors(preapproval_id);
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'visitors' AND column_name = 'qr_pass_id'
+  ) THEN
+    ALTER TABLE visitors ADD COLUMN qr_pass_id INT NULL;
+    CREATE INDEX IF NOT EXISTS idx_visitors_qr_pass_id ON visitors(qr_pass_id);
   END IF;
 
   IF NOT EXISTS (

@@ -221,7 +221,7 @@ async function getOwnerDashboard(req, res) {
         `SELECT f.id, f.flat_number, f.building_name, f.wing, f.floor, f.status, f.flat_type,
                 COUNT(DISTINCT fr.resident_id) as tenant_count
          FROM flats f
-         LEFT JOIN flat_residents fr ON fr.flat_id = f.id AND fr.is_active = 1
+         LEFT JOIN flat_residents fr ON fr.flat_id = f.id AND fr.is_active = TRUE
          WHERE f.id = ? AND f.society_id = ?
          GROUP BY f.id`,
         [user.flat_id, societyId]
@@ -237,7 +237,7 @@ async function getOwnerDashboard(req, res) {
                 fr.move_in_date, fr.is_active as is_active_tenant
          FROM flat_residents fr
          JOIN users u ON u.id = fr.resident_id
-         WHERE fr.flat_id = ? AND u.society_id = ? AND fr.is_active = 1`,
+         WHERE fr.flat_id = ? AND u.society_id = ? AND fr.is_active = TRUE`,
         [user.flat_id, societyId]
       );
       tenants = tenantData || [];

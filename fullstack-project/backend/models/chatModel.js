@@ -52,7 +52,7 @@ async function getChatMemberById(memberId) {
             u.resident_type,
             s.code AS society_code
      FROM users u
-     LEFT JOIN flat_residents fr ON fr.resident_id = u.id AND fr.is_active = 1
+     LEFT JOIN flat_residents fr ON fr.resident_id = u.id AND fr.is_active = TRUE
      LEFT JOIN flats f ON f.id = fr.flat_id
      LEFT JOIN societies s ON s.id = u.society_id
      WHERE u.id = ?
@@ -98,7 +98,7 @@ async function getChatMembersForUser({ currentUserId, currentRole, societyId, se
             s.slug AS society_slug,
             s.subdomain AS society_subdomain
      FROM users u
-     LEFT JOIN flat_residents fr ON fr.resident_id = u.id AND fr.is_active = 1
+     LEFT JOIN flat_residents fr ON fr.resident_id = u.id AND fr.is_active = TRUE
      LEFT JOIN flats f ON f.id = fr.flat_id
      LEFT JOIN societies s ON s.id = u.society_id
      WHERE u.id <> ?
@@ -146,7 +146,7 @@ async function getThreadMembers(threadId) {
             COALESCE(f.floor, '-') AS floor
      FROM chat_thread_members tm
      JOIN users u ON u.id = tm.user_id
-     LEFT JOIN flat_residents fr ON fr.resident_id = u.id AND fr.is_active = 1
+     LEFT JOIN flat_residents fr ON fr.resident_id = u.id AND fr.is_active = TRUE
      LEFT JOIN flats f ON f.id = fr.flat_id
      WHERE tm.thread_id = ?
        AND tm.left_at IS NULL
@@ -264,7 +264,7 @@ async function listThreadsForUser(userId) {
      LEFT JOIN chat_message_receipts r ON r.message_id = latest.id AND r.user_id = ?
      LEFT JOIN chat_thread_members peer_member ON peer_member.thread_id = t.id AND peer_member.user_id <> ? AND peer_member.left_at IS NULL
      LEFT JOIN users peer ON peer.id = peer_member.user_id
-     LEFT JOIN flat_residents fr ON fr.resident_id = peer.id AND fr.is_active = 1
+     LEFT JOIN flat_residents fr ON fr.resident_id = peer.id AND fr.is_active = TRUE
      LEFT JOIN flats f ON f.id = fr.flat_id
      GROUP BY t.id, latest.id, peer.id, f.wing, f.floor
      ORDER BY COALESCE(t.last_message_at, t.created_at) DESC, t.id DESC`,

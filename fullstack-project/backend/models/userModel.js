@@ -684,15 +684,15 @@ async function softDeleteUserById({ userId, deletedBy, deleteReason }) {
     const [activeFlatRows] = await connection.query(
       `SELECT DISTINCT flat_id
        FROM flat_residents
-       WHERE resident_id = ? AND is_active = 1`,
+       WHERE resident_id = ? AND is_active = TRUE`,
       [userId]
     );
 
     await connection.query(
       `UPDATE flat_residents
-       SET is_active = 0,
+       SET is_active = FALSE,
            move_out_date = COALESCE(move_out_date, CURRENT_DATE)
-       WHERE resident_id = ? AND is_active = 1`,
+       WHERE resident_id = ? AND is_active = TRUE`,
       [userId]
     );
 
@@ -701,7 +701,7 @@ async function softDeleteUserById({ userId, deletedBy, deleteReason }) {
       const [remainingActiveRows] = await connection.query(
         `SELECT COUNT(*) AS count
          FROM flat_residents
-         WHERE flat_id = ? AND is_active = 1`,
+         WHERE flat_id = ? AND is_active = TRUE`,
         [flatId]
       );
 

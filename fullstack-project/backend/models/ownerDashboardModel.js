@@ -37,7 +37,7 @@ async function getOwnerPropertyRows(ownerId) {
      LEFT JOIN societies s ON s.id = f.society_id
      LEFT JOIN flat_residents fr_tenant
        ON fr_tenant.flat_id = f.id
-      AND fr_tenant.is_active = 1
+      AND fr_tenant.is_active = TRUE
       AND fr_tenant.resident_id <> op.user_id
      LEFT JOIN users tenant
        ON tenant.id = fr_tenant.resident_id

@@ -22,12 +22,12 @@ async function getTargetUserIds({ targetRole = "all", targetUserId = null }) {
   }
 
   if (!targetRole || targetRole === "all") {
-    const { rows } = await db.query("SELECT id FROM users WHERE is_active = 1");
+    const { rows } = await db.query("SELECT id FROM users WHERE is_active = TRUE");
     return rows.map((row) => Number(row.id));
   }
 
   const { rows } = await db.query(
-    "SELECT id FROM users WHERE role = ? AND is_active = 1",
+    "SELECT id FROM users WHERE role = ? AND is_active = TRUE",
     [targetRole]
   );
 
@@ -42,7 +42,7 @@ async function getActiveDeviceTokensByUserIds(userIds) {
   const { rows } = await db.query(
     `SELECT id, user_id, platform, fcm_token
      FROM notification_device_tokens
-     WHERE user_id IN (?) AND is_active = 1`,
+     WHERE user_id IN (?) AND is_active = TRUE`,
     [userIds]
   );
 
@@ -57,7 +57,7 @@ async function getActiveWebSubscriptionsByUserIds(userIds) {
   const { rows } = await db.query(
     `SELECT id, user_id, endpoint, p256dh, auth
      FROM notification_web_subscriptions
-     WHERE user_id IN (?) AND is_active = 1`,
+     WHERE user_id IN (?) AND is_active = TRUE`,
     [userIds]
   );
 
@@ -71,7 +71,7 @@ async function deactivateDeviceTokens(tokens = []) {
 
   await db.query(
     `UPDATE notification_device_tokens
-     SET is_active = 0
+     SET is_active = FALSE
      WHERE fcm_token IN (?)`,
     [tokens]
   );
@@ -84,7 +84,7 @@ async function deactivateWebSubscriptions(endpoints = []) {
 
   await db.query(
     `UPDATE notification_web_subscriptions
-     SET is_active = 0
+     SET is_active = FALSE
      WHERE endpoint IN (?)`,
     [endpoints]
   );
@@ -266,7 +266,7 @@ async function registerDeviceToken({ userId, platform = "web", fcmToken, deviceI
        platform = VALUES(platform),
        device_id = VALUES(device_id),
        app_version = VALUES(app_version),
-       is_active = 1,
+       is_active = TRUE,
        last_seen_at = NOW()`,
     [userId, platform, fcmToken, deviceId, appVersion]
   );
@@ -277,7 +277,7 @@ async function registerDeviceToken({ userId, platform = "web", fcmToken, deviceI
 async function unregisterDeviceToken({ userId, fcmToken }) {
   const { rows: result } = await db.query(
     `UPDATE notification_device_tokens
-     SET is_active = 0
+     SET is_active = FALSE
      WHERE user_id = ? AND fcm_token = ?`,
     [userId, fcmToken]
   );
@@ -305,7 +305,7 @@ async function registerWebSubscription({ userId, subscription, userAgent = null 
       auth = VALUES(auth),
       expiration_time = VALUES(expiration_time),
       user_agent = VALUES(user_agent),
-      is_active = 1`,
+      is_active = TRUE`,
     [
       userId,
       endpoint,
@@ -322,7 +322,7 @@ async function registerWebSubscription({ userId, subscription, userAgent = null 
 async function unregisterWebSubscription({ userId, endpoint }) {
   const { rows: result } = await db.query(
     `UPDATE notification_web_subscriptions
-     SET is_active = 0
+     SET is_active = FALSE
      WHERE user_id = ? AND endpoint = ?`,
     [userId, endpoint]
   );

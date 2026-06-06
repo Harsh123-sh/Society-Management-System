@@ -161,7 +161,7 @@ async function bulkDeleteFlats({ flatIds, societyId }) {
     `DELETE FROM flats
      WHERE society_id = ? AND id IN (?)
        AND id NOT IN (
-         SELECT DISTINCT flat_id FROM flat_residents WHERE is_active = 1
+         SELECT DISTINCT flat_id FROM flat_residents WHERE is_active = TRUE
        )`,
     [societyId, flatIds]
   );

@@ -1,4 +1,6 @@
 require("dotenv").config();
+const fs = require("fs");
+const path = require("path");
 const db = require("../config/db");
 
 // PostgreSQL ENUM type creators
@@ -61,6 +63,20 @@ async function createEnumTypes() {
     `);
   } catch (error) {
     console.warn("Warning creating enum types:", error.message);
+  }
+}
+
+async function runMissingSchemaMigrations() {
+  const migrationFile = path.join(__dirname, "migrations", "2026-06-05_add_missing_schema.sql");
+  try {
+    const sql = fs.readFileSync(migrationFile, "utf8");
+    if (sql && sql.trim()) {
+      console.log("Applying missing schema migrations...");
+      await db.query(sql);
+      console.log("✓ Missing schema migrations applied");
+    }
+  } catch (error) {
+    console.warn(`Warning applying missing schema migrations: ${error.message}`);
   }
 }
 
@@ -361,6 +377,8 @@ async function ensureSchema() {
     `);
     await db.query(`CREATE INDEX IF NOT EXISTS idx_user_otps_email_purpose ON user_otps(email, purpose);`);
     await db.query(`CREATE INDEX IF NOT EXISTS idx_user_otps_expires_at ON user_otps(expires_at);`);
+
+    await runMissingSchemaMigrations();
 
     console.log("✓ PostgreSQL schema initialized successfully");
   } catch (error) {
