@@ -64,6 +64,14 @@ await pool.query(`ALTER TABLE notices ADD COLUMN IF NOT EXISTS deleted_at TIMEST
 await pool.query(`ALTER TABLE notices ADD COLUMN IF NOT EXISTS deleted_by INTEGER;`);
 await pool.query(`ALTER TABLE notices ADD COLUMN IF NOT EXISTS deletion_reason TEXT;`);
 
+await pool.query(`ALTER TABLE towers ADD COLUMN IF NOT EXISTS total_floors INTEGER DEFAULT 0;`);
+await pool.query(`ALTER TABLE towers ADD COLUMN IF NOT EXISTS flats_per_floor INTEGER DEFAULT 0;`);
+await pool.query(`ALTER TABLE towers ADD COLUMN IF NOT EXISTS flat_number_format VARCHAR(100);`);
+await pool.query(`ALTER TABLE towers ADD COLUMN IF NOT EXISTS starting_floor INTEGER DEFAULT 0;`);
+await pool.query(`ALTER TABLE towers ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT 'active';`);
+await pool.query(`ALTER TABLE towers ADD COLUMN IF NOT EXISTS created_by INTEGER;`);
+await pool.query(`ALTER TABLE towers ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;`);
+
     await pool.query(`
       CREATE TABLE IF NOT EXISTS notifications (
         id SERIAL PRIMARY KEY,

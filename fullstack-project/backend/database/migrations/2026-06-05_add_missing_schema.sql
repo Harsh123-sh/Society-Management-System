@@ -157,6 +157,38 @@ BEGIN
   END IF;
 END $$;
 
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_class WHERE relname = 'towers') THEN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'towers' AND column_name = 'total_floors') THEN
+      ALTER TABLE towers ADD COLUMN total_floors INT DEFAULT 1;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'towers' AND column_name = 'flats_per_floor') THEN
+      ALTER TABLE towers ADD COLUMN flats_per_floor INT DEFAULT 1;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'towers' AND column_name = 'flat_number_format') THEN
+      ALTER TABLE towers ADD COLUMN flat_number_format VARCHAR(50) DEFAULT 'floor_sequence';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'towers' AND column_name = 'starting_floor') THEN
+      ALTER TABLE towers ADD COLUMN starting_floor INT DEFAULT 1;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'towers' AND column_name = 'status') THEN
+      ALTER TABLE towers ADD COLUMN status VARCHAR(50) DEFAULT 'active';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'towers' AND column_name = 'created_by') THEN
+      ALTER TABLE towers ADD COLUMN created_by INT NULL;
+    END IF;
+    IF NOT EXISTS (
+      SELECT 1 FROM information_schema.table_constraints tc
+      JOIN information_schema.key_column_usage kcu ON tc.constraint_name = kcu.constraint_name
+      WHERE tc.table_name = 'towers' AND tc.constraint_type = 'FOREIGN KEY' AND kcu.column_name = 'created_by'
+    ) THEN
+      ALTER TABLE towers ADD CONSTRAINT fk_towers_created_by FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL ON UPDATE CASCADE;
+    END IF;
+    CREATE INDEX IF NOT EXISTS idx_towers_society_status ON towers(society_id, status);
+  END IF;
+END $$;
+
 -- 7) wings table
 CREATE TABLE IF NOT EXISTS wings (
   id SERIAL PRIMARY KEY,
