@@ -76,6 +76,33 @@ await pool.query(`ALTER TABLE bill_payments ADD COLUMN IF NOT EXISTS resident_id
 await pool.query(`ALTER TABLE bill_payments ADD COLUMN IF NOT EXISTS payment_method VARCHAR(50);`);
 await pool.query(`ALTER TABLE parking_slots ADD COLUMN IF NOT EXISTS owner_id INTEGER;`);
 await pool.query(`ALTER TABLE parking_slots ADD COLUMN IF NOT EXISTS wing VARCHAR(50);`);
+await pool.query(`ALTER TABLE bills ADD COLUMN IF NOT EXISTS paid_date DATE;`);
+await pool.query(`ALTER TABLE visitors ADD COLUMN IF NOT EXISTS visitor_type VARCHAR(50) DEFAULT 'guest';`);
+
+await pool.query(`
+  CREATE TABLE IF NOT EXISTS chats (
+    id SERIAL PRIMARY KEY,
+    society_id INTEGER,
+    sender_id INTEGER,
+    receiver_id INTEGER,
+    message TEXT,
+    message_type VARCHAR(50) DEFAULT 'text',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  );
+`);
+
+await pool.query(`
+  CREATE TABLE IF NOT EXISTS security_alerts (
+    id SERIAL PRIMARY KEY,
+    society_id INTEGER,
+    alert_type VARCHAR(100),
+    message TEXT,
+    severity VARCHAR(50) DEFAULT 'medium',
+    status VARCHAR(50) DEFAULT 'open',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    resolved_at TIMESTAMP
+  );
+`);
 
 await pool.query(`
   CREATE TABLE IF NOT EXISTS documents (
@@ -93,6 +120,33 @@ await pool.query(`
   );
 `);
 
+await pool.query(`
+  CREATE TABLE IF NOT EXISTS chats (
+    id SERIAL PRIMARY KEY,
+    society_id INTEGER,
+    sender_id INTEGER,
+    receiver_id INTEGER,
+    message TEXT,
+    message_type VARCHAR(50) DEFAULT 'text',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  );
+`);
+
+await pool.query(`
+  CREATE TABLE IF NOT EXISTS security_alerts (
+    id SERIAL PRIMARY KEY,
+    society_id INTEGER,
+    alert_type VARCHAR(100),
+    message TEXT,
+    severity VARCHAR(50) DEFAULT 'medium',
+    status VARCHAR(50) DEFAULT 'open',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    resolved_at TIMESTAMP
+  );
+`);
+
+await pool.query(`ALTER TABLE bills ADD COLUMN IF NOT EXISTS paid_date DATE;`);
+await pool.query(`ALTER TABLE visitors ADD COLUMN IF NOT EXISTS visitor_type VARCHAR(50) DEFAULT 'guest';`);
 
     await pool.query(`
       CREATE TABLE IF NOT EXISTS notifications (

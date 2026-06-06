@@ -2,6 +2,18 @@
 -- Safe to run multiple times; uses IF NOT EXISTS checks and pg_catalog checks where necessary.
 -- Create missing columns on existing tables and create missing tables used in logs.
 
+-- Provide MySQL-like DATEDIFF function (days) for analytics SQL that uses DATEDIFF()
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_proc WHERE proname = 'datediff') THEN
+    EXECUTE $$
+      CREATE FUNCTION datediff(ts1 TIMESTAMP, ts2 TIMESTAMP) RETURNS INT AS $fn$
+        SELECT CAST(EXTRACT(EPOCH FROM (ts1 - ts2))/86400 AS INT);
+      $fn$ LANGUAGE SQL IMMUTABLE STRICT;
+    $$;
+  END IF;
+END $$;
+
 -- 1) society_analytics: ensure id column, created_at, and unique index on (society_id, metric_date)
 DO $$
 BEGIN
@@ -568,6 +580,24 @@ BEGIN
   END IF;
 END $$;
 
+-- Add a paid_date column used in analytics (non-destructive). If paid_at exists populate it.
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_class WHERE relname = 'bills') THEN
+    IF NOT EXISTS (
+      SELECT 1 FROM information_schema.columns
+      WHERE table_name = 'bills' AND column_name = 'paid_date'
+    ) THEN
+      ALTER TABLE bills ADD COLUMN paid_date TIMESTAMP NULL;
+      -- backfill from paid_at if present
+      IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'bills' AND column_name = 'paid_at') THEN
+        EXECUTE 'UPDATE bills SET paid_date = paid_at WHERE paid_date IS NULL AND paid_at IS NOT NULL';
+      END IF;
+    END IF;
+    CREATE INDEX IF NOT EXISTS idx_bills_paid_date ON bills(paid_date);
+  END IF;
+END $$;
+
 -- 10) bill_payments.paid_at
 DO $$
 BEGIN
@@ -577,6 +607,57 @@ BEGIN
   ) THEN
     ALTER TABLE bill_payments ADD COLUMN paid_at TIMESTAMP NULL;
   END IF;
+END $$;
+
+-- 10) add visitor_type, visitor timestamps and minimal analytics tables
+DO $$
+BEGIN
+  -- visitors.visitor_type
+  IF EXISTS (SELECT 1 FROM pg_class WHERE relname = 'visitors') THEN
+    IF NOT EXISTS (
+      SELECT 1 FROM information_schema.columns
+      WHERE table_name = 'visitors' AND column_name = 'visitor_type'
+    ) THEN
+      ALTER TABLE visitors ADD COLUMN visitor_type VARCHAR(50) DEFAULT 'guest';
+    END IF;
+    IF NOT EXISTS (
+      SELECT 1 FROM information_schema.columns
+      WHERE table_name = 'visitors' AND column_name = 'entry_time'
+    ) THEN
+      ALTER TABLE visitors ADD COLUMN entry_time TIMESTAMP NULL;
+    END IF;
+    IF NOT EXISTS (
+      SELECT 1 FROM information_schema.columns
+      WHERE table_name = 'visitors' AND column_name = 'exit_time'
+    ) THEN
+      ALTER TABLE visitors ADD COLUMN exit_time TIMESTAMP NULL;
+    END IF;
+  END IF;
+
+  -- minimal chats table used by analytics (non-destructive)
+  IF NOT EXISTS (SELECT 1 FROM pg_class WHERE relname = 'chats') THEN
+    CREATE TABLE chats (
+      id SERIAL PRIMARY KEY,
+      sender_id INT NULL,
+      receiver_id INT NULL,
+      message TEXT,
+      message_type VARCHAR(50),
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+    CREATE INDEX IF NOT EXISTS idx_chats_created_at ON chats(created_at);
+  END IF;
+
+  -- minimal security_alerts table used by analytics (non-destructive)
+  IF NOT EXISTS (SELECT 1 FROM pg_class WHERE relname = 'security_alerts') THEN
+    CREATE TABLE security_alerts (
+      id SERIAL PRIMARY KEY,
+      society_id INT NULL,
+      message TEXT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+    CREATE INDEX IF NOT EXISTS idx_security_alerts_created_at ON security_alerts(created_at);
+  END IF;
+
 END $$;
 
 -- 11) visitors.security_id, entry_time, exit_time

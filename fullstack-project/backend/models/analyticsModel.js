@@ -219,7 +219,7 @@ async function getComplaintAnalytics(startDate, endDate) {
   );
 
   const { rows: avgResolutionTime } = await db.query(
-    `SELECT AVG(DATEDIFF(updated_at, created_at)) AS avg_days FROM complaints 
+    `SELECT AVG(EXTRACT(DAY FROM (updated_at - created_at))) AS avg_days 
      WHERE status = 'resolved' AND created_at BETWEEN ? AND ?`,
     [startDate, endDate]
   );
@@ -384,7 +384,7 @@ async function getStaffPerformance(startDate, endDate) {
     );
 
     const { rows: taskCompletionTime } = await db.query(
-      `SELECT AVG(DATEDIFF(updated_at, created_at)) AS avg_days FROM complaints 
+      `SELECT AVG(EXTRACT(DAY FROM (updated_at - created_at))) AS avg_days
        WHERE assigned_to = ? AND status = 'resolved' AND created_at BETWEEN ? AND ?`,
       [staff.id, startDate, endDate]
     );
