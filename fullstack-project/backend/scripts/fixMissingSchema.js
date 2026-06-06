@@ -90,6 +90,41 @@ await pool.query(`ALTER TABLE visitor_qr_passes ADD COLUMN IF NOT EXISTS preappr
 await pool.query(`ALTER TABLE visitor_qr_passes ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT 'active';`);
 await pool.query(`ALTER TABLE visitor_qr_passes ADD COLUMN IF NOT EXISTS expires_at TIMESTAMP;`);
 await pool.query(`ALTER TABLE visitor_qr_passes ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;`);
+await pool.query(`ALTER TABLE owner_properties ADD COLUMN IF NOT EXISTS user_id INTEGER;`);
+await pool.query(`ALTER TABLE owner_properties ADD COLUMN IF NOT EXISTS living_start_date TIMESTAMP;`);
+await pool.query(`ALTER TABLE owner_properties ADD COLUMN IF NOT EXISTS flat_id INTEGER;`);
+await pool.query(`ALTER TABLE wings ADD COLUMN IF NOT EXISTS builder_id INTEGER;`);
+await pool.query(`ALTER TABLE wings ADD COLUMN IF NOT EXISTS tower_id INTEGER;`);
+await pool.query(`ALTER TABLE wings ADD COLUMN IF NOT EXISTS created_by INTEGER;`);
+await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP;`);
+await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS deleted_by INTEGER;`);
+await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS delete_reason TEXT;`);
+await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS email_otp VARCHAR(10);`);
+await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS otp_expires_at TIMESTAMP;`);
+await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS otp_attempts INTEGER DEFAULT 0;`);
+await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS last_otp_sent_at TIMESTAMP;`);
+await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS email_otp VARCHAR(10);`);
+await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS otp_expires_at TIMESTAMP;`);
+await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS otp_attempts INTEGER DEFAULT 0;`);
+await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS last_otp_sent_at TIMESTAMP;`);
+await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verified_at TIMESTAMP;`);
+
+
+
+
+
+
+
+
+
+await pool.query(`
+  CREATE UNIQUE INDEX IF NOT EXISTS owner_properties_flat_id_unique
+  ON owner_properties(flat_id);
+`);
+
+
+
+
 await pool.query(`
 CREATE TABLE IF NOT EXISTS visitor_preapprovals (
   id SERIAL PRIMARY KEY,
