@@ -14,6 +14,45 @@ BEGIN
   END IF;
 END $$;
 
+-- Ensure bills.payment_method and enhance chat/security tables for analytics
+DO $$
+BEGIN
+  -- bills.payment_method
+  IF EXISTS (SELECT 1 FROM pg_class WHERE relname = 'bills') THEN
+    IF NOT EXISTS (
+      SELECT 1 FROM information_schema.columns WHERE table_name = 'bills' AND column_name = 'payment_method'
+    ) THEN
+      ALTER TABLE bills ADD COLUMN payment_method VARCHAR(100) NULL;
+    END IF;
+  END IF;
+
+  -- chats: add thread_id and user_id for analytics queries
+  IF EXISTS (SELECT 1 FROM pg_class WHERE relname = 'chats') THEN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'chats' AND column_name = 'thread_id') THEN
+      ALTER TABLE chats ADD COLUMN thread_id INT NULL;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'chats' AND column_name = 'user_id') THEN
+      ALTER TABLE chats ADD COLUMN user_id INT NULL;
+    END IF;
+    CREATE INDEX IF NOT EXISTS idx_chats_thread_id ON chats(thread_id);
+    CREATE INDEX IF NOT EXISTS idx_chats_user_id ON chats(user_id);
+  END IF;
+
+  -- security_alerts: add severity, alert_type, location used by analytics
+  IF EXISTS (SELECT 1 FROM pg_class WHERE relname = 'security_alerts') THEN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'security_alerts' AND column_name = 'severity') THEN
+      ALTER TABLE security_alerts ADD COLUMN severity VARCHAR(50) NULL;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'security_alerts' AND column_name = 'alert_type') THEN
+      ALTER TABLE security_alerts ADD COLUMN alert_type VARCHAR(50) NULL;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'security_alerts' AND column_name = 'location') THEN
+      ALTER TABLE security_alerts ADD COLUMN location VARCHAR(200) NULL;
+    END IF;
+    CREATE INDEX IF NOT EXISTS idx_security_alerts_location ON security_alerts(location);
+  END IF;
+END $$;
+
 -- 1) society_analytics: ensure id column, created_at, and unique index on (society_id, metric_date)
 DO $$
 BEGIN

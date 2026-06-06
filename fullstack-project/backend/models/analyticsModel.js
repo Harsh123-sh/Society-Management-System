@@ -172,7 +172,7 @@ async function getFinancialAnalytics(startDate, endDate) {
     `SELECT u.name, COUNT(b.id) AS unpaid_count, COALESCE(SUM(b.amount), 0) AS total_amount
      FROM bills b JOIN users u ON b.user_id = u.id
      WHERE b.status = 'unpaid' AND b.created_at BETWEEN ? AND ?
-     GROUP BY b.user_id ORDER BY total_amount DESC LIMIT 5`,
+     GROUP BY b.user_id, u.name ORDER BY total_amount DESC LIMIT 5`,
     [startDate, endDate]
   );
 
@@ -220,7 +220,7 @@ async function getComplaintAnalytics(startDate, endDate) {
 
   const { rows: avgResolutionTime } = await db.query(
     `SELECT AVG(EXTRACT(DAY FROM (updated_at - created_at))) AS avg_days 
-     WHERE status = 'resolved' AND created_at BETWEEN ? AND ?`,
+     FROM complaints WHERE status = 'resolved' AND created_at BETWEEN ? AND ?`,
     [startDate, endDate]
   );
 
@@ -243,7 +243,7 @@ async function getChatAnalytics(startDate, endDate) {
   );
 
   const { rows: activeUsers } = await db.query(
-    `SELECT COUNT(DISTINCT user_id) AS count FROM chats WHERE created_at BETWEEN ? AND ?`,
+    `SELECT COUNT(DISTINCT sender_id) AS count FROM chats WHERE created_at BETWEEN ? AND ?`,
     [startDate, endDate]
   );
 
@@ -255,15 +255,15 @@ async function getChatAnalytics(startDate, endDate) {
   );
 
   const { rows: chatChannels } = await db.query(
-    `SELECT thread_id, COUNT(*) AS message_count FROM chats 
-     WHERE created_at BETWEEN ? AND ? GROUP BY thread_id ORDER BY message_count DESC LIMIT 10`,
+    `SELECT COALESCE(thread_id::text, sender_id::text) AS thread_id, COUNT(*) AS message_count FROM chats 
+     WHERE created_at BETWEEN ? AND ? GROUP BY COALESCE(thread_id, sender_id) ORDER BY message_count DESC LIMIT 10`,
     [startDate, endDate]
   );
 
   const { rows: avgResponseTime } = await db.query(
-    `SELECT AVG(TIMESTAMPDIFF(MINUTE, c1.created_at, c2.created_at)) AS avg_minutes
-     FROM chats c1 JOIN chats c2 ON c1.thread_id = c2.thread_id 
-     AND c1.user_id != c2.user_id AND c1.id < c2.id
+    `SELECT AVG(EXTRACT(EPOCH FROM (c2.created_at - c1.created_at))/60) AS avg_minutes
+     FROM chats c1 JOIN chats c2 ON COALESCE(c1.thread_id, c1.sender_id) = COALESCE(c2.thread_id, c2.sender_id)
+     AND c1.sender_id IS DISTINCT FROM c2.sender_id AND c1.id < c2.id
      WHERE c1.created_at BETWEEN ? AND ? LIMIT 1000`,
     [startDate, endDate]
   );
@@ -385,7 +385,7 @@ async function getStaffPerformance(startDate, endDate) {
 
     const { rows: taskCompletionTime } = await db.query(
       `SELECT AVG(EXTRACT(DAY FROM (updated_at - created_at))) AS avg_days
-       WHERE assigned_to = ? AND status = 'resolved' AND created_at BETWEEN ? AND ?`,
+       FROM complaints WHERE assigned_to = ? AND status = 'resolved' AND created_at BETWEEN ? AND ?`,
       [staff.id, startDate, endDate]
     );
 

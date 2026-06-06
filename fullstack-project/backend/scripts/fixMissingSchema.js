@@ -78,6 +78,15 @@ await pool.query(`ALTER TABLE parking_slots ADD COLUMN IF NOT EXISTS owner_id IN
 await pool.query(`ALTER TABLE parking_slots ADD COLUMN IF NOT EXISTS wing VARCHAR(50);`);
 await pool.query(`ALTER TABLE bills ADD COLUMN IF NOT EXISTS paid_date DATE;`);
 await pool.query(`ALTER TABLE visitors ADD COLUMN IF NOT EXISTS visitor_type VARCHAR(50) DEFAULT 'guest';`);
+await pool.query(`ALTER TABLE chats ADD COLUMN IF NOT EXISTS user_id INTEGER;`);
+await pool.query(`UPDATE chats SET user_id = sender_id WHERE user_id IS NULL AND sender_id IS NOT NULL;`);
+
+await pool.query(`ALTER TABLE complaints ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;`);
+
+await pool.query(`ALTER TABLE bills ADD COLUMN IF NOT EXISTS payment_method VARCHAR(50) DEFAULT 'cash';`);
+
+await pool.query(`ALTER TABLE security_alerts ADD COLUMN IF NOT EXISTS location VARCHAR(255);`);
+
 
 await pool.query(`
   CREATE TABLE IF NOT EXISTS chats (
