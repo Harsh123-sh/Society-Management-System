@@ -108,13 +108,30 @@ await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS otp_expires_at TIME
 await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS otp_attempts INTEGER DEFAULT 0;`);
 await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS last_otp_sent_at TIMESTAMP;`);
 await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verified_at TIMESTAMP;`);
+await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS email_otp VARCHAR(10);`);
+await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS otp_expires_at TIMESTAMP;`);
+await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS otp_attempts INTEGER DEFAULT 0;`);
+await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS last_otp_sent_at TIMESTAMP;`);
+await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verified_at TIMESTAMP;`);
+await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_otp VARCHAR(10);`);
+await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_otp_expires_at TIMESTAMP;`);
+await pool.query(`ALTER TABLE chats ADD COLUMN IF NOT EXISTS thread_id INTEGER;`);
+await pool.query(`ALTER TABLE bills ADD COLUMN IF NOT EXISTS payment_attempts INTEGER DEFAULT 0;`);
 
 
 
 
-
-
-
+await pool.query(`
+  CREATE TABLE IF NOT EXISTS ai_chats (
+    id SERIAL PRIMARY KEY,
+    society_id INTEGER,
+    user_id INTEGER,
+    message TEXT,
+    response TEXT,
+    task_type VARCHAR(100),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  );
+`);
 
 
 await pool.query(`

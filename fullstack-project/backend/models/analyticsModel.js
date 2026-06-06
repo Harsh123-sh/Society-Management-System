@@ -309,7 +309,7 @@ async function getPaymentAnalytics(startDate, endDate) {
     `SELECT 
       COUNT(CASE WHEN status = 'paid' THEN 1 END) AS successful,
       COUNT(*) AS total
-     FROM bills WHERE (status IN ('paid', 'failed') OR (status = 'unpaid' AND payment_attempts > 0))
+     FROM bills WHERE ((status IN ('paid', 'failed', 'unpaid')))
      AND created_at BETWEEN ? AND ?`,
     [startDate, endDate]
   );

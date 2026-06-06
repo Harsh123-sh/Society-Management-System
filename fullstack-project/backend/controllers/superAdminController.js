@@ -646,14 +646,13 @@ async function getSocietyDetails(req, res) {
     const noticeRows = results[5].rows;
     const subscriptionRows = results[6].rows;
 
-    const detail = await tenantModel.getTenantContextBySocietyId(societyId);
-    const analytics = await tenantModel.getSocietyAnalytics(societyId);
+    // const detail = await tenantModel.getTenantContextBySocietyId(societyId);
+    // const analytics = await tenantModel.getSocietyAnalytics(societyId);
 
+    
     const societyData = {
-      ...society,
-      ...(detail?.society || {}),
-    };
-
+    ...society
+};
     console.log("[SuperAdmin] Society detail loaded", {
       societyId,
       totalUsers: Number(userRows[0]?.total_users || 0),
