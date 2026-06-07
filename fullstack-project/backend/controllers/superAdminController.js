@@ -149,7 +149,7 @@ async function getPlatformStats(req, res) {
         COUNT(*) AS total_complaints,
         COUNT(CASE WHEN c.status = 'pending' THEN 1 END) AS pending_complaints,
         COUNT(CASE WHEN c.status = 'resolved' THEN 1 END) AS resolved_complaints
-      FROM complaints
+      FROM complaints c
     `);
 
     const { rows: flatStatsRows } = await db.query(`
@@ -810,11 +810,22 @@ async function approvePendingUser(req, res) {
       return res.status(400).json({ success: false, message: "Invalid approval id" });
     }
 
-    let approvalRow = await UserApprovalModel.getApprovalById(approvalId);
+    let approvalRow = null;
     let directUser = null;
-    if (!approvalRow) {
+
+    if (approvalId > 0) {
+      approvalRow = await UserApprovalModel.getApprovalById(approvalId);
+    } else {
       const userId = Math.abs(approvalId);
-      const { rows: userRows } = await db.query(`SELECT id, role, status FROM users WHERE id = $1 LIMIT 1`, [userId]);
+
+      const { rows: userRows } = await db.query(
+        `SELECT id, role, status
+         FROM users
+         WHERE id = $1
+         LIMIT 1`,
+        [userId]
+      );
+
       directUser = userRows[0] || null;
     }
 
@@ -868,11 +879,22 @@ async function rejectPendingUser(req, res) {
       return res.status(400).json({ success: false, message: "Invalid approval id" });
     }
 
-    let approvalRow = await UserApprovalModel.getApprovalById(approvalId);
+    let approvalRow = null;
     let directUser = null;
-    if (!approvalRow) {
+
+    if (approvalId > 0) {
+      approvalRow = await UserApprovalModel.getApprovalById(approvalId);
+    } else {
       const userId = Math.abs(approvalId);
-      const { rows: userRows } = await db.query(`SELECT id, role, status FROM users WHERE id = $1 LIMIT 1`, [userId]);
+
+      const { rows: userRows } = await db.query(
+        `SELECT id, role, status
+         FROM users
+         WHERE id = $1
+         LIMIT 1`,
+        [userId]
+      );
+
       directUser = userRows[0] || null;
     }
 
@@ -1102,9 +1124,9 @@ async function getSocietyAnalytics(req, res) {
         [societyId]
       ),
       db.query(
-        `SELECT COUNT(*) AS total_complaints,
-                COUNT(CASE WHEN status = 'pending' THEN 1 END) AS pending_complaints,
-                COUNT(CASE WHEN status = 'resolved' THEN 1 END) AS resolved_complaints
+        `ELECT COUNT(*) AS total_complaints,,
+                COUNT(CASE WHEN c.status = 'pending' THEN 1 END) AS pending_complaints,
+              COUNT(CASE WHEN c.status = 'resolved' THEN 1 END) AS resolved_complaints
          FROM complaints c
          JOIN users u ON u.id = c.resident_id
          WHERE u.society_id = $1`,

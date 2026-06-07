@@ -137,7 +137,14 @@ await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_otp VARCHAR(1
 await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_otp_expires_at TIMESTAMP;`);
 await pool.query(`ALTER TABLE chats ADD COLUMN IF NOT EXISTS thread_id INTEGER;`);
 await pool.query(`ALTER TABLE bills ADD COLUMN IF NOT EXISTS payment_attempts INTEGER DEFAULT 0;`);
-
+await pool.query(`ALTER TABLE user_approvals ADD COLUMN IF NOT EXISTS approved_by INTEGER;`);
+await pool.query(`ALTER TABLE user_approvals ADD COLUMN IF NOT EXISTS rejected_by INTEGER;`);
+await pool.query(`ALTER TABLE user_approvals ADD COLUMN IF NOT EXISTS approved_at TIMESTAMP;`);
+await pool.query(`ALTER TABLE user_approvals ADD COLUMN IF NOT EXISTS rejected_at TIMESTAMP;`);
+await pool.query(`ALTER TABLE user_approvals ADD COLUMN IF NOT EXISTS approval_comments TEXT;`);
+await pool.query(`ALTER TABLE user_approvals ADD COLUMN IF NOT EXISTS rejection_reason TEXT;`);
+await pool.query(`ALTER TABLE user_approvals ADD COLUMN IF NOT EXISTS documents_json JSONB;`);
+await pool.query(`ALTER TABLE user_approvals ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;`);
 
 
 

@@ -586,7 +586,7 @@ async function forgotPassword(req, res) {
   try {
     const { email } = req.body;
 
-    const user = await userModel.getUserByEmail(email);
+    const existingUser = await userModel.getUserByEmailAndSociety(email, societyId);
     if (user) {
       await issueAndSendOtp({
         userId: user.id,
