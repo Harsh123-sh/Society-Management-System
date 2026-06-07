@@ -255,10 +255,16 @@ async function getChatAnalytics(startDate, endDate) {
   );
 
   const { rows: chatChannels } = await db.query(
-    `SELECT COALESCE(thread_id::text, sender_id::text) AS thread_id, COUNT(*) AS message_count FROM chats 
-     WHERE created_at BETWEEN ? AND ? GROUP BY COALESCE(thread_id, sender_id) ORDER BY message_count DESC LIMIT 10`,
-    [startDate, endDate]
-  );
+  `SELECT
+      COALESCE(thread_id, sender_id)::text AS thread_id,
+      COUNT(*) AS message_count
+   FROM chats
+   WHERE created_at BETWEEN $1 AND $2
+   GROUP BY 1
+   ORDER BY COUNT(*) DESC
+   LIMIT 10`,
+  [startDate, endDate]
+);
 
   const { rows: avgResponseTime } = await db.query(
     `SELECT AVG(EXTRACT(EPOCH FROM (c2.created_at - c1.created_at))/60) AS avg_minutes

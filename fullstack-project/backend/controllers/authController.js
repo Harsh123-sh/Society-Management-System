@@ -615,7 +615,7 @@ async function resetPassword(req, res) {
       });
     }
 
-    const user = await userModel.getUserByEmail(email);
+    const existingUser = await userModel.getUserByEmailAndSociety(email, societyId);
     if (!user) {
       return res.status(404).json({
         success: false,
