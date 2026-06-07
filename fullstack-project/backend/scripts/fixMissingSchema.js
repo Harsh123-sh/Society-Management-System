@@ -145,7 +145,9 @@ await pool.query(`ALTER TABLE user_approvals ADD COLUMN IF NOT EXISTS approval_c
 await pool.query(`ALTER TABLE user_approvals ADD COLUMN IF NOT EXISTS rejection_reason TEXT;`);
 await pool.query(`ALTER TABLE user_approvals ADD COLUMN IF NOT EXISTS documents_json JSONB;`);
 await pool.query(`ALTER TABLE user_approvals ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;`);
-
+await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP;`);
+await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS deleted_by INTEGER;`);
+await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS delete_reason TEXT;`);
 
 
 await pool.query(`

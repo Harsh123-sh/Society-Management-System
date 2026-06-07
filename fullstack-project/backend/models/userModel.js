@@ -39,23 +39,7 @@ async function tableExists(tableName) {
 }
 
 async function getUserByEmailAndSociety(email, societyId) {
-  const { rows } = await pool.query(
-    `
-    SELECT *
-    FROM users
-    WHERE LOWER(email) = LOWER($1)
-      AND society_id = $2
-      AND deleted_at IS NULL
-    LIMIT 1
-    `,
-    [email, societyId]
-  );
-
-  return rows[0] || null;
-}
-
-async function getUserByEmailAndSociety(email, societyId) {
-  const { rows } = await pool.query(
+  const { rows } = await db.query(
     `
     SELECT *
     FROM users
@@ -1235,6 +1219,7 @@ module.exports = {
   getDeletedUsers,
   createUser,
   getUserByEmail,
+  getUserByEmailAndSociety,
   getSuperAdminByEmail,
   getUserById,
   updateUserRoleById,

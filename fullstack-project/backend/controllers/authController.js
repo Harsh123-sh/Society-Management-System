@@ -105,14 +105,6 @@ async function register(req, res) {
       });
     }
 
-    const existingUser = await userModel.getUserByEmail(email);
-    if (existingUser) {
-      return res.status(409).json({
-        success: false,
-        message: "Email already registered",
-      });
-    }
-
     const society = await societyModel.getSocietyByCode(societyCode);
     if (!society) {
       return res.status(400).json({
@@ -125,6 +117,19 @@ async function register(req, res) {
       return res.status(403).json({
         success: false,
         message: "This society is not active",
+      });
+    }
+
+    const existingUser = await userModel.getUserByEmailAndSociety(email, society.id);
+    console.log("Registration Check:", {
+      email,
+      societyId: society.id,
+      existingUser,
+    });
+    if (existingUser) {
+      return res.status(409).json({
+        success: false,
+        message: "Email already registered",
       });
     }
 
@@ -242,10 +247,6 @@ async function register(req, res) {
       },
     });
   } catch (error) {
-    if (error.code === "ER_DUP_ENTRY") {
-      return res.status(409).json({ success: false, message: "Email already registered" });
-    }
-
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 }
