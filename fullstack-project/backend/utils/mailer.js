@@ -60,6 +60,21 @@ async function sendAccountDeletionEmail({ to, name, reason }) {
     </div>
   `;
 
+  console.log("SMTP CHECK", {
+  host: process.env.SMTP_HOST || process.env.EMAIL_HOST,
+  port: process.env.SMTP_PORT || process.env.EMAIL_PORT,
+  user: process.env.SMTP_USER || process.env.EMAIL_USER,
+  hasPassword: !!(process.env.SMTP_PASS || process.env.EMAIL_PASS),
+});
+
+transporter.verify((error) => {
+  if (error) {
+    console.error("SMTP ERROR:", error);
+  } else {
+    console.log("SMTP READY");
+  }
+});
+
   try {
     await transporter.sendMail({
       from: process.env.EMAIL_FROM || process.env.SMTP_USER,
