@@ -30,7 +30,8 @@ async function issueAndSendOtp({ userId, email, purpose }) {
   const expiresAt = getOtpExpiryDate();
 
   await otpModel.invalidateActiveOtps(email, purpose);
-  await otpModel.createOtp({ userId, email, otpHash, purpose, expiresAt });
+  const otpId = await otpModel.createOtp({ userId, email, otpHash, purpose, expiresAt });
+  console.log("[OTP CREATED]", { email, purpose, otpId });
   await sendOtpEmail({ to: email, otp, purpose });
 }
 
@@ -585,9 +586,10 @@ async function loginSuperAdmin(req, res) {
 
 async function forgotPassword(req, res) {
   try {
+    console.log("[FORGOT PASSWORD REQUEST]", req.body);
     const { email } = req.body;
 
-    const existingUser = await userModel.getUserByEmailAndSociety(email, societyId);
+    const user = await userModel.getUserByEmail(email);
     if (user) {
       await issueAndSendOtp({
         userId: user.id,
@@ -596,11 +598,13 @@ async function forgotPassword(req, res) {
       });
     }
 
+    console.log("[FORGOT PASSWORD SUCCESS]", email);
     res.json({
       success: true,
       message: "If this email is registered, a password reset OTP has been sent",
     });
   } catch (error) {
+    console.error("[FORGOT PASSWORD ERROR]", error);
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 }
@@ -616,7 +620,7 @@ async function resetPassword(req, res) {
       });
     }
 
-    const existingUser = await userModel.getUserByEmailAndSociety(email, societyId);
+    const user = await userModel.getUserByEmail(email);
     if (!user) {
       return res.status(404).json({
         success: false,

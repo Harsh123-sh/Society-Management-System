@@ -1,14 +1,51 @@
 const nodemailer = require("nodemailer");
 
-const transporter = nodemailer.createTransport({
-  host: process.env.EMAIL_HOST,
-  port: Number(process.env.EMAIL_PORT || 587),
-  secure: String(process.env.SMTP_SECURE || "false") === "true",
+const smtpConfig = {
+  host: process.env.SMTP_HOST || process.env.EMAIL_HOST,
+  port: Number(process.env.SMTP_PORT || process.env.EMAIL_PORT || 587),
+  secure: String(process.env.SMTP_SECURE || process.env.EMAIL_SECURE || "false") === "true",
   auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
+    user: process.env.SMTP_USER || process.env.EMAIL_USER,
+    pass: process.env.SMTP_PASS || process.env.EMAIL_PASS,
   },
+};
+
+const transporter = nodemailer.createTransport({
+  host: smtpConfig.host,
+  port: smtpConfig.port,
+  secure: smtpConfig.secure,
+  auth: smtpConfig.auth,
 });
+
+let transporterVerifyPromise = null;
+
+function getMailFromAddress() {
+  return process.env.SMTP_FROM || process.env.EMAIL_FROM || smtpConfig.auth.user;
+}
+
+async function verifyTransporter() {
+  if (!smtpConfig.host || !smtpConfig.auth.user || !smtpConfig.auth.pass) {
+    throw new Error("SMTP configuration is incomplete. Check SMTP_HOST, SMTP_USER, and SMTP_PASS.");
+  }
+
+  if (!transporterVerifyPromise) {
+    console.log("SMTP CHECK", {
+      host: smtpConfig.host,
+      port: smtpConfig.port,
+      secure: smtpConfig.secure,
+      user: smtpConfig.auth.user,
+      hasPassword: Boolean(smtpConfig.auth.pass),
+      from: getMailFromAddress(),
+    });
+
+    transporterVerifyPromise = transporter.verify().then(() => {
+      console.log("SMTP READY");
+      return true;
+    });
+  }
+
+  return transporterVerifyPromise;
+}
 
 async function sendOtpEmail({ to, otp, purpose }) {
   const subject =
@@ -29,14 +66,25 @@ async function sendOtpEmail({ to, otp, purpose }) {
   `;
 
   try {
-    await transporter.sendMail({
-      from: process.env.SMTP_FROM || process.env.SMTP_USER,
+    await verifyTransporter();
+    const info = await transporter.sendMail({
+      from: getMailFromAddress(),
       to,
       subject,
       html,
     });
+    console.log("[MAIL OTP SENT]", {
+      to,
+      purpose,
+      messageId: info.messageId,
+    });
   } catch (error) {
     if (process.env.NODE_ENV !== "production") {
+      console.warn("[mail] OTP email send failed", {
+        to,
+        purpose,
+        message: error.message,
+      });
       console.warn(`[mail] OTP email fallback for ${to}: ${otp}`);
       return;
     }
@@ -60,24 +108,10 @@ async function sendAccountDeletionEmail({ to, name, reason }) {
     </div>
   `;
 
-  console.log("SMTP CHECK", {
-  host: process.env.SMTP_HOST || process.env.EMAIL_HOST,
-  port: process.env.SMTP_PORT || process.env.EMAIL_PORT,
-  user: process.env.SMTP_USER || process.env.EMAIL_USER,
-  hasPassword: !!(process.env.SMTP_PASS || process.env.EMAIL_PASS),
-});
-
-transporter.verify((error) => {
-  if (error) {
-    console.error("SMTP ERROR:", error);
-  } else {
-    console.log("SMTP READY");
-  }
-});
-
   try {
+    await verifyTransporter();
     await transporter.sendMail({
-      from: process.env.EMAIL_FROM || process.env.SMTP_USER,
+      from: getMailFromAddress(),
       to,
       subject,
       html,
@@ -100,7 +134,7 @@ async function sendVisitorArrivalEmails({
   flatNumber,
   wing,
 }) {
-  const from = process.env.SMTP_FROM || process.env.SMTP_USER;
+  const from = getMailFromAddress();
 
   if (!from) {
     if (process.env.NODE_ENV !== "production") {
@@ -132,6 +166,7 @@ async function sendVisitorArrivalEmails({
   `;
 
   try {
+    await verifyTransporter();
     if (ownerEmail) {
       await transporter.sendMail({
         from,
@@ -169,4 +204,5 @@ module.exports = {
   sendOtpEmail,
   sendAccountDeletionEmail,
   sendVisitorArrivalEmails,
+  verifyTransporter,
 };

@@ -148,7 +148,18 @@ await pool.query(`ALTER TABLE user_approvals ADD COLUMN IF NOT EXISTS updated_at
 await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP;`);
 await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS deleted_by INTEGER;`);
 await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS delete_reason TEXT;`);
-
+await pool.query(`ALTER TABLE bills ADD COLUMN IF NOT EXISTS society_id INTEGER;`);
+await pool.query(`ALTER TABLE bills ADD COLUMN IF NOT EXISTS resident_id INTEGER;`);
+await pool.query(`ALTER TABLE bills ADD COLUMN IF NOT EXISTS flat_id INTEGER;`);
+await pool.query(`ALTER TABLE bills ADD COLUMN IF NOT EXISTS billing_month VARCHAR(20);`);
+await pool.query(`ALTER TABLE bills ADD COLUMN IF NOT EXISTS title VARCHAR(255);`);
+await pool.query(`ALTER TABLE bills ADD COLUMN IF NOT EXISTS total_amount NUMERIC DEFAULT 0;`);
+await pool.query(`ALTER TABLE bills ADD COLUMN IF NOT EXISTS paid_amount NUMERIC DEFAULT 0;`);
+await pool.query(`ALTER TABLE bills ADD COLUMN IF NOT EXISTS late_fee_amount NUMERIC DEFAULT 0;`);
+await pool.query(`ALTER TABLE bills ADD COLUMN IF NOT EXISTS due_date DATE;`);
+await pool.query(`ALTER TABLE bills ADD COLUMN IF NOT EXISTS payment_status VARCHAR(50) DEFAULT 'unpaid';`);
+await pool.query(`ALTER TABLE bills ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT 'active';`);
+await pool.query(`ALTER TABLE bills ADD COLUMN IF NOT EXISTS paid_at TIMESTAMP;`);
 
 await pool.query(`
   CREATE TABLE IF NOT EXISTS ai_chats (
