@@ -13,9 +13,7 @@ import { applyAppearanceSettings, getAppearanceSettings } from './utils/appearan
 function PushBootstrap() {
   useEffect(() => {
     applyAppearanceSettings(getAppearanceSettings())
-    initializeWebPushNotifications().catch(() => {
-      // Web push setup is best effort and should never block app startup.
-    })
+    initializeWebPushNotifications().catch(() => {})
   }, [])
 
   return <App />

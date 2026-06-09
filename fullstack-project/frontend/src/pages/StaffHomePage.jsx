@@ -71,7 +71,7 @@ function StaffHomePage() {
       </section>
 
       <div className="flex flex-wrap gap-2">
-        <Link className="rounded-xl bg-[rgb(var(--app-primary-rgb))] px-3 py-2 text-sm font-semibold text-white transition-all hover:opacity-90" to="/staff/tasks">
+        <Link className="rounded-xl bg-[rgb(var(--app-primary-rgb))] px-3 py-2 text-sm font-semibold text-[var(--text-main)] transition-all hover:opacity-90" to="/staff/tasks">
           Open Tasks
         </Link>
         <Link className="rounded-xl border border-[rgb(var(--app-border-rgb))] px-3 py-2 text-sm font-semibold text-[rgb(var(--app-text-rgb))] transition-colors hover:border-[rgb(var(--app-primary-rgb))]" to="/staff/attendance">

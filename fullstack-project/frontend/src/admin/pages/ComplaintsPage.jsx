@@ -138,7 +138,7 @@ function ComplaintsPage() {
           <h1 className="text-3xl font-bold text-slate-900">⚠️ Complaints</h1>
           <p className="mt-2 text-slate-600">Track and resolve resident complaints</p>
         </div>
-        <button className="rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 px-6 py-3 font-semibold text-white hover:shadow-lg transition-all">
+        <button className="rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 px-6 py-3 font-semibold text-[var(--text-main)] hover:shadow-lg transition-all">
           ➕ New Complaint
         </button>
       </div>
@@ -148,7 +148,7 @@ function ComplaintsPage() {
         {stats.map((stat) => (
           <div
             key={stat.label}
-            className={`rounded-xl bg-gradient-to-br ${stat.color} p-5 shadow-sm text-white`}
+            className={`rounded-xl bg-gradient-to-br ${stat.color} p-5 shadow-sm text-[var(--text-main)]`}
           >
             <p className="text-sm opacity-90">{stat.label}</p>
             <p className="mt-2 text-3xl font-bold">{stat.value}</p>

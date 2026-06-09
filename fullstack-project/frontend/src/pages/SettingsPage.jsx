@@ -93,8 +93,8 @@ function SettingsPage() {
 
   return (
     <div className="space-y-6">
-      <section className="overflow-hidden rounded-3xl bg-gradient-to-r from-slate-950 via-slate-900 to-teal-800 p-6 text-white shadow-[0_24px_60px_-30px_rgba(15,23,42,0.55)] sm:p-8">
-        <div className="flex flex-wrap items-center gap-3 text-xs font-semibold uppercase tracking-[0.22em] text-white/65">
+      <section className="overflow-hidden rounded-3xl bg-gradient-to-r from-[var(--page-bg)] via-[var(--surface-soft)] to-teal-800 p-6 text-[var(--text-main)] shadow-[0_24px_60px_-30px_rgba(15,23,42,0.55)] sm:p-8">
+        <div className="flex flex-wrap items-center gap-3 text-xs font-semibold uppercase tracking-[0.22em] text-[var(--text-secondary)]">
           <span>Society Control Center</span>
           <span className="rounded-full border border-white/15 px-3 py-1 text-[10px] tracking-[0.18em]">Production-ready UI</span>
         </div>
@@ -108,8 +108,8 @@ function SettingsPage() {
           <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
             {stats.map((item) => (
               <div key={item.label} className="rounded-2xl border border-white/10 bg-white/10 p-4 backdrop-blur">
-                <p className="text-[11px] uppercase tracking-[0.2em] text-white/60">{item.label}</p>
-                <p className="mt-2 text-lg font-semibold text-white">{item.value}</p>
+                <p className="text-[11px] uppercase tracking-[0.2em] text-[var(--text-secondary)]">{item.label}</p>
+                <p className="mt-2 text-lg font-semibold text-[var(--text-main)]">{item.value}</p>
               </div>
             ))}
           </div>

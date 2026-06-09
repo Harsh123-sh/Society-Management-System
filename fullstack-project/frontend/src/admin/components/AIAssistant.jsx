@@ -80,7 +80,7 @@ function AIAssistant() {
       {isOpen && (
         <div className="fixed bottom-24 right-6 z-40 w-96 max-w-full rounded-2xl bg-white shadow-2xl flex flex-col h-96 border border-slate-200">
           {/* Header */}
-          <div className="border-b border-slate-200 bg-gradient-to-r from-purple-500 to-pink-500 px-6 py-4 rounded-t-2xl text-white flex items-center justify-between">
+          <div className="border-b border-slate-200 bg-gradient-to-r from-purple-500 to-pink-500 px-6 py-4 rounded-t-2xl text-[var(--text-main)] flex items-center justify-between">
             <div>
               <h3 className="font-bold">AI Assistant</h3>
               <p className="text-xs opacity-90">Always here to help</p>
@@ -105,7 +105,7 @@ function AIAssistant() {
                 <div
                   className={`max-w-xs rounded-lg px-4 py-2 ${
                     message.type === "user"
-                      ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white"
+                      ? "bg-gradient-to-r from-purple-500 to-pink-500 text-[var(--text-main)]"
                       : "bg-slate-100 text-slate-900"
                   }`}
                 >
@@ -143,7 +143,7 @@ function AIAssistant() {
               />
               <button
                 type="submit"
-                className="rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 px-4 py-2 text-white hover:shadow-lg transition-all font-semibold"
+                className="rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 px-4 py-2 text-[var(--text-main)] hover:shadow-lg transition-all font-semibold"
               >
                 ↓
               </button>

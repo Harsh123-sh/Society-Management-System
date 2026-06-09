@@ -25,7 +25,7 @@ function Navbar() {
         {/* Right Section - Icons & Profile */}
         <div className="flex items-center gap-4">
           {/* AI Assistant Button */}
-          <button className="hidden items-center gap-2 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 px-4 py-2 text-sm font-semibold text-white hover:shadow-lg transition-all md:flex">
+          <button className="hidden items-center gap-2 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 px-4 py-2 text-sm font-semibold text-[var(--text-main)] hover:shadow-lg transition-all md:flex">
             <span>🤖</span>
             AI Assistant
           </button>
@@ -40,7 +40,7 @@ function Navbar() {
               className="relative rounded-lg p-2 text-slate-600 hover:bg-slate-100 transition-colors"
             >
               <span className="text-xl">🔔</span>
-              <span className="absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white">
+              <span className="absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-[var(--text-main)]">
                 3
               </span>
             </button>

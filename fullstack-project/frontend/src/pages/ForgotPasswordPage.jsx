@@ -38,8 +38,8 @@ function ForgotPasswordPage() {
       return "OTP must be 6 digits";
     }
 
-    if (resetForm.newPassword.length < 6) {
-      return "New password must be at least 6 characters";
+    if (resetForm.newPassword.length < 8) {
+      return "New password must be at least 8 characters";
     }
 
     if (resetForm.newPassword !== resetForm.confirmPassword) {
@@ -122,13 +122,13 @@ function ForgotPasswordPage() {
       <AlertMessage type={alert.type} message={alert.message} />
 
       <form className="space-y-4" onSubmit={handleRequestOtp}>
-        <h2 className="text-sm font-semibold text-white">Step 1: Request OTP</h2>
+        <h2 className="text-sm font-semibold text-[var(--text-main)]">Step 1: Request OTP</h2>
         <AuthInput label="Email" type="email" value={requestEmail} onChange={(v) => setRequestEmail(v)} autoComplete="email" required />
         <AuthButton type="submit" loading={requestLoading}>{requestLoading ? "Sending OTP..." : "Send OTP"}</AuthButton>
       </form>
 
       <form className="space-y-4" onSubmit={handleResetPassword}>
-        <h2 className="text-sm font-semibold text-white">Step 2: Reset Password</h2>
+        <h2 className="text-sm font-semibold text-[var(--text-main)]">Step 2: Reset Password</h2>
         <div>
           <label className={authLabelClass}>Email</label>
           <AuthInput label="Email" type="email" value={resetForm.email} onChange={(v) => setResetForm((prev) => ({ ...prev, email: v }))} autoComplete="email" required />
@@ -154,9 +154,9 @@ function ForgotPasswordPage() {
         <AuthButton type="submit" loading={resetLoading}>{resetLoading ? "Resetting..." : "Reset password"}</AuthButton>
       </form>
 
-      <p className="text-sm text-white/70">
+      <p className="text-sm text-[var(--text-secondary)]">
         Remembered your password?{" "}
-        <AuthLink to="/login" className="font-medium text-white">
+        <AuthLink to="/login" className="font-medium text-[var(--text-main)]">
           Back to login
         </AuthLink>
       </p>

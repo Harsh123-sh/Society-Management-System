@@ -272,8 +272,8 @@ function FlatsPage() {
 
   return (
     <div className="space-y-6">
-      <section className="overflow-hidden rounded-3xl bg-gradient-to-r from-slate-950 via-slate-900 to-teal-800 p-6 text-white shadow-[0_24px_60px_-30px_rgba(15,23,42,0.55)] sm:p-8">
-        <div className="flex flex-wrap items-center gap-3 text-xs font-semibold uppercase tracking-[0.22em] text-white/65">
+      <section className="overflow-hidden rounded-3xl bg-gradient-to-r from-[var(--page-bg)] via-[var(--surface-soft)] to-teal-800 p-6 text-[var(--text-main)] shadow-[0_24px_60px_-30px_rgba(15,23,42,0.55)] sm:p-8">
+        <div className="flex flex-wrap items-center gap-3 text-xs font-semibold uppercase tracking-[0.22em] text-[var(--text-secondary)]">
           <span>Flat Operations</span>
           <span className="rounded-full border border-white/15 px-3 py-1 text-[10px] tracking-[0.18em]">Tower-first management</span>
         </div>
@@ -294,8 +294,8 @@ function FlatsPage() {
               ["Assigned Parking", stats.assignedParking],
             ].map(([label, value]) => (
               <div key={label} className="rounded-2xl border border-white/10 bg-white/10 px-4 py-3 backdrop-blur">
-                <p className="text-[11px] uppercase tracking-[0.2em] text-white/60">{label}</p>
-                <p className="mt-2 text-2xl font-semibold text-white">{value}</p>
+                <p className="text-[11px] uppercase tracking-[0.2em] text-[var(--text-secondary)]">{label}</p>
+                <p className="mt-2 text-2xl font-semibold text-[var(--text-main)]">{value}</p>
               </div>
             ))}
           </div>
@@ -329,7 +329,7 @@ function FlatsPage() {
               <option value="floor_pad_sequence">0101, 0102...</option>
               <option value="custom">Tower+Floor+Seq</option>
             </select>
-            <button type="submit" className="rounded-2xl bg-teal-600 px-4 py-3 text-sm font-semibold text-white hover:bg-teal-700">Save Tower</button>
+            <button type="submit" className="rounded-2xl bg-teal-600 px-4 py-3 text-sm font-semibold text-[var(--text-main)] hover:bg-teal-700">Save Tower</button>
           </form>
         </section>
       )}
@@ -343,7 +343,7 @@ function FlatsPage() {
                   <h4 className="text-lg font-semibold text-slate-950">{tower.tower_name}</h4>
                   <p className="text-sm text-slate-500">Code {tower.tower_code}</p>
                 </div>
-                <button onClick={() => handleGenerateFlats(tower.id)} className="rounded-2xl bg-slate-950 px-3 py-2 text-xs font-semibold text-white">Generate Flats</button>
+                <button onClick={() => handleGenerateFlats(tower.id)} className="rounded-2xl theme-page px-3 py-2 text-xs font-semibold text-[var(--text-main)]">Generate Flats</button>
               </div>
               <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
                 <div className="rounded-2xl bg-slate-50 p-3"><p className="text-slate-500">Floors</p><p className="text-lg font-semibold">{tower.total_floors}</p></div>
@@ -368,7 +368,7 @@ function FlatsPage() {
             </div>
             <div className="flex flex-wrap gap-2">
               <button disabled={!selectedIds.length} onClick={handleBulkArchive} className="rounded-2xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 disabled:opacity-50">Bulk Archive</button>
-              <button disabled={!selectedIds.length} onClick={handleBulkDelete} className="rounded-2xl bg-rose-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">Bulk Delete</button>
+              <button disabled={!selectedIds.length} onClick={handleBulkDelete} className="rounded-2xl bg-rose-600 px-4 py-2 text-sm font-semibold text-[var(--text-main)] disabled:opacity-50">Bulk Delete</button>
             </div>
           </div>
 
@@ -392,8 +392,8 @@ function FlatsPage() {
             <p className="text-sm text-slate-500">Tower, floor, type, status, owner, tenant, parking, and actions.</p>
           </div>
           <div className="flex gap-2 text-sm">
-            <button type="button" onClick={() => setActiveTab("grid")} className={`rounded-2xl px-4 py-2 font-semibold ${activeTab === "grid" ? "bg-slate-950 text-white" : "border border-slate-200 text-slate-700"}`}>Grid</button>
-            <button type="button" onClick={() => setActiveTab("table")} className={`rounded-2xl px-4 py-2 font-semibold ${activeTab === "table" ? "bg-slate-950 text-white" : "border border-slate-200 text-slate-700"}`}>Table</button>
+            <button type="button" onClick={() => setActiveTab("grid")} className={`rounded-2xl px-4 py-2 font-semibold ${activeTab === "grid" ? "theme-page text-[var(--text-main)]" : "border border-slate-200 text-slate-700"}`}>Grid</button>
+            <button type="button" onClick={() => setActiveTab("table")} className={`rounded-2xl px-4 py-2 font-semibold ${activeTab === "table" ? "theme-page text-[var(--text-main)]" : "border border-slate-200 text-slate-700"}`}>Table</button>
           </div>
         </div>
 
@@ -491,7 +491,7 @@ function FlatsPage() {
               {residents.map((resident) => <option key={resident.id} value={resident.id}>{resident.name}</option>)}
             </select>
             <input type="date" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm" value={assignForm.moveInDate} onChange={(e) => setAssignForm((prev) => ({ ...prev, moveInDate: e.target.value }))} />
-            <button type="submit" className="rounded-2xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white md:col-span-3">Assign Resident</button>
+            <button type="submit" className="rounded-2xl theme-page px-4 py-3 text-sm font-semibold text-[var(--text-main)] md:col-span-3">Assign Resident</button>
           </form>
         </section>
       )}

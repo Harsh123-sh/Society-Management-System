@@ -14,10 +14,10 @@ export function Button({
   className = ""
 }) {
   const variants = {
-    primary: "ui-button ui-button--primary text-white",
+    primary: "ui-button ui-button--primary text-[var(--text-main)]",
     secondary: "ui-button ui-button--secondary",
-    danger: "ui-button bg-red-500 text-white hover:bg-red-600",
-    success: "ui-button bg-emerald-500 text-white hover:bg-emerald-600",
+    danger: "ui-button bg-red-500 text-[var(--text-main)] hover:bg-red-600",
+    success: "ui-button bg-emerald-500 text-[var(--text-main)] hover:bg-emerald-600",
     outline: "ui-button ui-button--secondary",
     ghost: "ui-button bg-transparent text-[rgb(var(--app-text-rgb))] hover:bg-[rgb(var(--app-surface-muted-rgb))]",
   };

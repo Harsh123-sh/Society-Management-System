@@ -229,7 +229,7 @@ function AdminHomePage() {
                       type="button"
                       disabled={updatingRequestId === user.id}
                       onClick={() => handleApprovePendingUser(user.id)}
-                      className="rounded-lg bg-emerald-600 px-3 py-1 text-xs font-semibold text-white disabled:opacity-60"
+                      className="rounded-lg bg-emerald-600 px-3 py-1 text-xs font-semibold text-[var(--text-main)] disabled:opacity-60"
                     >
                       Approve
                     </button>
@@ -237,7 +237,7 @@ function AdminHomePage() {
                       type="button"
                       disabled={updatingRequestId === user.id}
                       onClick={() => handleRejectPendingUser(user.id)}
-                      className="rounded-lg bg-rose-600 px-3 py-1 text-xs font-semibold text-white disabled:opacity-60"
+                      className="rounded-lg bg-rose-600 px-3 py-1 text-xs font-semibold text-[var(--text-main)] disabled:opacity-60"
                     >
                       Reject
                     </button>
@@ -267,7 +267,7 @@ function AdminHomePage() {
                       type="button"
                       disabled={updatingRequestId === flat.id}
                       onClick={() => handleApproveFlatRequest(flat.id)}
-                      className="rounded-lg bg-emerald-600 px-3 py-1 text-xs font-semibold text-white disabled:opacity-60"
+                      className="rounded-lg bg-emerald-600 px-3 py-1 text-xs font-semibold text-[var(--text-main)] disabled:opacity-60"
                     >
                       Approve Flat
                     </button>

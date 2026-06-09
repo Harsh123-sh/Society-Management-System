@@ -74,7 +74,7 @@ function SecurityNavbar() {
       <div className="flex items-center justify-between h-20 px-4 lg:px-8">
         {/* Left Section - Guard Info */}
         <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[rgb(var(--app-primary-rgb))] text-sm font-bold text-white">
+          <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[rgb(var(--app-primary-rgb))] text-sm font-bold text-[var(--text-main)]">
             {profileLoading ? "..." : guardInitials}
           </div>
           <div className="hidden md:block">
@@ -115,7 +115,7 @@ function SecurityNavbar() {
               className="relative rounded-lg p-2 transition-colors hover:bg-[rgb(var(--app-surface-muted-rgb))]"
             >
               🔔
-              <span className="absolute top-1 right-1 h-5 w-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center font-bold">
+              <span className="absolute top-1 right-1 h-5 w-5 rounded-full bg-red-500 text-[var(--text-main)] text-xs flex items-center justify-center font-bold">
                 3
               </span>
             </button>
@@ -189,7 +189,7 @@ function SecurityNavbar() {
                 <button
                   type="button"
                   onClick={handleLogout}
-                  className="w-full rounded-lg bg-red-500 px-3 py-2 text-center text-sm font-semibold text-white transition-colors hover:bg-red-600"
+                  className="w-full rounded-lg bg-red-500 px-3 py-2 text-center text-sm font-semibold text-[var(--text-main)] transition-colors hover:bg-red-600"
                 >
                   {t("security.logout")}
                 </button>

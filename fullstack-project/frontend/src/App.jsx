@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, Navigate, Route, Routes, useNavigate } from "react-router-dom";
 import "./App.css";
+import "./styles/theme-overrides.css";
 import LanguageSelector from "./components/LanguageSelector";
 import { useTranslation } from "./contexts/LanguageContext";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
+import VerifyOtpPage from "./pages/VerifyOtpPage";
 import OtpVerificationPage from "./pages/OtpVerificationPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -270,7 +272,7 @@ function App() {
       <Route path="/select-role" element={<Navigate to="/" replace />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
-      <Route path="/verify-otp" element={<OtpVerificationPage />} />
+      <Route path="/verify-otp" element={<VerifyOtpPage />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/access-denied" element={<AccessDeniedPage />} />
       <Route path="/403" element={<AccessDeniedPage />} />
@@ -656,12 +658,12 @@ function HomePage() {
                       <strong className="animate-pulse">{t("hero.fetchingAnalytics")}</strong>
                     </div>
                     <span className="pulse-dot">{t("common.loading")}</span>
-                    <div className="h-16 rounded-2xl bg-slate-900/20" />
+                    <div className="h-16 rounded-2xl theme-surface" />
                   </div>
 
                   <div className="dashboard-grid">
                     {[...Array(4)].map((_, index) => (
-                      <article key={index} className="h-24 rounded-3xl bg-slate-900/20" />
+                      <article key={index} className="h-24 rounded-3xl theme-surface" />
                     ))}
                   </div>
                 </div>

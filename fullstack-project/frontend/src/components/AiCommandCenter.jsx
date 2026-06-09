@@ -30,7 +30,7 @@ export default function AiCommandCenter() {
       <div className="mt-3">
         <textarea className="w-full rounded-xl border px-3 py-2 text-sm" rows={3} value={prompt} onChange={(e) => setPrompt(e.target.value)} placeholder="Ask the AI: summarize complaints, detect fraud, suggest urgent actions..." />
         <div className="mt-3 flex items-center gap-3">
-          <motion.button whileTap={{ scale: 0.98 }} onClick={handleRun} className="rounded-xl bg-gradient-to-r from-[rgb(var(--app-primary-rgb))] to-emerald-500 px-4 py-2 text-sm font-semibold text-white" disabled={loading}>
+          <motion.button whileTap={{ scale: 0.98 }} onClick={handleRun} className="rounded-xl bg-gradient-to-r from-[rgb(var(--app-primary-rgb))] to-emerald-500 px-4 py-2 text-sm font-semibold text-[var(--text-main)]" disabled={loading}>
             {loading ? 'Running...' : 'Run AI'}
           </motion.button>
           <button className="rounded-xl border px-4 py-2 text-sm" onClick={() => { setPrompt(''); setResult(null); }}>Clear</button>

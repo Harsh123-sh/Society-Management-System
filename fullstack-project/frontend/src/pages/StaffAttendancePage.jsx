@@ -47,7 +47,7 @@ function StaffAttendancePage() {
 
   return (
     <div className="space-y-6">
-      <section className="rounded-2xl bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-700 p-6 text-white shadow-lg">
+      <section className="rounded-2xl bg-gradient-to-r from-[var(--page-bg)] via-[var(--surface-soft)] to-indigo-700 p-6 text-[var(--text-main)] shadow-lg">
         <h2 className="text-2xl font-bold">Attendance System</h2>
         <p className="mt-1 text-sm text-slate-200">
           Check-in / check-out with work-hours tracking for daily staff attendance.
@@ -78,7 +78,7 @@ function StaffAttendancePage() {
             type="button"
             onClick={checkIn}
             disabled={attendance.isCheckedIn}
-            className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+            className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-[var(--text-main)] disabled:opacity-50"
           >
             Check In
           </button>
@@ -86,7 +86,7 @@ function StaffAttendancePage() {
             type="button"
             onClick={checkOut}
             disabled={!attendance.isCheckedIn}
-            className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+            className="rounded-lg theme-surface px-4 py-2 text-sm font-semibold text-[var(--text-main)] disabled:opacity-50"
           >
             Check Out
           </button>

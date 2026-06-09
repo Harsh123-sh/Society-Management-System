@@ -46,7 +46,7 @@ function TenantsPage() {
 
       <div className="rounded-2xl border bg-white p-4">
         <div className="flex justify-end mb-3">
-          <button onClick={() => setShowCreate(true)} className="rounded-md bg-blue-600 px-3 py-2 text-white">Add Tenant</button>
+          <button onClick={() => setShowCreate(true)} className="rounded-md bg-blue-600 px-3 py-2 text-[var(--text-main)]">Add Tenant</button>
         </div>
         {loading ? (
           <div className="p-6">Loading tenants...</div>
@@ -75,7 +75,7 @@ function TenantsPage() {
       </div>
 
       {showCreate && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40">
+        <div className="fixed inset-0 z-50 flex items-center justify-center theme-surface">
           <div className="w-full max-w-md rounded-lg bg-white p-6">
             <h4 className="text-lg font-semibold">Create Tenant</h4>
             <form className="mt-4 space-y-3" onSubmit={handleCreateTenant}>
@@ -85,7 +85,7 @@ function TenantsPage() {
               <input className="w-full rounded-md border px-3 py-2" placeholder="Flat ID (optional)" value={createForm.flatId} onChange={(e) => setCreateForm((p) => ({ ...p, flatId: e.target.value }))} />
               <div className="flex justify-end gap-2">
                 <button type="button" onClick={() => setShowCreate(false)} className="px-3 py-2">Cancel</button>
-                <button type="submit" className="px-3 py-2 rounded-md bg-blue-600 text-white">Create</button>
+                <button type="submit" className="px-3 py-2 rounded-md bg-blue-600 text-[var(--text-main)]">Create</button>
               </div>
             </form>
           </div>

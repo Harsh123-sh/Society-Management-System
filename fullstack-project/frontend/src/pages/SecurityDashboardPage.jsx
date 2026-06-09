@@ -184,7 +184,7 @@ function SecurityDashboardPage() {
 
   return (
     <div className="space-y-6">
-      <section className="rounded-[28px] bg-[var(--hero-bg)] p-6 text-white shadow-lg">
+      <section className="rounded-[28px] bg-[var(--hero-bg)] p-6 text-[var(--text-main)] shadow-lg">
         <p className="text-xs font-semibold uppercase tracking-[0.3em] text-emerald-200">Smart Security Dashboard</p>
         <h1 className="mt-2 text-3xl font-bold">Visitor Operations Center</h1>
         <p className="mt-2 max-w-3xl text-sm text-emerald-100">
@@ -214,7 +214,7 @@ function SecurityDashboardPage() {
                     <p className="text-xs text-[var(--text-secondary)]">Flat {item.wing || "-"}-{item.flat_number || item.flat_id || "-"}</p>
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    <button className="rounded-lg bg-[rgb(var(--app-primary-rgb))] px-3 py-2 text-xs font-semibold text-white transition-all hover:opacity-90" onClick={() => handleApprove(item.id)}>
+                    <button className="rounded-lg bg-[rgb(var(--app-primary-rgb))] px-3 py-2 text-xs font-semibold text-[var(--text-main)] transition-all hover:opacity-90" onClick={() => handleApprove(item.id)}>
                       Approve
                     </button>
                     <button className="rounded-lg border border-[var(--border)] px-3 py-2 text-xs font-semibold text-[var(--text-primary)] transition-colors hover:border-[rgb(var(--app-primary-rgb))]" onClick={() => handleIssuePass(item.id)}>
@@ -368,7 +368,7 @@ function SecurityDashboardPage() {
                 <p className="font-semibold text-[var(--text-primary)]">{item.alert_type} • {item.severity}</p>
                 <p className="text-[var(--text-secondary)]">{item.message}</p>
                 <div className="mt-2 flex gap-2">
-                  <button className="rounded-lg bg-[rgb(var(--app-primary-rgb))] px-3 py-2 text-xs font-semibold text-white" onClick={() => handleAckAlert(item.id)}>
+                  <button className="rounded-lg bg-[rgb(var(--app-primary-rgb))] px-3 py-2 text-xs font-semibold text-[var(--text-main)]" onClick={() => handleAckAlert(item.id)}>
                     Acknowledge
                   </button>
                 </div>

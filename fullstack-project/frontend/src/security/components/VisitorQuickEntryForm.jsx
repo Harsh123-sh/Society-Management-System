@@ -201,13 +201,13 @@ function VisitorQuickEntryForm() {
         <div className="md:col-span-2 flex gap-3">
           <button
             type="submit"
-            className="flex-1 px-6 py-4 bg-gradient-to-r from-green-500 to-green-600 text-white font-bold rounded-lg hover:shadow-lg transition-all text-lg"
+            className="flex-1 px-6 py-4 bg-gradient-to-r from-green-500 to-green-600 text-[var(--text-main)] font-bold rounded-lg hover:shadow-lg transition-all text-lg"
           >
             ✓ Add Visitor
           </button>
           <button
             type="button"
-            className="flex-1 px-6 py-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white font-bold rounded-lg hover:shadow-lg transition-all text-lg"
+            className="flex-1 px-6 py-4 bg-gradient-to-r from-blue-500 to-blue-600 text-[var(--text-main)] font-bold rounded-lg hover:shadow-lg transition-all text-lg"
           >
             📋 Quick Check-in
           </button>

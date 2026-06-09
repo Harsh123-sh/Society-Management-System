@@ -135,7 +135,7 @@ function VisitorCameraModal({ onCapture, onClose }) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center theme-surface p-4 backdrop-blur-sm">
       <div className="w-full max-w-2xl rounded-3xl border border-slate-200 bg-white shadow-2xl">
         <div className="flex items-start justify-between gap-4 border-b border-slate-200 px-5 py-4">
           <div>
@@ -159,8 +159,8 @@ function VisitorCameraModal({ onCapture, onClose }) {
               </div>
             ) : null}
 
-            <div className="overflow-hidden rounded-3xl border border-slate-200 bg-slate-950">
-              <div className="relative aspect-[4/3] w-full bg-slate-900">
+            <div className="overflow-hidden rounded-3xl border border-slate-200 theme-page">
+              <div className="relative aspect-[4/3] w-full theme-surface">
                 <video
                   ref={videoRef}
                   autoPlay
@@ -202,7 +202,7 @@ function VisitorCameraModal({ onCapture, onClose }) {
                 type="button"
                 onClick={handleCapturePhoto}
                 disabled={loading || Boolean(error) || isSaving || !streamRef.current}
-                className="w-full rounded-2xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-300"
+                className="w-full rounded-2xl theme-page px-4 py-3 text-sm font-semibold text-[var(--text-main)] transition hover:theme-surface disabled:cursor-not-allowed disabled:bg-slate-300"
               >
                 Capture Photo
               </button>

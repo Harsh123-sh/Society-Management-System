@@ -40,7 +40,7 @@ function SocietyPage() {
           <h1 className="text-3xl font-bold text-slate-900">Society data manager</h1>
           <p className="mt-2 text-slate-600">Browse society records loaded from the backend API, including society codes and location fields.</p>
         </div>
-        <button className="w-full rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 px-6 py-3 text-sm font-semibold text-white transition hover:shadow-lg xl:w-auto">
+        <button className="w-full rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 px-6 py-3 text-sm font-semibold text-[var(--text-main)] transition hover:shadow-lg xl:w-auto">
           ➕ Add Society
         </button>
       </div>

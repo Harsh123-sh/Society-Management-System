@@ -214,7 +214,7 @@ function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <section className="rounded-2xl bg-gradient-to-r from-slate-900 via-slate-800 to-amber-700 p-6 text-white shadow-lg">
+      <section className="rounded-2xl bg-gradient-to-r from-[var(--page-bg)] via-[var(--surface-soft)] to-amber-700 p-6 text-[var(--text-main)] shadow-lg">
         <h2 className="text-2xl font-bold">Analytics Dashboard</h2>
         <p className="mt-2 max-w-2xl text-sm text-slate-100">
           Real-time society metrics, trends, and AI assistant insights for proactive operations.
@@ -329,7 +329,7 @@ function DashboardPage() {
               <button
                 type="submit"
                 disabled={assistantLoading}
-                className="rounded-lg bg-indigo-900 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-800 disabled:opacity-50"
+                className="rounded-lg bg-indigo-900 px-4 py-2 text-sm font-semibold text-[var(--text-main)] hover:bg-indigo-800 disabled:opacity-50"
               >
                 {assistantLoading ? "Thinking..." : "Ask AI"}
               </button>

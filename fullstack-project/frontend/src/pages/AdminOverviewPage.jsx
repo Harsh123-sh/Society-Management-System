@@ -444,7 +444,7 @@ function AdminOverviewPage() {
                 Real-time visibility into all society operations. Manage flats, residents, billing, complaints, and security in one unified premium dashboard.
               </p>
               <div className="mt-6 flex gap-4">
-                <button className="rounded-xl bg-gradient-to-r from-[rgb(var(--app-primary-rgb))] to-emerald-500 px-8 py-3 font-bold text-white transition-all duration-300 hover:scale-105 hover:opacity-95 active:scale-95">
+                <button className="rounded-xl bg-gradient-to-r from-[rgb(var(--app-primary-rgb))] to-emerald-500 px-8 py-3 font-bold text-[var(--text-main)] transition-all duration-300 hover:scale-105 hover:opacity-95 active:scale-95">
                   Get Started
                 </button>
                 <button className="rounded-xl border border-[rgb(var(--app-border-rgb))] px-8 py-3 font-bold text-[rgb(var(--app-text-rgb))] transition-all duration-300 hover:border-[rgb(var(--app-primary-rgb))] hover:bg-[rgb(var(--app-surface-muted-rgb))]">

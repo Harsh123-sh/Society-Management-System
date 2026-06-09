@@ -15,15 +15,15 @@ function DeliveriesPage() {
 
       {/* Delivery Statistics */}
       <div className="grid gap-4 md:grid-cols-3">
-        <div className="rounded-xl bg-gradient-to-br from-green-500 to-green-600 p-6 text-white shadow-sm">
+        <div className="rounded-xl bg-gradient-to-br from-green-500 to-green-600 p-6 text-[var(--text-main)] shadow-sm">
           <p className="text-sm opacity-90">Delivered Today</p>
           <p className="text-4xl font-bold mt-2">8</p>
         </div>
-        <div className="rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 p-6 text-white shadow-sm">
+        <div className="rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 p-6 text-[var(--text-main)] shadow-sm">
           <p className="text-sm opacity-90">Pending</p>
           <p className="text-4xl font-bold mt-2">2</p>
         </div>
-        <div className="rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 p-6 text-white shadow-sm">
+        <div className="rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 p-6 text-[var(--text-main)] shadow-sm">
           <p className="text-sm opacity-90">By Type</p>
           <p className="text-2xl font-bold mt-2">Food, Courier, Grocery</p>
         </div>
@@ -44,15 +44,15 @@ function VehiclesPage() {
 
       {/* Vehicle Statistics */}
       <div className="grid gap-4 md:grid-cols-3">
-        <div className="rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 p-6 text-white shadow-sm">
+        <div className="rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 p-6 text-[var(--text-main)] shadow-sm">
           <p className="text-sm opacity-90">Currently Inside</p>
           <p className="text-4xl font-bold mt-2">4</p>
         </div>
-        <div className="rounded-xl bg-gradient-to-br from-red-500 to-red-600 p-6 text-white shadow-sm">
+        <div className="rounded-xl bg-gradient-to-br from-red-500 to-red-600 p-6 text-[var(--text-main)] shadow-sm">
           <p className="text-sm opacity-90">Suspicious</p>
           <p className="text-4xl font-bold mt-2">1</p>
         </div>
-        <div className="rounded-xl bg-gradient-to-br from-green-500 to-green-600 p-6 text-white shadow-sm">
+        <div className="rounded-xl bg-gradient-to-br from-green-500 to-green-600 p-6 text-[var(--text-main)] shadow-sm">
           <p className="text-sm opacity-90">Exited Today</p>
           <p className="text-4xl font-bold mt-2">5</p>
         </div>

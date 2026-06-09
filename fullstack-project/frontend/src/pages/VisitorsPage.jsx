@@ -214,7 +214,7 @@ function VisitorsPage() {
                   <button
                     type="button"
                     onClick={handleRemovePhoto}
-                    className="absolute -right-2 -top-2 rounded-full bg-red-500 p-1 text-white hover:bg-red-600"
+                    className="absolute -right-2 -top-2 rounded-full bg-red-500 p-1 text-[var(--text-main)] hover:bg-red-600"
                   >
                     ✕
                   </button>
@@ -238,7 +238,7 @@ function VisitorsPage() {
               <button
                 type="submit"
                 disabled={submitting}
-                className="flex-1 rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700 disabled:cursor-not-allowed disabled:bg-slate-400"
+                className="flex-1 rounded-lg theme-surface px-4 py-2 text-sm font-medium text-[var(--text-main)] hover:theme-surface disabled:cursor-not-allowed disabled:bg-slate-400"
               >
                 {submitting ? "Adding..." : "Add Entry"}
               </button>
@@ -341,7 +341,7 @@ function VisitorsPage() {
                       <button
                         type="button"
                         onClick={() => handleMarkExit(log.id)}
-                        className="rounded-lg bg-emerald-600 px-3 py-1 text-xs font-medium text-white hover:bg-emerald-500"
+                        className="rounded-lg bg-emerald-600 px-3 py-1 text-xs font-medium text-[var(--text-main)] hover:bg-emerald-500"
                       >
                         Mark Exit
                       </button>

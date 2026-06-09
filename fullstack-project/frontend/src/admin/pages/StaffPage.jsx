@@ -82,7 +82,7 @@ function StaffPage() {
           <h1 className="text-3xl font-bold text-slate-900">👷 Staff Management</h1>
           <p className="mt-2 text-slate-600">Manage security, maintenance, and support staff</p>
         </div>
-        <button className="rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 px-6 py-3 font-semibold text-white hover:shadow-lg transition-all">
+        <button className="rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 px-6 py-3 font-semibold text-[var(--text-main)] hover:shadow-lg transition-all">
           ➕ Add Staff
         </button>
       </div>
@@ -92,7 +92,7 @@ function StaffPage() {
         {stats.map((stat) => (
           <div
             key={stat.label}
-            className={`rounded-xl bg-gradient-to-br ${stat.color} p-5 shadow-sm text-white`}
+            className={`rounded-xl bg-gradient-to-br ${stat.color} p-5 shadow-sm text-[var(--text-main)]`}
           >
             <div className="flex items-center justify-between">
               <div>
@@ -229,10 +229,10 @@ function StaffPage() {
                 <p className="text-xs text-slate-500 mt-1">{request.reason}</p>
               </div>
               <div className="flex gap-2">
-                <button className="rounded-lg bg-green-500 px-4 py-2 text-sm font-semibold text-white hover:bg-green-600 transition-colors">
+                <button className="rounded-lg bg-green-500 px-4 py-2 text-sm font-semibold text-[var(--text-main)] hover:bg-green-600 transition-colors">
                   ✓ Approve
                 </button>
-                <button className="rounded-lg bg-red-500 px-4 py-2 text-sm font-semibold text-white hover:bg-red-600 transition-colors">
+                <button className="rounded-lg bg-red-500 px-4 py-2 text-sm font-semibold text-[var(--text-main)] hover:bg-red-600 transition-colors">
                   ✕ Reject
                 </button>
               </div>

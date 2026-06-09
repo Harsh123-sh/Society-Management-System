@@ -61,7 +61,7 @@ function SecuritySidebar() {
                 to={item.path}
                 className={({ isActive }) =>
                   `dashboard-nav-link flex items-center gap-3 rounded-lg px-4 py-3 transition-all ${
-                    isActive ? "is-active bg-[rgb(var(--app-primary-rgb))] text-white" : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+                    isActive ? "is-active bg-[rgb(var(--app-primary-rgb))] text-[var(--text-main)]" : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
                   } ${collapsed ? "justify-center" : ""}`
                 }
                 title={collapsed ? item.name : ""}
@@ -88,7 +88,7 @@ function SecuritySidebar() {
       {!collapsed && (
         <button
           onClick={() => setCollapsed(true)}
-          className="fixed right-4 top-4 z-50 lg:hidden text-white text-2xl"
+          className="fixed right-4 top-4 z-50 lg:hidden text-[var(--text-main)] text-2xl"
         >
           ✕
         </button>

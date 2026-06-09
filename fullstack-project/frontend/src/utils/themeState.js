@@ -20,6 +20,75 @@ const DEFAULT_THEME_STATE = {
   },
 };
 
+const LIGHT_THEME_TOKENS = {
+  appBg: '#f8fafc',
+  pageBg: '#f8fafc',
+  surface: '#ffffff',
+  surfaceSoft: '#f1f5f9',
+  cardBg: '#ffffff',
+  heroBg: 'linear-gradient(135deg, #ffffff, #f1f5f9)',
+  sidebarBg: '#f8fafc',
+  navbarBg: '#ffffff',
+  textMain: '#0f172a',
+  textSecondary: '#334155',
+  textMuted: '#64748b',
+  border: '#e2e8f0',
+  inputBg: '#ffffff',
+  inputText: '#0f172a',
+  modalBg: '#ffffff',
+  tableBg: '#ffffff',
+  tableHeaderBg: '#f1f5f9',
+  buttonPrimaryBg: '#06b6d4',
+  buttonPrimaryText: '#ffffff',
+  shadow: '0 12px 30px rgba(15, 23, 42, 0.08)',
+};
+
+const DARK_THEME_TOKENS = {
+  appBg: '#020617',
+  pageBg: '#020617',
+  surface: '#0f172a',
+  surfaceSoft: '#1e293b',
+  cardBg: '#111827',
+  heroBg: 'linear-gradient(135deg, #020617, #0f766e)',
+  sidebarBg: '#020617',
+  navbarBg: '#0f172a',
+  textMain: '#f8fafc',
+  textSecondary: '#cbd5e1',
+  textMuted: '#94a3b8',
+  border: '#334155',
+  inputBg: '#1e293b',
+  inputText: '#f8fafc',
+  modalBg: '#0f172a',
+  tableBg: '#0f172a',
+  tableHeaderBg: '#1e293b',
+  buttonPrimaryBg: '#06b6d4',
+  buttonPrimaryText: '#ffffff',
+  shadow: '0 12px 30px rgba(0, 0, 0, 0.35)',
+};
+
+function applyThemeTokens(root, tokens) {
+  root.style.setProperty('--app-bg', tokens.appBg);
+  root.style.setProperty('--page-bg', tokens.pageBg);
+  root.style.setProperty('--surface', tokens.surface);
+  root.style.setProperty('--surface-soft', tokens.surfaceSoft);
+  root.style.setProperty('--card-bg', tokens.cardBg);
+  root.style.setProperty('--hero-bg', tokens.heroBg);
+  root.style.setProperty('--sidebar-bg', tokens.sidebarBg);
+  root.style.setProperty('--navbar-bg', tokens.navbarBg);
+  root.style.setProperty('--text-main', tokens.textMain);
+  root.style.setProperty('--text-secondary', tokens.textSecondary);
+  root.style.setProperty('--text-muted', tokens.textMuted);
+  root.style.setProperty('--border', tokens.border);
+  root.style.setProperty('--input-bg', tokens.inputBg);
+  root.style.setProperty('--input-text', tokens.inputText);
+  root.style.setProperty('--modal-bg', tokens.modalBg);
+  root.style.setProperty('--table-bg', tokens.tableBg);
+  root.style.setProperty('--table-header-bg', tokens.tableHeaderBg);
+  root.style.setProperty('--button-primary-bg', tokens.buttonPrimaryBg);
+  root.style.setProperty('--button-primary-text', tokens.buttonPrimaryText);
+  root.style.setProperty('--shadow', tokens.shadow);
+}
+
 function safeParse(rawValue) {
   if (!rawValue) return null;
 
@@ -71,8 +140,7 @@ function getPreferredThemeMode() {
 
 function normalizeThemeState(partialState = {}) {
   const rawThemeMode = partialState.themeMode || partialState.theme || getPreferredThemeMode();
-  const themeMode = rawThemeMode === 'auto' ? 'auto' : rawThemeMode;
-  const effectiveThemeMode = themeMode === 'auto' ? getPreferredThemeMode() : themeMode;
+  const themeMode = rawThemeMode === 'dark' ? 'dark' : 'light';
   const density = partialState.density || DEFAULT_THEME_STATE.density;
   const layoutMode = partialState.layoutMode || partialState.layout || DEFAULT_THEME_STATE.layoutMode;
   const accentColor = partialState.accentColor || partialState.accent || DEFAULT_THEME_STATE.accentColor;
@@ -89,7 +157,7 @@ function normalizeThemeState(partialState = {}) {
     themeJson: {
       ...DEFAULT_THEME_STATE.themeJson,
       ...(partialState.themeJson || {}),
-      mode: themeMode === 'auto' ? effectiveThemeMode : themeMode,
+      mode: themeMode,
       layout: layoutMode,
       density,
     },
@@ -103,7 +171,7 @@ function readStoredThemeState() {
 
   const saved = safeParse(localStorage.getItem(THEME_STORAGE_KEY));
   if (!saved) {
-    return normalizeThemeState({ ...DEFAULT_THEME_STATE, themeMode: getPreferredThemeMode() });
+    return normalizeThemeState(DEFAULT_THEME_STATE);
   }
 
   return normalizeThemeState(saved);
@@ -127,8 +195,11 @@ function applyThemeState(partialState) {
   const nextState = normalizeThemeState(partialState);
   const root = document.documentElement;
   const body = document.body;
-  const effectiveThemeMode = nextState.themeMode === 'auto' ? getPreferredThemeMode() : nextState.themeMode;
+  const effectiveThemeMode = nextState.themeMode;
   const isDark = effectiveThemeMode === 'dark';
+  const tokens = isDark ? DARK_THEME_TOKENS : LIGHT_THEME_TOKENS;
+
+  applyThemeTokens(root, tokens);
 
   root.style.setProperty('--app-accent-rgb', nextState.accentColor);
   root.style.setProperty('--app-primary-rgb', hexToRgbString(nextState.primaryColor));
@@ -140,24 +211,25 @@ function applyThemeState(partialState) {
   root.style.setProperty('--app-text-rgb', isDark ? '226 232 240' : '15 23 42');
   root.style.setProperty('--app-text-muted-rgb', isDark ? '148 163 184' : '71 85 105');
   root.style.setProperty('--app-card-rgb', isDark ? '15 23 42' : '255 255 255');
-  root.style.setProperty('--bg-main', isDark ? '#020617' : '#f8fafc');
-  root.style.setProperty('--bg-card', isDark ? '#0f172a' : '#ffffff');
-  root.style.setProperty('--bg-sidebar', isDark ? '#020617' : '#ffffff');
-  root.style.setProperty('--bg-header', isDark ? '#0f172a' : '#ffffff');
-  root.style.setProperty('--text-primary', isDark ? '#f8fafc' : '#0f172a');
-  root.style.setProperty('--text-secondary', isDark ? '#cbd5e1' : '#475569');
-  root.style.setProperty('--text-muted', isDark ? '#94a3b8' : '#64748b');
-  root.style.setProperty('--border-color', isDark ? '#334155' : '#e2e8f0');
-  root.style.setProperty('--input-bg', isDark ? '#111827' : '#ffffff');
+  root.style.setProperty('--bg-primary', tokens.pageBg);
+  root.style.setProperty('--bg-secondary', tokens.surface);
+  root.style.setProperty('--bg-card', tokens.cardBg);
+  root.style.setProperty('--bg-main', tokens.appBg);
+  root.style.setProperty('--bg-sidebar', tokens.sidebarBg);
+  root.style.setProperty('--bg-header', tokens.navbarBg);
+  root.style.setProperty('--text-primary', tokens.textMain);
+  root.style.setProperty('--text', tokens.textMain);
+  root.style.setProperty('--text-secondary', tokens.textSecondary);
+  root.style.setProperty('--text-muted', tokens.textMuted);
+  root.style.setProperty('--border-color', tokens.border);
   root.style.setProperty('--input-border', isDark ? '#334155' : '#e2e8f0');
   root.style.setProperty('--input-placeholder', isDark ? '#94a3b8' : '#64748b');
-  root.style.setProperty('--button-bg', isDark ? '#1e293b' : '#ffffff');
-  root.style.setProperty('--button-text', isDark ? '#f8fafc' : '#0f172a');
-  root.style.setProperty('--hero-bg', isDark ? 'linear-gradient(135deg, #020617, #064e3b)' : 'linear-gradient(135deg, #ffffff, #ecfdf5)');
-  root.style.setProperty('--background', isDark ? '#020617' : '#f8fafc');
-  root.style.setProperty('--surface', isDark ? '#0f172a' : '#ffffff');
-  root.style.setProperty('--text', isDark ? '#f8fafc' : '#0f172a');
-  root.style.setProperty('--border', isDark ? '#334155' : '#e2e8f0');
+  root.style.setProperty('--button-bg', tokens.buttonPrimaryBg);
+  root.style.setProperty('--button-text', tokens.buttonPrimaryText);
+  root.style.setProperty('--table-row-bg', tokens.tableBg);
+  root.style.setProperty('--shadow-color', isDark ? 'rgba(0, 0, 0, 0.45)' : 'rgba(15, 23, 42, 0.10)');
+  root.style.setProperty('--background', tokens.appBg);
+  root.style.setProperty('--card', tokens.cardBg);
   root.style.setProperty('--app-font-sans', nextState.fontFamily || 'Manrope');
   root.style.setProperty('--app-layout-mode', nextState.layoutMode || 'glass');
   root.style.setProperty('--app-logo-url', nextState.logoUrl || '');

@@ -2,14 +2,14 @@ import { useThemeEngine } from "../contexts/ThemeContext";
 
 export default function ThemeToggle() {
   const { preferences, setThemeMode } = useThemeEngine();
-  const theme = preferences.themeMode || "light";
-  const nextTheme = theme === "light" ? "dark" : theme === "dark" ? "auto" : "light";
+  const theme = preferences.themeMode === "dark" ? "dark" : "light";
+  const nextTheme = theme === "dark" ? "light" : "dark";
 
   const toggleTheme = () => {
     setThemeMode(nextTheme);
   };
 
-  const label = theme === "auto" ? "Auto" : theme === "dark" ? "Light" : "Dark";
+  const label = theme === "dark" ? "Light" : "Dark";
 
   return (
     <button
@@ -17,11 +17,11 @@ export default function ThemeToggle() {
       onClick={toggleTheme}
       aria-label={`Toggle theme mode, current ${theme}`}
       style={{
-        backgroundColor: "var(--surface)",
-        borderColor: "var(--border)",
-        color: "var(--text)"
+        backgroundColor: "var(--bg-card)",
+        borderColor: "var(--border-color)",
+        color: "var(--text-primary)"
       }}
-      title={theme === 'auto' ? 'Using system preference' : `Switch to ${label} mode`}
+      title={`Switch to ${label} mode`}
     >
       {theme === "dark" ? (
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

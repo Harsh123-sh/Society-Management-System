@@ -51,7 +51,7 @@ function VendorsPage() {
           <h1 className="text-3xl font-bold text-slate-900">🧑‍💼 Vendor Management</h1>
           <p className="mt-2 text-slate-600">Manage external service providers and vendors</p>
         </div>
-        <button className="rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 px-6 py-3 font-semibold text-white hover:shadow-lg transition-all">
+        <button className="rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 px-6 py-3 font-semibold text-[var(--text-main)] hover:shadow-lg transition-all">
           ➕ Add Vendor
         </button>
       </div>
@@ -160,7 +160,7 @@ function VendorsPage() {
                   <p className="font-semibold text-slate-900">{service.service}</p>
                   <p className="text-sm text-slate-600">Est. wait: {service.wait}</p>
                 </div>
-                <button className="rounded-lg bg-orange-500 px-4 py-2 text-sm font-semibold text-white hover:bg-orange-600 transition-colors">
+                <button className="rounded-lg bg-orange-500 px-4 py-2 text-sm font-semibold text-[var(--text-main)] hover:bg-orange-600 transition-colors">
                   Book Now
                 </button>
               </div>

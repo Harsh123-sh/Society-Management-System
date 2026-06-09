@@ -431,19 +431,19 @@ function OwnerDashboardProPage() {
       <div className="pointer-events-none absolute -right-24 top-0 h-72 w-72 rounded-full bg-[rgb(var(--app-primary-rgb))/0.12] blur-3xl" />
       <div className="pointer-events-none absolute left-0 top-32 h-72 w-72 rounded-full bg-emerald-400/10 blur-3xl" />
 
-      <section className="relative overflow-hidden rounded-[34px] border border-[rgb(var(--app-border-rgb))] bg-[linear-gradient(135deg,rgba(8,15,28,0.98),rgba(16,24,40,0.94)_40%,rgba(11,31,47,0.92))] p-6 text-white shadow-[0_30px_90px_rgba(15,23,42,0.22)] sm:p-8">
+      <section className="relative overflow-hidden rounded-[34px] border border-[rgb(var(--app-border-rgb))] bg-[linear-gradient(135deg,rgba(8,15,28,0.98),rgba(16,24,40,0.94)_40%,rgba(11,31,47,0.92))] p-6 text-[var(--text-main)] shadow-[0_30px_90px_rgba(15,23,42,0.22)] sm:p-8">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(20,241,149,0.16),transparent_34%),radial-gradient(circle_at_bottom_left,rgba(0,194,255,0.12),transparent_34%)]" />
         <div className="relative grid gap-6 lg:grid-cols-[1.6fr_0.95fr]">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-white/60">Owner dashboard</p>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-[var(--text-secondary)]">Owner dashboard</p>
               <div className="mt-3">
                 <p className="text-sm font-semibold text-emerald-300">{dashboard?.society?.name || "Loading..."}</p>
-                <p className="text-xs text-white/50 mt-1">{dashboard?.society?.code ? `Code: ${dashboard.society.code}` : ""}</p>
+                <p className="text-xs text-[var(--text-secondary)] mt-1">{dashboard?.society?.code ? `Code: ${dashboard.society.code}` : ""}</p>
                 <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-5xl">
                   Smart property control, tenant approvals, and AI operations in one place.
                 </h1>
               </div>
-            <p className="mt-4 max-w-3xl text-sm leading-6 text-white/75 sm:text-base">
+            <p className="mt-4 max-w-3xl text-sm leading-6 text-[var(--text-secondary)] sm:text-base">
               Manage your ownership profile, keep track of active properties, accelerate tenant workflows, and surface billing, visitor, and complaint intelligence from a single enterprise workspace.
             </p>
 
@@ -458,7 +458,7 @@ function OwnerDashboardProPage() {
                       : action.tone === "amber"
                         ? "border-amber-300/30 bg-amber-300/15 text-amber-50"
                         : action.tone === "slate"
-                          ? "border-white/15 bg-white/8 text-white"
+                          ? "border-white/15 bg-white/8 text-[var(--text-main)]"
                           : "border-cyan-300/30 bg-cyan-400/15 text-cyan-50"
                   }`}
                 >
@@ -471,9 +471,9 @@ function OwnerDashboardProPage() {
           <div className="grid gap-4 rounded-[30px] border border-white/10 bg-white/8 p-5 backdrop-blur-xl">
             <div className="flex items-center justify-between gap-4">
               <div>
-                <p className="text-[11px] uppercase tracking-[0.28em] text-white/55">Owner profile</p>
+                <p className="text-[11px] uppercase tracking-[0.28em] text-[var(--text-secondary)]">Owner profile</p>
                   <h2 className="mt-2 text-xl font-semibold">{dashboard?.owner?.name || "Owner profile unavailable"}</h2>
-                  <p className="mt-1 text-sm text-white/70">
+                  <p className="mt-1 text-sm text-[var(--text-secondary)]">
                     {dashboard?.society?.name || "Society"} • {dashboard?.flat?.number ? `Flat ${dashboard.flat.number}` : "Flat not assigned"}
                   </p>
               </div>
@@ -481,7 +481,7 @@ function OwnerDashboardProPage() {
                 {ownerDetails?.profilePhotoUrl ? (
                   <img src={ownerDetails.profilePhotoUrl} alt={ownerDetails?.name || "Owner"} className="h-full w-full object-cover" />
                 ) : (
-                  <div className="flex h-full w-full items-center justify-center text-xl font-bold text-white">
+                  <div className="flex h-full w-full items-center justify-center text-xl font-bold text-[var(--text-main)]">
                     {ownerDetails?.name
                       ? ownerDetails.name
                           .split(" ")
@@ -494,24 +494,24 @@ function OwnerDashboardProPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 text-sm text-white/70">
+            <div className="grid grid-cols-2 gap-3 text-sm text-[var(--text-secondary)]">
               <div className="rounded-2xl border border-white/10 bg-white/6 px-3 py-3">
-                <p className="text-[10px] uppercase tracking-[0.24em] text-white/50">KYC</p>
+                <p className="text-[10px] uppercase tracking-[0.24em] text-[var(--text-secondary)]">KYC</p>
                 <div className="mt-2 flex items-center gap-2">
                   <StatusBadge status={ownerDetails?.isVerified ? "approved" : "pending"} />
                 </div>
               </div>
               <div className="rounded-2xl border border-white/10 bg-white/6 px-3 py-3">
-                <p className="text-[10px] uppercase tracking-[0.24em] text-white/50">Mode</p>
-                <p className="mt-2 font-semibold text-white">Live sync ready</p>
+                <p className="text-[10px] uppercase tracking-[0.24em] text-[var(--text-secondary)]">Mode</p>
+                <p className="mt-2 font-semibold text-[var(--text-main)]">Live sync ready</p>
               </div>
               <div className="rounded-2xl border border-white/10 bg-white/6 px-3 py-3">
-                <p className="text-[10px] uppercase tracking-[0.24em] text-white/50">Occupancy</p>
-                <p className="mt-2 font-semibold text-white">{occupancyRate}%</p>
+                <p className="text-[10px] uppercase tracking-[0.24em] text-[var(--text-secondary)]">Occupancy</p>
+                <p className="mt-2 font-semibold text-[var(--text-main)]">{occupancyRate}%</p>
               </div>
               <div className="rounded-2xl border border-white/10 bg-white/6 px-3 py-3">
-                <p className="text-[10px] uppercase tracking-[0.24em] text-white/50">Health score</p>
-                <p className="mt-2 font-semibold text-white">{activityScore}%</p>
+                <p className="text-[10px] uppercase tracking-[0.24em] text-[var(--text-secondary)]">Health score</p>
+                <p className="mt-2 font-semibold text-[var(--text-main)]">{activityScore}%</p>
               </div>
             </div>
           </div>
@@ -895,7 +895,7 @@ function OwnerDashboardProPage() {
             </div>
             <input className="ui-input px-3 py-2 text-sm" type="text" placeholder="Vehicle number" value={preapprovalForm.vehicleNumber} onChange={(event) => setPreapprovalForm((prev) => ({ ...prev, vehicleNumber: event.target.value }))} />
             <textarea className="ui-input h-24 px-3 py-2 text-sm" placeholder="Notes" value={preapprovalForm.notes} onChange={(event) => setPreapprovalForm((prev) => ({ ...prev, notes: event.target.value }))} />
-            <button type="submit" disabled={submitting || !properties.length} className="rounded-2xl bg-[rgb(var(--app-primary-rgb))] px-4 py-2.5 text-sm font-semibold text-white transition-all hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60">
+            <button type="submit" disabled={submitting || !properties.length} className="rounded-2xl bg-[rgb(var(--app-primary-rgb))] px-4 py-2.5 text-sm font-semibold text-[var(--text-main)] transition-all hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60">
               {submitting ? "Saving..." : "Create pre-approval"}
             </button>
           </form>
@@ -1199,7 +1199,7 @@ function OwnerDashboardProPage() {
       </section>
 
       <div className="flex flex-wrap gap-3">
-        <Link className="rounded-2xl bg-[rgb(var(--app-primary-rgb))] px-4 py-2.5 text-sm font-semibold text-white transition hover:opacity-90" to="/resident/billing">
+        <Link className="rounded-2xl bg-[rgb(var(--app-primary-rgb))] px-4 py-2.5 text-sm font-semibold text-[var(--text-main)] transition hover:opacity-90" to="/resident/billing">
           Review billing
         </Link>
         <Link className="rounded-2xl border border-[rgb(var(--app-border-rgb))] px-4 py-2.5 text-sm font-semibold text-[rgb(var(--app-text-rgb))] transition hover:border-[rgb(var(--app-primary-rgb))]" to="/resident/visitors">

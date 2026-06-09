@@ -108,10 +108,10 @@ function SecretaryHomePage() {
       </div>
 
       <div className="flex flex-wrap gap-2">
-        <Link className="rounded-xl bg-[rgb(var(--app-primary-rgb))] px-3 py-2 text-sm font-semibold text-white transition-all hover:opacity-90" to="/secretary/users">
+        <Link className="rounded-xl bg-[rgb(var(--app-primary-rgb))] px-3 py-2 text-sm font-semibold text-[var(--text-main)] transition-all hover:opacity-90" to="/secretary/users">
           Manage Users
         </Link>
-        <Link className="rounded-xl bg-amber-500 px-3 py-2 text-sm font-semibold text-white transition-all hover:opacity-90" to="/secretary/billing">
+        <Link className="rounded-xl bg-amber-500 px-3 py-2 text-sm font-semibold text-[var(--text-main)] transition-all hover:opacity-90" to="/secretary/billing">
           Create Bills
         </Link>
         <Link className="rounded-xl border border-[rgb(var(--app-border-rgb))] px-3 py-2 text-sm font-semibold text-[rgb(var(--app-text-rgb))] transition-colors hover:border-[rgb(var(--app-primary-rgb))]" to="/secretary/complaints">

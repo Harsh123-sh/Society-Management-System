@@ -12,7 +12,7 @@ function Sidebar() {
     <>
       {/* Sidebar */}
       <div
-        className={`fixed left-0 top-0 z-40 h-screen bg-gradient-to-b from-slate-900 to-slate-800 text-white shadow-2xl transition-all duration-300 ${
+        className={`fixed left-0 top-0 z-40 h-screen bg-gradient-to-b from-[var(--page-bg)] to-[var(--page-bg)] text-[var(--text-main)] shadow-2xl transition-all duration-300 ${
           collapsed ? "w-20" : "w-64"
         }`}
       >
@@ -32,7 +32,7 @@ function Sidebar() {
             </div>
             <button
               onClick={() => setCollapsed(!collapsed)}
-              className="hidden rounded-lg p-1 hover:bg-slate-700 lg:block"
+              className="hidden rounded-lg p-1 hover:theme-surface lg:block"
             >
               {collapsed ? "→" : "←"}
             </button>
@@ -48,8 +48,8 @@ function Sidebar() {
                 to={item.path}
                 className={`group flex items-center justify-between rounded-lg px-3 py-3 transition-all ${
                   isActive(item.path)
-                    ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg"
-                    : "text-slate-300 hover:bg-slate-700/50"
+                    ? "bg-gradient-to-r from-blue-500 to-blue-600 text-[var(--text-main)] shadow-lg"
+                    : "text-slate-300 hover:theme-surface/50"
                 }`}
               >
                 <div className="flex items-center gap-3">
@@ -70,7 +70,7 @@ function Sidebar() {
 
         {/* Footer */}
         <div className="absolute bottom-0 left-0 right-0 border-t border-slate-700 p-4">
-          <div className="flex items-center justify-between rounded-lg bg-slate-700/30 p-3">
+          <div className="flex items-center justify-between rounded-lg theme-surface/30 p-3">
             <div className={`flex items-center gap-2 ${collapsed ? "justify-center w-full" : ""}`}>
               <div className="h-8 w-8 rounded-full bg-gradient-to-br from-blue-400 to-purple-500"></div>
               {!collapsed && (
@@ -86,7 +86,7 @@ function Sidebar() {
 
       {/* Sidebar Overlay (Mobile) */}
       <div
-        className={`fixed inset-0 z-30 bg-black/50 transition-opacity duration-300 lg:hidden ${
+        className={`fixed inset-0 z-30 theme-modal-backdrop transition-opacity duration-300 lg:hidden ${
           collapsed ? "opacity-0 pointer-events-none" : "opacity-100"
         }`}
         onClick={() => setCollapsed(true)}

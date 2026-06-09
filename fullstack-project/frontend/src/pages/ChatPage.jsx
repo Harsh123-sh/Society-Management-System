@@ -744,14 +744,14 @@ function ChatPage() {
   }
 
   return (
-    <div className="min-h-[calc(100vh-2rem)] rounded-[2rem] border border-white/10 bg-slate-950/95 text-slate-100 shadow-2xl shadow-slate-950/40 backdrop-blur-xl">
+    <div className="min-h-[calc(100vh-2rem)] rounded-[2rem] border border-white/10 theme-surface text-slate-100 shadow-2xl shadow-slate-950/40 backdrop-blur-xl">
       <div className="grid min-h-[calc(100vh-2rem)] lg:grid-cols-[340px_1fr]">
-        <aside className="flex flex-col border-r border-white/10 bg-slate-950/80">
+        <aside className="flex flex-col border-r border-white/10 theme-surface">
           <div className="border-b border-white/10 p-4">
             <div className="flex items-center justify-between gap-3">
               <div>
                 <p className="text-xs uppercase tracking-[0.3em] text-cyan-300/80">Realtime chat</p>
-                <h2 className="mt-1 text-2xl font-semibold text-white">Society Messenger</h2>
+                <h2 className="mt-1 text-2xl font-semibold text-[var(--text-main)]">Society Messenger</h2>
               </div>
               <button
                 type="button"
@@ -782,7 +782,7 @@ function ChatPage() {
                 <button type="submit" className="flex-1 rounded-2xl bg-white px-4 py-3 text-xs font-semibold text-slate-950">
                   Search people
                 </button>
-                <button type="button" onClick={handleThreadSearch} className="flex-1 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-xs font-semibold text-white">
+                <button type="button" onClick={handleThreadSearch} className="flex-1 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-xs font-semibold text-[var(--text-main)]">
                   Search chats
                 </button>
               </div>
@@ -832,14 +832,14 @@ function ChatPage() {
                   value={newThreadTitle}
                   onChange={(event) => setNewThreadTitle(event.target.value)}
                   placeholder="Thread title"
-                  className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none placeholder:text-slate-500"
+                  className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-[var(--text-main)] outline-none placeholder:text-slate-500"
                 />
                 <textarea
                   value={newThreadDescription}
                   onChange={(event) => setNewThreadDescription(event.target.value)}
                   placeholder="Description"
                   rows={3}
-                  className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none placeholder:text-slate-500"
+                  className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-[var(--text-main)] outline-none placeholder:text-slate-500"
                 />
                 <div className="max-h-32 space-y-2 overflow-auto rounded-2xl border border-white/10 p-2">
                   {members.map((member) => {
@@ -891,7 +891,7 @@ function ChatPage() {
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <div className="flex items-center gap-2">
-                          <h3 className="font-semibold text-white">{title}</h3>
+                          <h3 className="font-semibold text-[var(--text-main)]">{title}</h3>
                           <span className="rounded-full border border-white/10 px-2 py-0.5 text-[10px] uppercase tracking-[0.25em] text-slate-400">
                             {thread.thread_type}
                           </span>
@@ -916,9 +916,9 @@ function ChatPage() {
                 <h4 className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-400">Search results</h4>
                 <div className="mt-3 space-y-2">
                   {searchResults.map((result) => (
-                    <div key={result.id} className="rounded-2xl border border-white/10 bg-slate-950/60 p-3 text-xs text-slate-300">
+                    <div key={result.id} className="rounded-2xl border border-white/10 theme-surface p-3 text-xs text-slate-300">
                       <div className="flex items-center justify-between gap-2">
-                        <span className="font-semibold text-white">{result.sender_name}</span>
+                        <span className="font-semibold text-[var(--text-main)]">{result.sender_name}</span>
                         <span>{formatTime(result.created_at)}</span>
                       </div>
                       <p className="mt-1 line-clamp-2">{buildPreview(result)}</p>
@@ -933,10 +933,10 @@ function ChatPage() {
         <section className="flex min-h-0 flex-col bg-[radial-gradient(circle_at_top,_rgba(34,211,238,0.12),_transparent_30%),linear-gradient(180deg,#0f172a_0%,#020617_100%)]">
           {activeThreadMeta ? (
             <>
-              <header className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 bg-slate-950/40 px-5 py-4 backdrop-blur-xl">
+              <header className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 theme-surface px-5 py-4 backdrop-blur-xl">
                 <div>
                   <div className="flex items-center gap-2">
-                    <h2 className="text-lg font-semibold text-white">
+                    <h2 className="text-lg font-semibold text-[var(--text-main)]">
                       {activeThreadMeta.title || activeThreadMeta.peer_name || "Chat"}
                     </h2>
                     <span className="rounded-full border border-white/10 px-2 py-0.5 text-[10px] uppercase tracking-[0.24em] text-slate-400">
@@ -968,20 +968,20 @@ function ChatPage() {
                   <span className="rounded-full border border-white/10 px-3 py-2 text-[10px] uppercase tracking-[0.2em] text-slate-300">
                     {callStatus}
                   </span>
-                  <button type="button" onClick={handleSummarizeThread} className="rounded-full border border-white/10 bg-white/5 px-3 py-2 text-xs text-white">
+                  <button type="button" onClick={handleSummarizeThread} className="rounded-full border border-white/10 bg-white/5 px-3 py-2 text-xs text-[var(--text-main)]">
                     Summarize
                   </button>
-                  <button type="button" onClick={handleSmartReply} disabled={smartReplyLoading} className="rounded-full border border-white/10 bg-white/5 px-3 py-2 text-xs text-white disabled:opacity-50">
+                  <button type="button" onClick={handleSmartReply} disabled={smartReplyLoading} className="rounded-full border border-white/10 bg-white/5 px-3 py-2 text-xs text-[var(--text-main)] disabled:opacity-50">
                     {smartReplyLoading ? "AI thinking..." : "Smart reply"}
                   </button>
-                  <select value={translateLanguage} onChange={(event) => setTranslateLanguage(event.target.value)} className="rounded-full border border-white/10 bg-white/5 px-3 py-2 text-xs text-white">
+                  <select value={translateLanguage} onChange={(event) => setTranslateLanguage(event.target.value)} className="rounded-full border border-white/10 bg-white/5 px-3 py-2 text-xs text-[var(--text-main)]">
                     {LANGUAGE_OPTIONS.map((language) => (
-                      <option key={language} value={language} className="bg-slate-900">
+                      <option key={language} value={language} className="theme-surface">
                         {language.toUpperCase()}
                       </option>
                     ))}
                   </select>
-                  <button type="button" onClick={handleTranslateDraft} className="rounded-full border border-white/10 bg-white/5 px-3 py-2 text-xs text-white">
+                  <button type="button" onClick={handleTranslateDraft} className="rounded-full border border-white/10 bg-white/5 px-3 py-2 text-xs text-[var(--text-main)]">
                     Translate draft
                   </button>
                 </div>
@@ -1041,7 +1041,7 @@ function ChatPage() {
                             </div>
 
                             {message.reply_message ? (
-                              <div className="mb-2 rounded-2xl border border-white/10 bg-black/10 p-3 text-xs opacity-90">
+                              <div className="mb-2 rounded-2xl border border-white/10 theme-modal-backdrop p-3 text-xs opacity-90">
                                 <p className="font-semibold">Replying to</p>
                                 <p>{message.reply_message}</p>
                               </div>
@@ -1053,7 +1053,7 @@ function ChatPage() {
                               <>
                                 {message.message ? <p className="whitespace-pre-wrap text-[15px] leading-7">{message.message}</p> : null}
                                 {mediaUrl ? (
-                                  <div className="mt-3 overflow-hidden rounded-2xl border border-white/10 bg-black/20">
+                                  <div className="mt-3 overflow-hidden rounded-2xl border border-white/10 theme-modal-backdrop">
                                     {message.message_type === "image" || String(message.mime_type || "").startsWith("image/") ? (
                                       <img src={mediaUrl} alt={message.media_name || "attachment"} className="max-h-80 w-full object-cover" />
                                     ) : message.message_type === "video" ? (
@@ -1073,7 +1073,7 @@ function ChatPage() {
                             {reactions.length ? (
                               <div className="mt-2 flex flex-wrap gap-1">
                                 {reactions.map((reaction, index) => (
-                                  <span key={`${reaction.reaction}-${index}`} className="rounded-full bg-black/10 px-2 py-1 text-[11px]">
+                                  <span key={`${reaction.reaction}-${index}`} className="rounded-full theme-modal-backdrop px-2 py-1 text-[11px]">
                                     {reaction.reaction}
                                   </span>
                                 ))}
@@ -1087,18 +1087,18 @@ function ChatPage() {
 
                             <div className="mt-3 flex flex-wrap gap-2 opacity-0 transition group-hover:opacity-100">
                               {REACTION_SET.map((emoji) => (
-                                <button key={emoji} type="button" onClick={() => handleReact(message.id, emoji)} className="rounded-full border border-white/10 bg-black/10 px-2 py-1 text-xs">
+                                <button key={emoji} type="button" onClick={() => handleReact(message.id, emoji)} className="rounded-full border border-white/10 theme-modal-backdrop px-2 py-1 text-xs">
                                   {emoji}
                                 </button>
                               ))}
-                              <button type="button" onClick={() => handlePin(message.id, true)} className="rounded-full border border-white/10 bg-black/10 px-2 py-1 text-xs">
+                              <button type="button" onClick={() => handlePin(message.id, true)} className="rounded-full border border-white/10 theme-modal-backdrop px-2 py-1 text-xs">
                                 Pin
                               </button>
-                              <button type="button" onClick={() => handleDeleteForMe(message.id)} className="rounded-full border border-white/10 bg-black/10 px-2 py-1 text-xs">
+                              <button type="button" onClick={() => handleDeleteForMe(message.id)} className="rounded-full border border-white/10 theme-modal-backdrop px-2 py-1 text-xs">
                                 Delete for me
                               </button>
                               {isMine ? (
-                                <button type="button" onClick={() => handleDeleteForEveryone(message.id)} className="rounded-full border border-white/10 bg-black/10 px-2 py-1 text-xs">
+                                <button type="button" onClick={() => handleDeleteForEveryone(message.id)} className="rounded-full border border-white/10 theme-modal-backdrop px-2 py-1 text-xs">
                                   Delete for everyone
                                 </button>
                               ) : null}
@@ -1109,19 +1109,19 @@ function ChatPage() {
                     })
                   ) : (
                     <div className="rounded-3xl border border-white/10 bg-white/5 p-8 text-sm text-slate-300">
-                      <p className="font-medium text-white">No messages yet.</p>
+                      <p className="font-medium text-[var(--text-main)]">No messages yet.</p>
                       <p className="mt-2">Send a note, share a file, record a voice message, or start with AI smart reply.</p>
                     </div>
                   )}
                 </div>
               </div>
 
-              <footer className="border-t border-white/10 bg-slate-950/60 p-4 backdrop-blur-xl">
+              <footer className="border-t border-white/10 theme-surface p-4 backdrop-blur-xl">
                 <audio ref={remoteAudioRef} autoPlay className="hidden" />
                 {attachment ? (
                   <div className="mb-3 flex items-center justify-between gap-3 rounded-3xl border border-white/10 bg-white/5 p-3 text-sm text-slate-300">
                     <div>
-                      <p className="font-semibold text-white">{attachment.name}</p>
+                      <p className="font-semibold text-[var(--text-main)]">{attachment.name}</p>
                       <p>{attachment.mimeType || "attachment"}</p>
                     </div>
                     <button type="button" onClick={() => setAttachment(null)} className="text-xs text-cyan-200 underline">
@@ -1131,7 +1131,7 @@ function ChatPage() {
                 ) : null}
 
                 <form onSubmit={handleSendMessage} className="flex flex-col gap-3 lg:flex-row lg:items-end">
-                  <div className="flex-1 rounded-[2rem] border border-white/10 bg-white/5 p-3 shadow-xl shadow-black/10">
+                  <div className="flex-1 rounded-[2rem] border border-white/10 bg-white/5 p-3 shadow-xl shadow-[var(--shadow)]">
                     <textarea
                       value={draft}
                       onChange={(event) => {
@@ -1143,19 +1143,19 @@ function ChatPage() {
                       }}
                       rows={3}
                       placeholder="Type a message, add a file, paste an image, or ask AI to rewrite it..."
-                      className="w-full resize-none bg-transparent text-sm text-white outline-none placeholder:text-slate-500"
+                      className="w-full resize-none bg-transparent text-sm text-[var(--text-main)] outline-none placeholder:text-slate-500"
                     />
                     <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-white/10 pt-3 text-xs text-slate-300">
-                      <button type="button" onClick={() => fileInputRef.current?.click()} className="rounded-full border border-white/10 bg-black/10 px-3 py-1.5">
+                      <button type="button" onClick={() => fileInputRef.current?.click()} className="rounded-full border border-white/10 theme-modal-backdrop px-3 py-1.5">
                         Attach file
                       </button>
-                      <button type="button" onClick={toggleVoiceRecording} className={`rounded-full border px-3 py-1.5 ${isRecording ? "border-rose-400 bg-rose-400/10 text-rose-100" : "border-white/10 bg-black/10"}`}>
+                      <button type="button" onClick={toggleVoiceRecording} className={`rounded-full border px-3 py-1.5 ${isRecording ? "border-rose-400 bg-rose-400/10 text-rose-100" : "border-white/10 theme-modal-backdrop"}`}>
                         {isRecording ? `Recording ${recordSeconds}s` : "Voice note"}
                       </button>
-                      <button type="button" onClick={handleSmartReply} className="rounded-full border border-white/10 bg-black/10 px-3 py-1.5">
+                      <button type="button" onClick={handleSmartReply} className="rounded-full border border-white/10 theme-modal-backdrop px-3 py-1.5">
                         AI smart reply
                       </button>
-                      <button type="button" onClick={() => setDraft((previous) => `${previous}${previous ? "\n" : ""}Need a quick update please.`)} className="rounded-full border border-white/10 bg-black/10 px-3 py-1.5">
+                      <button type="button" onClick={() => setDraft((previous) => `${previous}${previous ? "\n" : ""}Need a quick update please.`)} className="rounded-full border border-white/10 theme-modal-backdrop px-3 py-1.5">
                         Quick insert
                       </button>
                     </div>
@@ -1173,7 +1173,7 @@ function ChatPage() {
           ) : (
             <div className="flex flex-1 items-center justify-center p-8 text-center">
               <div className="max-w-md rounded-[2rem] border border-white/10 bg-white/5 p-8 text-slate-300">
-                <h3 className="text-xl font-semibold text-white">Select a thread</h3>
+                <h3 className="text-xl font-semibold text-[var(--text-main)]">Select a thread</h3>
                 <p className="mt-2 text-sm">Open a direct message, create a group, or start a society channel to begin realtime communication.</p>
               </div>
             </div>

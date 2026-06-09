@@ -73,7 +73,7 @@ function ArchiveRow({ item, type, selected, onSelect, onRestore, onDelete }) {
         <input type="checkbox" checked={selected} onChange={() => onSelect(item.id, type)} />
       </td>
       <td className="px-4 py-3 align-top">
-        <p className="font-semibold text-white">{title}</p>
+        <p className="font-semibold text-[var(--text-main)]">{title}</p>
         <p className="mt-1 max-w-xl text-sm text-slate-300">{subtitle}</p>
       </td>
       <td className="px-4 py-3 align-top text-sm text-slate-300">{item.status}</td>
@@ -308,7 +308,7 @@ function ArchiveCenterPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(20,184,166,0.22),_transparent_35%),linear-gradient(180deg,_#06111b_0%,_#081724_45%,_#09101a_100%)] text-white">
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(20,184,166,0.22),_transparent_35%),linear-gradient(180deg,_#06111b_0%,_#081724_45%,_#09101a_100%)] text-[var(--text-main)]">
       <div className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-6 md:px-8">
         <section className="overflow-hidden rounded-[32px] border border-white/10 bg-white/8 p-6 shadow-2xl backdrop-blur-xl">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
@@ -320,7 +320,7 @@ function ArchiveCenterPage() {
               </p>
             </div>
             <div className="flex flex-wrap gap-3">
-              <button type="button" onClick={() => loadArchiveCenter()} className="rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-semibold text-white hover:bg-white/15">
+              <button type="button" onClick={() => loadArchiveCenter()} className="rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-semibold text-[var(--text-main)] hover:bg-white/15">
                 Refresh
               </button>
               <button type="button" onClick={exportCurrentView} className="rounded-full border border-teal-400/30 bg-teal-400/10 px-4 py-2 text-sm font-semibold text-teal-100 hover:bg-teal-400/20">
@@ -346,25 +346,25 @@ function ArchiveCenterPage() {
           <StatCard label="Retention rules" value={stats?.retention?.total_rules || 0} tone="amber" />
         </div>
 
-        <section className="rounded-[30px] border border-white/10 bg-slate-950/60 p-5 shadow-2xl backdrop-blur-xl">
+        <section className="rounded-[30px] border border-white/10 theme-surface p-5 shadow-2xl backdrop-blur-xl">
           <div className="grid gap-3 lg:grid-cols-7">
-            <input className="lg:col-span-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none placeholder:text-slate-400" placeholder="Search title, resident, or email" value={filters.search} onChange={(e) => setFilters((current) => ({ ...current, search: e.target.value }))} />
-            <select className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none" value={filters.status} onChange={(e) => setFilters((current) => ({ ...current, status: e.target.value }))}>
+            <input className="lg:col-span-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-[var(--text-main)] outline-none placeholder:text-slate-400" placeholder="Search title, resident, or email" value={filters.search} onChange={(e) => setFilters((current) => ({ ...current, search: e.target.value }))} />
+            <select className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-[var(--text-main)] outline-none" value={filters.status} onChange={(e) => setFilters((current) => ({ ...current, status: e.target.value }))}>
               <option value="all">All statuses</option>
               <option value="archived">Archived</option>
               <option value="deleted">Deleted</option>
             </select>
-            <input className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none placeholder:text-slate-400" placeholder="Category" value={filters.category} onChange={(e) => setFilters((current) => ({ ...current, category: e.target.value }))} />
-            <input className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none placeholder:text-slate-400" placeholder="Flat number" value={filters.flatNumber} onChange={(e) => setFilters((current) => ({ ...current, flatNumber: e.target.value }))} />
-            <input className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none placeholder:text-slate-400" placeholder="Resident ID" value={filters.residentId} onChange={(e) => setFilters((current) => ({ ...current, residentId: e.target.value }))} />
-            <input className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none" type="date" value={filters.fromDate} onChange={(e) => setFilters((current) => ({ ...current, fromDate: e.target.value }))} />
-            <input className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none" type="date" value={filters.toDate} onChange={(e) => setFilters((current) => ({ ...current, toDate: e.target.value }))} />
+            <input className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-[var(--text-main)] outline-none placeholder:text-slate-400" placeholder="Category" value={filters.category} onChange={(e) => setFilters((current) => ({ ...current, category: e.target.value }))} />
+            <input className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-[var(--text-main)] outline-none placeholder:text-slate-400" placeholder="Flat number" value={filters.flatNumber} onChange={(e) => setFilters((current) => ({ ...current, flatNumber: e.target.value }))} />
+            <input className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-[var(--text-main)] outline-none placeholder:text-slate-400" placeholder="Resident ID" value={filters.residentId} onChange={(e) => setFilters((current) => ({ ...current, residentId: e.target.value }))} />
+            <input className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-[var(--text-main)] outline-none" type="date" value={filters.fromDate} onChange={(e) => setFilters((current) => ({ ...current, fromDate: e.target.value }))} />
+            <input className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-[var(--text-main)] outline-none" type="date" value={filters.toDate} onChange={(e) => setFilters((current) => ({ ...current, toDate: e.target.value }))} />
           </div>
           <div className="mt-4 flex flex-wrap gap-3">
             <button type="button" onClick={() => loadArchiveCenter(filters)} className="rounded-full bg-teal-400 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-teal-300">
               Apply Filters
             </button>
-            <button type="button" onClick={() => setFilters(defaultFilters)} className="rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-white hover:bg-white/10">
+            <button type="button" onClick={() => setFilters(defaultFilters)} className="rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-[var(--text-main)] hover:bg-white/10">
               Reset
             </button>
             <button type="button" onClick={handleBulkRestore} disabled={!selectedCount || saving} className="rounded-full border border-emerald-400/30 bg-emerald-400/10 px-4 py-2 text-sm font-semibold text-emerald-100 disabled:opacity-40">
@@ -377,11 +377,11 @@ function ArchiveCenterPage() {
         </section>
 
         <section className="grid gap-6 xl:grid-cols-[minmax(0,1.7fr),minmax(0,1fr)]">
-          <div className="rounded-[30px] border border-white/10 bg-slate-950/60 p-5 shadow-2xl backdrop-blur-xl">
+          <div className="rounded-[30px] border border-white/10 theme-surface p-5 shadow-2xl backdrop-blur-xl">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <p className="text-[11px] uppercase tracking-[0.28em] text-slate-400">Archived records</p>
-                <h2 className="mt-1 text-xl font-semibold text-white">Complaints and notices</h2>
+                <h2 className="mt-1 text-xl font-semibold text-[var(--text-main)]">Complaints and notices</h2>
               </div>
               <div className="flex rounded-full border border-white/10 bg-white/5 p-1 text-sm">
                 <button type="button" onClick={() => setActiveTab("complaints")} className={`rounded-full px-4 py-2 ${activeTab === "complaints" ? "bg-teal-400 text-slate-950" : "text-slate-300"}`}>
@@ -431,20 +431,20 @@ function ArchiveCenterPage() {
           </div>
 
           <div className="space-y-6">
-            <section className="rounded-[30px] border border-white/10 bg-slate-950/60 p-5 shadow-2xl backdrop-blur-xl">
+            <section className="rounded-[30px] border border-white/10 theme-surface p-5 shadow-2xl backdrop-blur-xl">
               <div>
                 <p className="text-[11px] uppercase tracking-[0.28em] text-slate-400">Retention</p>
-                <h2 className="mt-1 text-xl font-semibold text-white">Policy controls</h2>
+                <h2 className="mt-1 text-xl font-semibold text-[var(--text-main)]">Policy controls</h2>
               </div>
               <div className="mt-4 space-y-3">
                 {retentionRules.map((rule) => (
                   <div key={rule.id} className="rounded-2xl border border-white/10 bg-white/5 p-4">
                     <div className="flex items-center justify-between gap-3">
                       <div>
-                        <p className="font-semibold text-white">{rule.resource_type}</p>
+                        <p className="font-semibold text-[var(--text-main)]">{rule.resource_type}</p>
                         <p className="text-xs text-slate-400">Auto archive: {rule.auto_archive_enabled ? "enabled" : "disabled"}</p>
                       </div>
-                      <button type="button" onClick={() => handleRetentionSave(rule)} className="rounded-full border border-white/15 px-3 py-2 text-xs font-semibold text-white hover:bg-white/10">
+                      <button type="button" onClick={() => handleRetentionSave(rule)} className="rounded-full border border-white/15 px-3 py-2 text-xs font-semibold text-[var(--text-main)] hover:bg-white/10">
                         Edit
                       </button>
                     </div>
@@ -459,17 +459,17 @@ function ArchiveCenterPage() {
               </div>
             </section>
 
-            <section className="rounded-[30px] border border-white/10 bg-slate-950/60 p-5 shadow-2xl backdrop-blur-xl">
+            <section className="rounded-[30px] border border-white/10 theme-surface p-5 shadow-2xl backdrop-blur-xl">
               <div>
                 <p className="text-[11px] uppercase tracking-[0.28em] text-slate-400">Audit trail</p>
-                <h2 className="mt-1 text-xl font-semibold text-white">Recent archive actions</h2>
+                <h2 className="mt-1 text-xl font-semibold text-[var(--text-main)]">Recent archive actions</h2>
               </div>
               <div className="mt-4 space-y-3 max-h-[520px] overflow-auto pr-1">
                 {auditLogs.length ? (
                   auditLogs.map((log) => (
                     <div key={log.id} className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-slate-300">
                       <div className="flex items-center justify-between gap-3">
-                        <p className="font-semibold text-white">{log.action} {log.resource_type}</p>
+                        <p className="font-semibold text-[var(--text-main)]">{log.action} {log.resource_type}</p>
                         <p className="text-xs text-slate-400">{formatDate(log.created_at)}</p>
                       </div>
                       <p className="mt-1">{log.details || "No details provided"}</p>

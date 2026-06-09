@@ -67,7 +67,7 @@ function SecurityChatBot() {
       {isOpen && (
         <div className="fixed bottom-24 right-6 z-40 w-96 max-w-full rounded-2xl bg-white shadow-2xl flex flex-col h-96 border-2 border-blue-500">
           {/* Header */}
-          <div className="border-b border-slate-200 bg-gradient-to-r from-blue-500 to-blue-600 px-6 py-4 rounded-t-2xl text-white flex items-center justify-between">
+          <div className="border-b border-slate-200 bg-gradient-to-r from-blue-500 to-blue-600 px-6 py-4 rounded-t-2xl text-[var(--text-main)] flex items-center justify-between">
             <div>
               <h3 className="font-bold">Security AI</h3>
               <p className="text-xs opacity-90">Fast assistance for guards</p>
@@ -92,7 +92,7 @@ function SecurityChatBot() {
                 <div
                   className={`max-w-xs rounded-lg px-4 py-2 ${
                     message.type === "user"
-                      ? "bg-blue-500 text-white"
+                      ? "bg-blue-500 text-[var(--text-main)]"
                       : "bg-slate-100 text-slate-900"
                   }`}
                 >
@@ -130,7 +130,7 @@ function SecurityChatBot() {
               />
               <button
                 type="submit"
-                className="rounded-lg bg-blue-500 px-3 py-2 text-white hover:bg-blue-600 transition-colors font-semibold"
+                className="rounded-lg bg-blue-500 px-3 py-2 text-[var(--text-main)] hover:bg-blue-600 transition-colors font-semibold"
               >
                 ↓
               </button>

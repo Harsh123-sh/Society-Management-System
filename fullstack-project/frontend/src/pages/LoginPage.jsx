@@ -26,6 +26,7 @@ function LoginPage() {
   const [selectedSociety, setSelectedSociety] = useState(() => getSelectedSociety() || null);
   const [loading, setLoading] = useState(false);
   const [alert, setAlert] = useState({ type: "", message: "" });
+  const [unverifiedEmail, setUnverifiedEmail] = useState(null);
 
   const token = localStorage.getItem("token");
   const storedRole = getStoredRole();
@@ -47,6 +48,17 @@ function LoginPage() {
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
     const societyId = searchParams.get("societyId");
+    const email = searchParams.get("email");
+    const verified = searchParams.get("verified");
+
+    if (email) {
+      setForm((prev) => ({ ...prev, email }));
+    }
+
+    if (verified === "true") {
+      setAlert({ type: "success", message: "Email verified successfully. Please login." });
+      setUnverifiedEmail(null);
+    }
 
     if (societyId) {
       const society = { id: societyId, name: societyId };
@@ -135,20 +147,78 @@ function LoginPage() {
     } catch (error) {
       console.error("[LoginPage] login error", error?.response?.data || error?.message || error);
       const apiMessage = getApiMessage(error, "Login failed");
-      setAlert({
-        type: "error",
-        message: apiMessage === "Your account is waiting for admin approval" ? "Your account is pending approval." : apiMessage,
-      });
+      const errorData = error?.response?.data || {};
+      const isEmailNotVerified = errorData.code === "EMAIL_NOT_VERIFIED";
+
+      if (isEmailNotVerified) {
+        setUnverifiedEmail(errorData.email || form.email);
+        setAlert({
+          type: "error",
+          message: "Please verify your email before login.",
+        });
+      } else {
+        setUnverifiedEmail(null);
+        setAlert({
+          type: "error",
+          message: apiMessage === "Your account is waiting for admin approval" ? "Your account is pending approval." : apiMessage,
+        });
+      }
     } finally {
       setLoading(false);
     }
   }
+
+  function handleGoToVerify() {
+    navigate(`/verify-otp?email=${encodeURIComponent(unverifiedEmail)}`);
+  }
+
   const renderValidationError = validate();
   const canSubmit = renderValidationError === null;
 
   return (
     <AuthLayout title="Welcome back" subtitle="Sign in to continue to your society workspace.">
       {alert.message && <AlertMessage type={alert.type} message={alert.message} />}
+
+      {unverifiedEmail && (
+        <div
+          className="mb-6 rounded-2xl border p-4 shadow-sm"
+          style={{ backgroundColor: "var(--surface)", borderColor: "var(--border)", color: "var(--text)" }}
+        >
+          <div className="flex items-start gap-3">
+            <div className="mt-0.5 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-amber-500/15">
+              <svg className="h-5 w-5 text-amber-500" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="flex-1">
+              <p className="font-semibold text-[var(--text)]">Email verification required</p>
+              <p className="mt-1 text-sm" style={{ color: "var(--text-muted)" }}>
+                {unverifiedEmail} needs a valid OTP verification before login.
+              </p>
+              <div className="mt-4">
+                <button
+                  type="button"
+                  onClick={handleGoToVerify}
+                  className="w-full rounded-xl bg-amber-500 px-4 py-3 text-sm font-semibold text-slate-950 shadow-sm transition hover:bg-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2"
+                  aria-label={`Verify email ${unverifiedEmail}`}
+                >
+                  Verify Email
+                </button>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setUnverifiedEmail(null)}
+              className="flex-shrink-0 rounded-full p-1 text-[var(--text-muted)] transition hover:text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-amber-400"
+              aria-label="Dismiss email verification prompt"
+            >
+              <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="mb-4 flex items-center justify-start">
         <button
@@ -228,9 +298,9 @@ function LoginPage() {
       </form>
 
       <div className="space-y-4 pt-2">
-        <p className="text-sm text-white/70">
+        <p className="text-sm text-[var(--text-secondary)]">
           New to Society Pro? {" "}
-          <AuthLink to="/register" className="font-semibold text-white">
+          <AuthLink to="/register" className="font-semibold text-[var(--text-main)]">
             Create account
           </AuthLink>
         </p>

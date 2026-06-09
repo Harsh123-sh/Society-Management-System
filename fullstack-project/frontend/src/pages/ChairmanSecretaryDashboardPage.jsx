@@ -720,7 +720,7 @@ function ChairmanSecretaryDashboardPage() {
               </div>
             </div>
             <div className="flex flex-wrap gap-3">
-              <button onClick={downloadSnapshot} className="rounded-xl bg-[rgb(var(--app-primary-rgb))] px-4 py-2.5 text-sm font-semibold text-white transition-all hover:opacity-95">Download Snapshot</button>
+              <button onClick={downloadSnapshot} className="rounded-xl bg-[rgb(var(--app-primary-rgb))] px-4 py-2.5 text-sm font-semibold text-[var(--text-main)] transition-all hover:opacity-95">Download Snapshot</button>
               <Link to={`${basePath}/billing`} className="rounded-xl border border-[rgb(var(--app-border-rgb))] px-4 py-2.5 text-sm font-semibold text-[rgb(var(--app-text-rgb))] transition-colors hover:border-[rgb(var(--app-primary-rgb))]">Open Billing</Link>
             </div>
           </div>
@@ -951,7 +951,7 @@ function ChairmanSecretaryDashboardPage() {
                 placeholder="Ask: Draft an urgent notice for a water outage, summarize open complaints, forecast collections, or suggest member follow-ups."
               />
               <div className="flex flex-wrap gap-2">
-                <button type="submit" disabled={assistantLoading} className="rounded-xl bg-[rgb(var(--app-primary-rgb))] px-4 py-2.5 text-sm font-semibold text-white transition-all hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-60">
+                <button type="submit" disabled={assistantLoading} className="rounded-xl bg-[rgb(var(--app-primary-rgb))] px-4 py-2.5 text-sm font-semibold text-[var(--text-main)] transition-all hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-60">
                   {assistantLoading ? "Thinking..." : "Ask Assistant"}
                 </button>
                 <button type="button" onClick={runVoiceAssistant} className="rounded-xl border border-[rgb(var(--app-border-rgb))] px-4 py-2.5 text-sm font-semibold text-[rgb(var(--app-text-rgb))] transition-colors hover:border-[rgb(var(--app-primary-rgb))]">Voice</button>

@@ -35,7 +35,7 @@ function VehicleTable() {
                   <div className="font-bold text-slate-900 text-lg">
                     {vehicle.number}
                     {vehicle.suspicious && (
-                      <span className="ml-2 text-xs bg-red-500 text-white px-2 py-1 rounded-full">
+                      <span className="ml-2 text-xs bg-red-500 text-[var(--text-main)] px-2 py-1 rounded-full">
                         ⚠️ Unknown
                       </span>
                     )}

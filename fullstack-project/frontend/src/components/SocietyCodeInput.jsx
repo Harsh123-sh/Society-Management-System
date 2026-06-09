@@ -12,11 +12,11 @@ export default function SocietyCodeInput({ value, onChange, label = "Society cod
         placeholder="e.g. GREEN-VALLEY"
         className="auth-society-code"
       />
-      {helperText ? <p className="text-xs text-white/65">{helperText}</p> : null}
+      {helperText ? <p className="text-xs text-[var(--text-secondary)]">{helperText}</p> : null}
       {societyName ? (
-        <div className="rounded-3xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/85">
-          <p className="font-semibold text-white">{societyName}</p>
-          <p className="mt-1 text-xs text-white/70">{status || "Verified society identity"}</p>
+        <div className="rounded-3xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-[var(--text-secondary)]">
+          <p className="font-semibold text-[var(--text-main)]">{societyName}</p>
+          <p className="mt-1 text-xs text-[var(--text-secondary)]">{status || "Verified society identity"}</p>
         </div>
       ) : null}
     </div>

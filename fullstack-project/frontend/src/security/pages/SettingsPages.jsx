@@ -9,7 +9,7 @@ function BlacklistPage() {
           <h1 className="text-3xl font-bold text-slate-900">🚫 Blacklist</h1>
           <p className="mt-2 text-slate-600">Restricted entry individuals</p>
         </div>
-        <button className="px-6 py-3 bg-red-500 text-white font-bold rounded-lg hover:bg-red-600 transition-colors">
+        <button className="px-6 py-3 bg-red-500 text-[var(--text-main)] font-bold rounded-lg hover:bg-red-600 transition-colors">
           ➕ Add to Blacklist
         </button>
       </div>
@@ -137,13 +137,13 @@ function ShiftLogsPage() {
       <div className="rounded-lg bg-slate-100 p-6 border border-slate-300">
         <h3 className="font-bold text-slate-900 mb-4">📥 Download Records</h3>
         <div className="flex gap-4 flex-wrap">
-          <button className="px-6 py-3 bg-blue-500 text-white font-bold rounded-lg hover:bg-blue-600 transition-colors">
+          <button className="px-6 py-3 bg-blue-500 text-[var(--text-main)] font-bold rounded-lg hover:bg-blue-600 transition-colors">
             📄 PDF Report
           </button>
-          <button className="px-6 py-3 bg-green-500 text-white font-bold rounded-lg hover:bg-green-600 transition-colors">
+          <button className="px-6 py-3 bg-green-500 text-[var(--text-main)] font-bold rounded-lg hover:bg-green-600 transition-colors">
             📊 Excel Export
           </button>
-          <button className="px-6 py-3 bg-slate-700 text-white font-bold rounded-lg hover:bg-slate-800 transition-colors">
+          <button className="px-6 py-3 theme-surface text-[var(--text-main)] font-bold rounded-lg hover:theme-surface transition-colors">
             🖨️ Print
           </button>
         </div>
@@ -229,15 +229,15 @@ function ProfilePage() {
       <div className="rounded-lg bg-white p-6 shadow-sm border border-slate-200 space-y-4">
         <h3 className="font-bold text-slate-900">⚙️ Settings</h3>
 
-        <button className="w-full px-6 py-3 bg-blue-500 text-white font-bold rounded-lg hover:bg-blue-600 transition-colors">
+        <button className="w-full px-6 py-3 bg-blue-500 text-[var(--text-main)] font-bold rounded-lg hover:bg-blue-600 transition-colors">
           ✏️ Edit Profile
         </button>
 
-        <button className="w-full px-6 py-3 bg-slate-500 text-white font-bold rounded-lg hover:bg-slate-600 transition-colors">
+        <button className="w-full px-6 py-3 bg-slate-500 text-[var(--text-main)] font-bold rounded-lg hover:bg-slate-600 transition-colors">
           🔐 Change Password
         </button>
 
-        <button className="w-full px-6 py-3 bg-red-500 text-white font-bold rounded-lg hover:bg-red-600 transition-colors">
+        <button className="w-full px-6 py-3 bg-red-500 text-[var(--text-main)] font-bold rounded-lg hover:bg-red-600 transition-colors">
           🚪 Logout
         </button>
       </div>

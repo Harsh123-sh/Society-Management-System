@@ -346,7 +346,7 @@ function AnalyticsDashboard() {
 
   if (loading && !hasLoadedRef.current) {
     return (
-      <div className="flex min-h-[70vh] items-center justify-center rounded-3xl bg-slate-950 px-6 py-16 text-white">
+      <div className="flex min-h-[70vh] items-center justify-center rounded-3xl theme-page px-6 py-16 text-[var(--text-main)]">
         <div className="max-w-md text-center">
           <div className="mx-auto h-14 w-14 animate-spin rounded-full border-4 border-white/20 border-t-white" />
           <h1 className="mt-6 text-3xl font-semibold">Loading analytics command center</h1>
@@ -364,7 +364,7 @@ function AnalyticsDashboard() {
         <button
           type="button"
           onClick={() => setRefreshTick((value) => value + 1)}
-          className="mt-4 rounded-full bg-rose-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-rose-700"
+          className="mt-4 rounded-full bg-rose-600 px-4 py-2 text-sm font-semibold text-[var(--text-main)] transition hover:bg-rose-700"
         >
           Retry
         </button>
@@ -374,7 +374,7 @@ function AnalyticsDashboard() {
 
   return (
     <div className="space-y-6 rounded-3xl bg-[radial-gradient(circle_at_top,_rgba(14,165,233,0.16),_transparent_36%),radial-gradient(circle_at_right,_rgba(16,185,129,0.14),_transparent_28%),linear-gradient(180deg,_rgba(248,250,252,0.95),_rgba(248,250,252,0.98))] p-1 sm:p-0">
-      <section className="overflow-hidden rounded-3xl border border-slate-200 bg-slate-950 text-white shadow-[0_24px_80px_-36px_rgba(15,23,42,0.85)]">
+      <section className="overflow-hidden rounded-3xl border border-slate-200 theme-page text-[var(--text-main)] shadow-[0_24px_80px_-36px_rgba(15,23,42,0.85)]">
         <div className="grid gap-6 px-6 py-6 lg:grid-cols-[1.5fr_0.9fr] lg:px-8 lg:py-8">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.3em] text-sky-300">Analytics command center</p>
@@ -410,7 +410,7 @@ function AnalyticsDashboard() {
                   key={days}
                   type="button"
                   onClick={() => setRangeDays(days)}
-                  className={`rounded-full px-4 py-2 text-sm font-semibold transition ${active ? "bg-slate-950 text-white shadow-lg shadow-slate-950/20" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}
+                  className={`rounded-full px-4 py-2 text-sm font-semibold transition ${active ? "theme-page text-[var(--text-main)] shadow-lg shadow-slate-950/20" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}
                 >
                   {days} days
                 </button>
@@ -429,7 +429,7 @@ function AnalyticsDashboard() {
             <button
               type="button"
               onClick={() => setAutoRefresh((value) => !value)}
-              className={`rounded-full px-4 py-2 text-sm font-semibold transition ${autoRefresh ? "bg-emerald-600 text-white hover:bg-emerald-700" : "bg-slate-200 text-slate-700 hover:bg-slate-300"}`}
+              className={`rounded-full px-4 py-2 text-sm font-semibold transition ${autoRefresh ? "bg-emerald-600 text-[var(--text-main)] hover:bg-emerald-700" : "bg-slate-200 text-slate-700 hover:bg-slate-300"}`}
             >
               {autoRefresh ? "Auto refresh on" : "Auto refresh off"}
             </button>
@@ -461,7 +461,7 @@ function AnalyticsDashboard() {
                 type="button"
                 onClick={handleExport}
                 disabled={exporting}
-                className="rounded-full bg-slate-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+                className="rounded-full theme-page px-4 py-2 text-sm font-semibold text-[var(--text-main)] transition hover:theme-surface disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {exporting ? "Exporting..." : "Export"}
               </button>

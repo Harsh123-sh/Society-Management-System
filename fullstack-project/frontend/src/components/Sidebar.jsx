@@ -114,7 +114,7 @@ function Sidebar({ open, onClose, role = "resident", basePath = "/resident" }) {
   return (
     <>
       <div
-        className={`fixed inset-0 z-30 bg-black/40 backdrop-blur-sm transition md:hidden ${
+        className={`fixed inset-0 z-30 theme-modal-backdrop backdrop-blur-sm transition md:hidden ${
           open ? "opacity-100" : "pointer-events-none opacity-0"
         }`}
         onClick={onClose}
@@ -141,7 +141,7 @@ function Sidebar({ open, onClose, role = "resident", basePath = "/resident" }) {
             </div>
             <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/10 px-3 py-2 text-right">
               <p className="text-[10px] uppercase tracking-[0.22em] text-emerald-200">{t("common.live")}</p>
-              <p className="text-xs font-semibold text-white">Realtime ready</p>
+              <p className="text-xs font-semibold text-[var(--text-main)]">Realtime ready</p>
             </div>
           </div>
 
@@ -186,7 +186,7 @@ function Sidebar({ open, onClose, role = "resident", basePath = "/resident" }) {
                 className={({ isActive }) =>
                   `group flex items-center justify-between rounded-2xl border px-3 py-2.5 text-sm font-medium transition-all ${
                     isActive
-                      ? "text-white shadow-lg"
+                      ? "text-[var(--text-main)] shadow-lg"
                       : "hover:border-[var(--primary)]"
                   }`
                 }

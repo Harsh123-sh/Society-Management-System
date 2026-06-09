@@ -14,7 +14,7 @@ export function Badge({
     warning: "bg-amber-100 text-amber-700",
     danger: "bg-rose-100 text-rose-700",
     info: "bg-sky-100 text-sky-700",
-    primary: "bg-[rgb(var(--app-primary-rgb))] text-white",
+    primary: "bg-[rgb(var(--app-primary-rgb))] text-[var(--text-main)]",
   };
 
   const sizes = {

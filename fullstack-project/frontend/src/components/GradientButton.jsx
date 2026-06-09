@@ -5,7 +5,7 @@ export default function GradientButton({ children, loading = false, className = 
     <motion.button
       whileTap={{ scale: 0.98 }}
       whileHover={{ translateY: -2 }}
-      className={`w-full rounded-2xl px-5 py-3 text-sm font-semibold text-white shadow-[0_24px_80px_-40px_rgba(34,211,238,0.45)] transition duration-200 disabled:cursor-not-allowed disabled:opacity-60 ${className}`}
+      className={`w-full rounded-2xl px-5 py-3 text-sm font-semibold text-[var(--text-main)] shadow-[0_24px_80px_-40px_rgba(34,211,238,0.45)] transition duration-200 disabled:cursor-not-allowed disabled:opacity-60 ${className}`}
       style={{ background: "linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%)" }}
       {...props}
     >

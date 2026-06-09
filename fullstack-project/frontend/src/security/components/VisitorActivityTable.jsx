@@ -31,7 +31,7 @@ function VisitorActivityTable() {
                   <div className="font-semibold text-slate-900">
                     {visitor.name}
                     {visitor.suspicious && (
-                      <span className="ml-2 text-xs bg-red-500 text-white px-2 py-1 rounded-full">
+                      <span className="ml-2 text-xs bg-red-500 text-[var(--text-main)] px-2 py-1 rounded-full">
                         ⚠️ Suspicious
                       </span>
                     )}

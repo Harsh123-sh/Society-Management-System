@@ -19,7 +19,7 @@ function Dashboard() {
             Welcome back! Here's your society overview.
           </p>
         </div>
-        <button className="rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 px-6 py-3 font-semibold text-white hover:shadow-lg transition-all">
+        <button className="rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 px-6 py-3 font-semibold text-[var(--text-main)] hover:shadow-lg transition-all">
           📥 Export Report
         </button>
       </div>

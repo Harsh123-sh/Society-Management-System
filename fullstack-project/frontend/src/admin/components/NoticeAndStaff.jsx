@@ -35,7 +35,7 @@ function NoticeActivitySection() {
         ))}
       </div>
 
-      <button className="mt-6 w-full rounded-2xl bg-gradient-to-r from-[rgb(var(--app-primary-rgb))] to-[rgb(var(--app-secondary-rgb))] px-4 py-2 font-semibold text-white transition-all hover:shadow-lg">
+      <button className="mt-6 w-full rounded-2xl bg-gradient-to-r from-[rgb(var(--app-primary-rgb))] to-[rgb(var(--app-secondary-rgb))] px-4 py-2 font-semibold text-[var(--text-main)] transition-all hover:shadow-lg">
         Generate Notice with AI
       </button>
     </div>

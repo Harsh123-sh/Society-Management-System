@@ -17,7 +17,7 @@ function Metric({ label, value, helper }) {
   return (
     <div className="rounded-[22px] border border-white/10 bg-white/5 p-5 shadow-lg shadow-slate-950/20 backdrop-blur-xl">
       <p className="text-xs uppercase tracking-[0.22em] text-slate-500">{label}</p>
-      <p className="mt-3 text-3xl font-semibold text-white">{value}</p>
+      <p className="mt-3 text-3xl font-semibold text-[var(--text-main)]">{value}</p>
       {helper ? <p className="mt-2 text-sm text-slate-400">{helper}</p> : null}
     </div>
   );
@@ -25,9 +25,9 @@ function Metric({ label, value, helper }) {
 
 function SocietyStat({ label, value }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3">
+    <div className="rounded-2xl border border-white/10 theme-surface px-4 py-3">
       <p className="text-xs uppercase tracking-[0.2em] text-slate-500">{label}</p>
-      <p className="mt-2 text-lg font-semibold text-white">{value}</p>
+      <p className="mt-2 text-lg font-semibold text-[var(--text-main)]">{value}</p>
     </div>
   );
 }
@@ -104,7 +104,7 @@ export default function SuperAdminSocietyDetailsPage() {
           <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.35em] text-cyan-300/80">Society details</p>
-              <h1 className="mt-3 text-4xl font-semibold tracking-tight text-white sm:text-5xl">{society?.name || "Society details"}</h1>
+              <h1 className="mt-3 text-4xl font-semibold tracking-tight text-[var(--text-main)] sm:text-5xl">{society?.name || "Society details"}</h1>
               <p className="mt-4 max-w-3xl text-sm leading-7 text-slate-300 sm:text-base">
                 Review the full society profile, status, counts, payments, complaints, visitors, flats, and analytics from the shared MySQL source.
               </p>
@@ -118,7 +118,7 @@ export default function SuperAdminSocietyDetailsPage() {
               <button
                 type="button"
                 onClick={() => navigate("/super-admin/dashboard")}
-                className="rounded-full border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/10"
+                className="rounded-full border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-semibold text-[var(--text-main)] transition hover:bg-white/10"
               >
                 Back to dashboard
               </button>
@@ -151,7 +151,7 @@ export default function SuperAdminSocietyDetailsPage() {
                 <div className="flex flex-wrap items-center justify-between gap-4">
                   <div>
                     <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Society profile</p>
-                    <h2 className="mt-2 text-2xl font-semibold text-white">Core details</h2>
+                    <h2 className="mt-2 text-2xl font-semibold text-[var(--text-main)]">Core details</h2>
                   </div>
                   <Badge value={society.status} />
                 </div>
@@ -170,7 +170,7 @@ export default function SuperAdminSocietyDetailsPage() {
 
               <div className="rounded-[28px] border border-white/10 bg-white/5 p-6 shadow-lg shadow-slate-950/20 backdrop-blur-xl">
                 <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Operations</p>
-                <h2 className="mt-2 text-2xl font-semibold text-white">Live society metrics</h2>
+                <h2 className="mt-2 text-2xl font-semibold text-[var(--text-main)]">Live society metrics</h2>
                 <div className="mt-6 grid gap-4 sm:grid-cols-2">
                   <SocietyStat label="Chairman" value={counts.chairmanCount ?? 0} />
                   <SocietyStat label="Secretary" value={counts.secretaryCount ?? 0} />
@@ -187,7 +187,7 @@ export default function SuperAdminSocietyDetailsPage() {
             <section className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
               <div className="rounded-[28px] border border-white/10 bg-white/5 p-6 shadow-lg shadow-slate-950/20 backdrop-blur-xl">
                 <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Subscription</p>
-                <h2 className="mt-2 text-2xl font-semibold text-white">Billing context</h2>
+                <h2 className="mt-2 text-2xl font-semibold text-[var(--text-main)]">Billing context</h2>
                 <div className="mt-6 space-y-3 text-sm text-slate-300">
                   <p><span className="text-slate-500">Plan:</span> {subscription?.plan_name || society.subscription_plan || "starter"}</p>
                   <p><span className="text-slate-500">Billing cycle:</span> {subscription?.billing_cycle || "monthly"}</p>
@@ -199,13 +199,13 @@ export default function SuperAdminSocietyDetailsPage() {
 
               <div className="rounded-[28px] border border-white/10 bg-white/5 p-6 shadow-lg shadow-slate-950/20 backdrop-blur-xl">
                 <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Analytics history</p>
-                <h2 className="mt-2 text-2xl font-semibold text-white">Stored monthly metrics</h2>
+                <h2 className="mt-2 text-2xl font-semibold text-[var(--text-main)]">Stored monthly metrics</h2>
                 {Array.isArray(analytics) && analytics.length ? (
                   <div className="mt-6 space-y-3">
                     {analytics.map((item) => (
-                      <div key={item.id} className="rounded-[20px] border border-white/10 bg-slate-950/70 px-4 py-3">
+                      <div key={item.id} className="rounded-[20px] border border-white/10 theme-surface px-4 py-3">
                         <div className="flex items-center justify-between gap-3">
-                          <p className="font-semibold text-white">{item.metricDate}</p>
+                          <p className="font-semibold text-[var(--text-main)]">{item.metricDate}</p>
                           <span className="text-xs text-slate-500">{formatDate(item.createdAt)}</span>
                         </div>
                         <pre className="mt-2 overflow-auto text-xs text-slate-300">{JSON.stringify(item.metrics, null, 2)}</pre>
@@ -213,7 +213,7 @@ export default function SuperAdminSocietyDetailsPage() {
                     ))}
                   </div>
                 ) : (
-                  <div className="mt-6 rounded-[20px] border border-white/10 bg-slate-950/70 px-5 py-6 text-slate-300">No analytics history recorded yet.</div>
+                  <div className="mt-6 rounded-[20px] border border-white/10 theme-surface px-5 py-6 text-slate-300">No analytics history recorded yet.</div>
                 )}
               </div>
             </section>

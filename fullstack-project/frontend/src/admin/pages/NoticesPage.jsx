@@ -82,7 +82,7 @@ function NoticesPage() {
         </div>
         <button
           onClick={() => setShowCreateForm(true)}
-          className="rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 px-6 py-3 font-semibold text-white hover:shadow-lg transition-all"
+          className="rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 px-6 py-3 font-semibold text-[var(--text-main)] hover:shadow-lg transition-all"
         >
           ✨ Create Notice
         </button>
@@ -93,7 +93,7 @@ function NoticesPage() {
         {stats.map((stat) => (
           <div
             key={stat.label}
-            className={`rounded-xl bg-gradient-to-br ${stat.color} p-5 shadow-sm text-white`}
+            className={`rounded-xl bg-gradient-to-br ${stat.color} p-5 shadow-sm text-[var(--text-main)]`}
           >
             <div className="flex items-center justify-between">
               <div>
@@ -108,7 +108,7 @@ function NoticesPage() {
 
       {/* Create Notice Form Modal */}
       {showCreateForm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 rounded-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center theme-page bg-opacity-50 rounded-2xl">
           <div className="w-full max-w-2xl rounded-2xl bg-white p-8 shadow-xl mx-4">
             <h2 className="text-2xl font-bold text-slate-900">Create New Notice</h2>
             
@@ -172,7 +172,7 @@ function NoticesPage() {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 px-4 py-2 font-semibold text-white hover:shadow-lg transition-all"
+                  className="flex-1 rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 px-4 py-2 font-semibold text-[var(--text-main)] hover:shadow-lg transition-all"
                 >
                   Publish Notice
                 </button>

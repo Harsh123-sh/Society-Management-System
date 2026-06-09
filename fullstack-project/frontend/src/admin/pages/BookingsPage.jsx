@@ -109,7 +109,7 @@ function BookingsPage() {
         ].map((stat) => (
           <div
             key={stat.label}
-            className={`rounded-xl bg-gradient-to-br ${stat.color} p-5 shadow-sm text-white`}
+            className={`rounded-xl bg-gradient-to-br ${stat.color} p-5 shadow-sm text-[var(--text-main)]`}
           >
             <div className="flex items-center justify-between">
               <div>
@@ -135,7 +135,7 @@ function BookingsPage() {
           <input type="time" value={form.end_time} onChange={(event) => setForm((prev) => ({ ...prev, end_time: event.target.value }))} className="rounded-lg border border-slate-300 px-4 py-2 focus:border-blue-500 focus:outline-none" />
           <input type="text" value={form.purpose} onChange={(event) => setForm((prev) => ({ ...prev, purpose: event.target.value }))} placeholder="Purpose" className="rounded-lg border border-slate-300 px-4 py-2 focus:border-blue-500 focus:outline-none md:col-span-2" />
           <input type="number" min="0" value={form.number_of_guests} onChange={(event) => setForm((prev) => ({ ...prev, number_of_guests: event.target.value }))} placeholder="Guests" className="rounded-lg border border-slate-300 px-4 py-2 focus:border-blue-500 focus:outline-none" />
-          <button type="submit" disabled={submitting} className="rounded-lg bg-slate-900 px-6 py-3 font-semibold text-white hover:bg-slate-700 disabled:opacity-60 md:col-span-3">{submitting ? "Saving..." : "Create Booking"}</button>
+          <button type="submit" disabled={submitting} className="rounded-lg theme-surface px-6 py-3 font-semibold text-[var(--text-main)] hover:theme-surface disabled:opacity-60 md:col-span-3">{submitting ? "Saving..." : "Create Booking"}</button>
         </form>
       </section>
 
@@ -253,10 +253,10 @@ function BookingsPage() {
                     </span>
                     {booking.status === "pending" && (
                       <div className="flex gap-2">
-                        <button onClick={() => handleAction("approve", booking.id)} className="rounded-lg bg-green-500 px-3 py-1 text-xs font-semibold text-white hover:bg-green-600 transition-colors">
+                        <button onClick={() => handleAction("approve", booking.id)} className="rounded-lg bg-green-500 px-3 py-1 text-xs font-semibold text-[var(--text-main)] hover:bg-green-600 transition-colors">
                           ✓
                         </button>
-                        <button onClick={() => handleAction("reject", booking.id)} className="rounded-lg bg-red-500 px-3 py-1 text-xs font-semibold text-white hover:bg-red-600 transition-colors">
+                        <button onClick={() => handleAction("reject", booking.id)} className="rounded-lg bg-red-500 px-3 py-1 text-xs font-semibold text-[var(--text-main)] hover:bg-red-600 transition-colors">
                           ✕
                         </button>
                       </div>

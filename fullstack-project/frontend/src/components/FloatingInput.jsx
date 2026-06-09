@@ -14,6 +14,8 @@ export default function FloatingInput({
   className = "",
   showPasswordToggle = false,
   error,
+  disabled = false,
+  helperText = "",
 }) {
   const [focused, setFocused] = useState(false);
   const [show, setShow] = useState(false);
@@ -42,6 +44,7 @@ export default function FloatingInput({
         autoComplete={autoComplete}
         required={required}
         maxLength={maxLength}
+        disabled={disabled}
       />
 
       <label
@@ -68,6 +71,9 @@ export default function FloatingInput({
       ) : null}
 
       {error ? <p className="mt-2 text-xs" style={{ color: "var(--error)" }}>{error}</p> : null}
+      {!error && helperText ? (
+        <p className="mt-2 text-xs" style={{ color: "var(--text-muted)" }}>{helperText}</p>
+      ) : null}
     </div>
   );
 }

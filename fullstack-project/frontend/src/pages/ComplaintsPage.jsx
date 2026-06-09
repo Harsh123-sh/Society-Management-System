@@ -168,7 +168,7 @@ function ComplaintsPage() {
           </select>
           <button
             type="submit"
-            className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700"
+            className="rounded-lg theme-surface px-4 py-2 text-sm font-medium text-[var(--text-main)] hover:theme-surface"
           >
             Apply
           </button>
@@ -206,7 +206,7 @@ function ComplaintsPage() {
             <button
               type="submit"
               disabled={submitting}
-              className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700 disabled:cursor-not-allowed disabled:bg-slate-400"
+              className="rounded-lg theme-surface px-4 py-2 text-sm font-medium text-[var(--text-main)] hover:theme-surface disabled:cursor-not-allowed disabled:bg-slate-400"
             >
               {submitting ? "Submitting..." : "Submit Complaint"}
             </button>
@@ -299,7 +299,7 @@ function ComplaintsPage() {
                     <button
                       type="button"
                       onClick={() => handleAddComment(complaint.id)}
-                      className="rounded-lg bg-amber-500 px-3 py-2 text-sm font-medium text-white hover:bg-amber-600"
+                      className="rounded-lg bg-amber-500 px-3 py-2 text-sm font-medium text-[var(--text-main)] hover:bg-amber-600"
                     >
                       Add Comment
                     </button>

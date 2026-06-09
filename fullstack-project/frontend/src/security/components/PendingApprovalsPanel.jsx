@@ -22,10 +22,10 @@ function PendingApprovalsPanel() {
             </div>
 
             <div className="flex gap-2">
-              <button className="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-emerald-600">
+              <button className="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-bold text-[var(--text-main)] transition-colors hover:bg-emerald-600">
                 ✓ Approve
               </button>
-              <button className="rounded-lg bg-rose-500 px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-rose-600">
+              <button className="rounded-lg bg-rose-500 px-4 py-2 text-sm font-bold text-[var(--text-main)] transition-colors hover:bg-rose-600">
                 ✕ Reject
               </button>
             </div>

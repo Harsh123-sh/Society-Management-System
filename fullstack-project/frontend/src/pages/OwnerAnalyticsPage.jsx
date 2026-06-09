@@ -10,7 +10,7 @@ function OwnerAnalyticsPage() {
 
   return (
     <div className="space-y-6">
-      <section className="rounded-2xl bg-gradient-to-r from-slate-900 via-slate-800 to-emerald-700 p-6 text-white shadow-lg">
+      <section className="rounded-2xl bg-gradient-to-r from-[var(--page-bg)] via-[var(--surface-soft)] to-emerald-700 p-6 text-[var(--text-main)] shadow-lg">
         <h2 className="text-2xl font-bold">Income Tracking</h2>
         <p className="mt-1 text-sm text-slate-200">Rent received, monthly income summary, and profit trends for your property.</p>
       </section>
@@ -53,7 +53,7 @@ function OwnerAnalyticsPage() {
             <input className="rounded-lg border border-slate-300 px-3 py-2 text-sm" placeholder="Tenant name" />
             <input className="rounded-lg border border-slate-300 px-3 py-2 text-sm" placeholder="Flat number" />
             <input className="rounded-lg border border-slate-300 px-3 py-2 text-sm" placeholder="Agreement period" />
-            <button className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white">Generate Agreement</button>
+            <button className="rounded-lg theme-surface px-4 py-2 text-sm font-semibold text-[var(--text-main)]">Generate Agreement</button>
           </div>
         </article>
       </section>

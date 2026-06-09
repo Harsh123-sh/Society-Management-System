@@ -325,7 +325,7 @@ function VisitorEntryPage() {
 
   return (
     <div className="space-y-6 text-[var(--text-primary)]">
-      <section className="rounded-3xl bg-[var(--hero-bg)] p-6 text-white shadow-lg">
+      <section className="rounded-3xl bg-[var(--hero-bg)] p-6 text-[var(--text-main)] shadow-lg">
         <p className="text-xs font-semibold uppercase tracking-[0.3em] text-emerald-200">Mobile Guard App Flow</p>
         <h1 className="mt-2 text-3xl font-bold">Visitor Operations</h1>
         <p className="mt-2 max-w-3xl text-sm text-emerald-100">
@@ -369,8 +369,8 @@ function VisitorEntryPage() {
             </select>
             <input className="rounded-lg border border-[var(--border)] bg-[var(--input-bg)] px-3 py-2 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-secondary)] focus:border-[rgb(var(--app-primary-rgb))] focus:outline-none" placeholder="QR token" value={scanToken} onChange={(event) => setScanToken(event.target.value)} />
             <button className="rounded-lg border border-[var(--border)] bg-[var(--card-bg)] px-3 py-2 text-sm font-semibold text-[var(--text-primary)]" onClick={handleManualQrScan} type="button">Scan QR</button>
-            <button className="rounded-lg bg-[rgb(var(--app-primary-rgb))] px-3 py-2 text-sm font-semibold text-white" onClick={handleCreatePass} type="button">Issue QR Pass</button>
-            <button className="rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white" onClick={handleSendOtp} type="button">Send OTP</button>
+            <button className="rounded-lg bg-[rgb(var(--app-primary-rgb))] px-3 py-2 text-sm font-semibold text-[var(--text-main)]" onClick={handleCreatePass} type="button">Issue QR Pass</button>
+            <button className="rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-[var(--text-main)]" onClick={handleSendOtp} type="button">Send OTP</button>
             <button className="rounded-lg border border-emerald-400 px-3 py-2 text-sm font-semibold text-emerald-700" onClick={handleVerifyOtp} type="button">Verify OTP</button>
           </div>
           <div className="mt-4 grid gap-3 md:grid-cols-2">
@@ -409,7 +409,7 @@ function VisitorEntryPage() {
             <input className="rounded-lg border border-[var(--border)] bg-[var(--input-bg)] px-3 py-2 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-secondary)] focus:border-[rgb(var(--app-primary-rgb))] focus:outline-none" placeholder="Vehicle number" value={form.vehicleNumber} onChange={(event) => setForm((prev) => ({ ...prev, vehicleNumber: event.target.value }))} />
             <input className="rounded-lg border border-[var(--border)] bg-[var(--input-bg)] px-3 py-2 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-secondary)] focus:border-[rgb(var(--app-primary-rgb))] focus:outline-none md:col-span-2" placeholder="Face confidence (optional)" value={form.faceDetectionConfidence} onChange={(event) => setForm((prev) => ({ ...prev, faceDetectionConfidence: event.target.value }))} />
             <div className="md:col-span-2 flex flex-wrap gap-2">
-              <button type="submit" disabled={submittingCheckIn} className="rounded-lg bg-[rgb(var(--app-primary-rgb))] px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:bg-[rgb(var(--app-border-rgb))]">{submittingCheckIn ? "Checking In..." : "Check In Visitor"}</button>
+              <button type="submit" disabled={submittingCheckIn} className="rounded-lg bg-[rgb(var(--app-primary-rgb))] px-4 py-2 text-sm font-semibold text-[var(--text-main)] disabled:cursor-not-allowed disabled:bg-[rgb(var(--app-border-rgb))]">{submittingCheckIn ? "Checking In..." : "Check In Visitor"}</button>
               <button type="button" onClick={handleRecognizeFace} className="rounded-lg border border-[var(--border)] px-4 py-2 text-sm font-semibold text-[var(--text-primary)]">AI Face Check</button>
               <button type="button" onClick={handleEmergency} className="rounded-lg border border-rose-300 bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-700">Raise Emergency</button>
             </div>
@@ -430,7 +430,7 @@ function VisitorEntryPage() {
                 <option>Bike</option>
                 <option>Truck</option>
               </select>
-              <button className="rounded-lg bg-[rgb(var(--app-primary-rgb))] px-4 py-2 text-sm font-semibold text-white">Log Vehicle</button>
+              <button className="rounded-lg bg-[rgb(var(--app-primary-rgb))] px-4 py-2 text-sm font-semibold text-[var(--text-main)]">Log Vehicle</button>
             </form>
 
             <form className="space-y-3 rounded-xl border border-[var(--border)] bg-[rgb(var(--app-surface-muted-rgb))] p-4" onSubmit={handleDeliverySubmit}>
@@ -444,7 +444,7 @@ function VisitorEntryPage() {
                 <option>Grocery</option>
                 <option>Maintenance</option>
               </select>
-              <button className="rounded-lg bg-[rgb(var(--app-primary-rgb))] px-4 py-2 text-sm font-semibold text-white">Log Delivery</button>
+              <button className="rounded-lg bg-[rgb(var(--app-primary-rgb))] px-4 py-2 text-sm font-semibold text-[var(--text-main)]">Log Delivery</button>
             </form>
           </div>
         </Section>

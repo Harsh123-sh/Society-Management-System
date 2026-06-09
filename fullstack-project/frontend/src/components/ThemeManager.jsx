@@ -106,8 +106,8 @@ const ThemeManager = ({ societyId }) => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto p-6 bg-neutral-50 dark:bg-neutral-900 rounded-lg">
-      <h1 className="text-3xl font-bold mb-6 text-neutral-900 dark:text-white">
+    <div className="max-w-6xl mx-auto p-6 bg-neutral-50 dark:theme-surface rounded-lg">
+      <h1 className="text-3xl font-bold mb-6 text-neutral-900 dark:text-[var(--text-main)]">
         Theme Customization
       </h1>
 
@@ -181,19 +181,19 @@ const ThemeManager = ({ societyId }) => {
             <h3 className="font-semibold">Color Preview</h3>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div
-                className="h-32 rounded-lg shadow-md flex items-center justify-center text-white font-semibold"
+                className="h-32 rounded-lg shadow-md flex items-center justify-center text-[var(--text-main)] font-semibold"
                 style={{ backgroundColor: formData.theme_primary }}
               >
                 Primary
               </div>
               <div
-                className="h-32 rounded-lg shadow-md flex items-center justify-center text-white font-semibold"
+                className="h-32 rounded-lg shadow-md flex items-center justify-center text-[var(--text-main)] font-semibold"
                 style={{ backgroundColor: formData.theme_secondary }}
               >
                 Secondary
               </div>
               <div
-                className="h-32 rounded-lg shadow-md flex items-center justify-center text-white font-semibold"
+                className="h-32 rounded-lg shadow-md flex items-center justify-center text-[var(--text-main)] font-semibold"
                 style={{ backgroundColor: formData.theme_accent }}
               >
                 Accent

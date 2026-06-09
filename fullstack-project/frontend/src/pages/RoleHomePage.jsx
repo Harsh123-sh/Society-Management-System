@@ -5,7 +5,7 @@ function RoleHomePage({ title, description }) {
 
   return (
     <div className="space-y-4">
-      <section className="rounded-2xl bg-gradient-to-r from-slate-900 via-slate-800 to-amber-700 p-6 text-white shadow-lg">
+      <section className="rounded-2xl bg-gradient-to-r from-[var(--page-bg)] via-[var(--surface-soft)] to-amber-700 p-6 text-[var(--text-main)] shadow-lg">
         <h2 className="text-2xl font-bold">{title}</h2>
         <p className="mt-2 text-sm text-slate-100">{description}</p>
       </section>

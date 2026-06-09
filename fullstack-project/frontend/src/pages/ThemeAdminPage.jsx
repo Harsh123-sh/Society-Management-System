@@ -150,8 +150,8 @@ function ThemeAdminPage() {
 
   return (
     <div className="space-y-6">
-      <section className="rounded-3xl bg-gradient-to-r from-slate-950 via-slate-900 to-teal-800 p-6 text-white shadow-[0_24px_60px_-30px_rgba(15,23,42,0.55)] sm:p-8">
-        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/60">Theme admin panel</p>
+      <section className="rounded-3xl bg-gradient-to-r from-[var(--page-bg)] via-[var(--surface-soft)] to-teal-800 p-6 text-[var(--text-main)] shadow-[0_24px_60px_-30px_rgba(15,23,42,0.55)] sm:p-8">
+        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--text-secondary)]">Theme admin panel</p>
         <div className="mt-4 grid gap-4 lg:grid-cols-[1.2fr_0.8fr] lg:items-end">
           <div>
             <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Multi-society theme engine</h1>
@@ -162,8 +162,8 @@ function ThemeAdminPage() {
           <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
             {stats.map((item) => (
               <div key={item.label} className="rounded-2xl border border-white/10 bg-white/10 p-4 backdrop-blur">
-                <p className="text-[11px] uppercase tracking-[0.2em] text-white/60">{item.label}</p>
-                <p className="mt-2 text-lg font-semibold text-white">{item.value}</p>
+                <p className="text-[11px] uppercase tracking-[0.2em] text-[var(--text-secondary)]">{item.label}</p>
+                <p className="mt-2 text-lg font-semibold text-[var(--text-main)]">{item.value}</p>
               </div>
             ))}
           </div>
@@ -271,10 +271,10 @@ function ThemeAdminPage() {
             <h2 className="text-lg font-semibold text-slate-950">Live preview</h2>
             <p className="text-sm text-slate-500">Preview the selected society tokens before saving.</p>
 
-            <div className="mt-5 rounded-3xl p-5 text-white" style={{ background: `linear-gradient(135deg, ${themeDraft.primaryColor}, ${themeDraft.secondaryColor})` }}>
-              <p className="text-xs uppercase tracking-[0.24em] text-white/70">{currentSociety?.name || 'Society preview'}</p>
+            <div className="mt-5 rounded-3xl p-5 text-[var(--text-main)]" style={{ background: `linear-gradient(135deg, ${themeDraft.primaryColor}, ${themeDraft.secondaryColor})` }}>
+              <p className="text-xs uppercase tracking-[0.24em] text-[var(--text-secondary)]">{currentSociety?.name || 'Society preview'}</p>
               <h3 className="mt-3 text-2xl font-semibold">{themeDraft.theme.mode === 'dark' ? 'Dark' : 'Light'} theme</h3>
-              <p className="mt-2 text-sm text-white/80">Dynamic colors, logo, font, and layout controls applied live.</p>
+              <p className="mt-2 text-sm text-[var(--text-secondary)]">Dynamic colors, logo, font, and layout controls applied live.</p>
               <div className="mt-4 flex flex-wrap gap-2">
                 <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-semibold">{themeDraft.fontFamily}</span>
                 <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-semibold">{themeDraft.theme.layout}</span>
@@ -287,7 +287,7 @@ function ThemeAdminPage() {
             <h2 className="text-lg font-semibold text-slate-950">Theme actions</h2>
             <p className="text-sm text-slate-500">Persist to society branding or generate a new AI theme pack.</p>
             <div className="mt-5 flex flex-col gap-3">
-              <button type="button" onClick={handleGenerate} disabled={saving || loading} className="rounded-2xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white disabled:opacity-50">
+              <button type="button" onClick={handleGenerate} disabled={saving || loading} className="rounded-2xl theme-page px-4 py-3 text-sm font-semibold text-[var(--text-main)] disabled:opacity-50">
                 AI generate theme
               </button>
               <button type="button" onClick={handleSave} disabled={saving || loading} className="rounded-2xl border border-teal-200 bg-teal-50 px-4 py-3 text-sm font-semibold text-teal-900 disabled:opacity-50">

@@ -20,6 +20,11 @@ export async function createAutoInvoices(payload) {
   return data;
 }
 
+export async function createBillTemplate(payload) {
+  const { data } = await api.post("/bills/templates", payload);
+  return data;
+}
+
 export async function markBillPaid(billId) {
   const { data } = await api.patch(`/bills/${billId}/pay`);
   return data;

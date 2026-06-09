@@ -97,7 +97,7 @@ function PaymentsPage() {
             type="button"
             onClick={handleLateFee}
             disabled={actionLoading === "late-fee"}
-            className="rounded-lg bg-amber-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
+            className="rounded-lg bg-amber-600 px-4 py-2 text-sm font-semibold text-[var(--text-main)] disabled:opacity-60"
           >
             {actionLoading === "late-fee" ? "Applying..." : "Run Late Fee"}
           </button>
@@ -105,7 +105,7 @@ function PaymentsPage() {
             type="button"
             onClick={handleReminders}
             disabled={actionLoading === "reminders"}
-            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
+            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-[var(--text-main)] disabled:opacity-60"
           >
             {actionLoading === "reminders" ? "Sending..." : "Send Reminders"}
           </button>

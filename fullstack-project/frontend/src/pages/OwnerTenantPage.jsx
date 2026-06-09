@@ -35,7 +35,7 @@ function OwnerTenantPage() {
 
   return (
     <div className="space-y-6">
-      <section className="rounded-2xl bg-gradient-to-r from-slate-900 via-slate-800 to-amber-700 p-6 text-white shadow-lg">
+      <section className="rounded-2xl bg-gradient-to-r from-[var(--page-bg)] via-[var(--surface-soft)] to-amber-700 p-6 text-[var(--text-main)] shadow-lg">
         <h2 className="text-2xl font-bold">Tenant Management</h2>
         <p className="mt-1 text-sm text-slate-200">Add, edit, and track tenants, agreements, and move-in / move-out history.</p>
       </section>
@@ -54,7 +54,7 @@ function OwnerTenantPage() {
             <input className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" placeholder="Phone number" value={form.phone} onChange={(event) => setForm((prev) => ({ ...prev, phone: event.target.value }))} />
             <input className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" placeholder="Move-in date" type="date" value={form.moveIn} onChange={(event) => setForm((prev) => ({ ...prev, moveIn: event.target.value }))} />
             <input className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" placeholder="Upload / agreement reference" value={form.agreement} onChange={(event) => setForm((prev) => ({ ...prev, agreement: event.target.value }))} />
-            <button className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white">Save Tenant</button>
+            <button className="rounded-lg theme-surface px-4 py-2 text-sm font-semibold text-[var(--text-main)]">Save Tenant</button>
           </form>
         </article>
 

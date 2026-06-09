@@ -111,7 +111,7 @@ function DocumentsPage() {
             <button
               type="submit"
               disabled={uploading}
-              className="rounded-lg bg-slate-900 px-3 py-2 text-sm font-semibold text-white hover:bg-slate-700 disabled:opacity-60"
+              className="rounded-lg theme-surface px-3 py-2 text-sm font-semibold text-[var(--text-main)] hover:theme-surface disabled:opacity-60"
             >
               {uploading ? "Uploading..." : "Upload"}
             </button>
@@ -160,14 +160,14 @@ function DocumentsPage() {
                           <button
                             type="button"
                             onClick={() => handleReview(doc.id, "approved")}
-                            className="rounded bg-emerald-600 px-2 py-1 text-xs font-semibold text-white"
+                            className="rounded bg-emerald-600 px-2 py-1 text-xs font-semibold text-[var(--text-main)]"
                           >
                             Approve
                           </button>
                           <button
                             type="button"
                             onClick={() => handleReview(doc.id, "rejected")}
-                            className="rounded bg-rose-600 px-2 py-1 text-xs font-semibold text-white"
+                            className="rounded bg-rose-600 px-2 py-1 text-xs font-semibold text-[var(--text-main)]"
                           >
                             Reject
                           </button>

@@ -140,7 +140,7 @@ function CameraCapture({ onCapture, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+    <div className="fixed inset-0 z-50 flex items-center justify-center theme-modal-backdrop">
       <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-lg">
         <h3 className="mb-4 text-lg font-semibold text-slate-900">Capture Visitor Photo</h3>
 
@@ -187,7 +187,7 @@ function CameraCapture({ onCapture, onClose }) {
             type="button"
             onClick={handleCapture}
             disabled={!cameraReady || !modelsLoaded || !faceState.isDetected || !faceState.isValid}
-            className="flex-1 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-300"
+            className="flex-1 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-[var(--text-main)] hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-300"
           >
             Capture Photo
           </button>

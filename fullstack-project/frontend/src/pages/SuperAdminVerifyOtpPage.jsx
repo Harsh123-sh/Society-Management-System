@@ -104,7 +104,7 @@ function SuperAdminVerifyOtpPage() {
           type="button"
           onClick={handleResend}
           disabled={resending}
-          className="font-medium text-cyan-100 transition hover:text-white disabled:text-white/40"
+          className="font-medium text-cyan-100 transition hover:text-[var(--text-main)] disabled:text-[var(--text-secondary)]"
         >
           {resending ? "Resending..." : "Resend OTP"}
         </button>

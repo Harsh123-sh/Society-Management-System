@@ -66,7 +66,7 @@ function SuperAdminForgotPasswordPage() {
 
       <div className="flex items-center justify-between text-sm">
         <AuthLink to="/super-admin/login">Back to login</AuthLink>
-        <span className="text-white/50">Hidden route only</span>
+        <span className="text-[var(--text-secondary)]">Hidden route only</span>
       </div>
     </AuthLayout>
   );

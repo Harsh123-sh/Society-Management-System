@@ -10,7 +10,7 @@ function AccessDeniedPage() {
         </p>
         <Link
           to="/login"
-          className="mt-5 inline-block rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700"
+          className="mt-5 inline-block rounded-lg theme-surface px-4 py-2 text-sm font-medium text-[var(--text-main)] hover:theme-surface"
         >
           Back to Login
         </Link>

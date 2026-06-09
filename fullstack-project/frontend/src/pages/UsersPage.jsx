@@ -307,14 +307,14 @@ function UsersPage() {
 
   return (
     <div className="space-y-5">
-      <section className="overflow-hidden rounded-3xl bg-gradient-to-r from-slate-950 via-slate-900 to-teal-800 p-6 text-white shadow-[0_24px_60px_-30px_rgba(15,23,42,0.55)] sm:p-8">
-        <div className="flex flex-wrap items-center gap-3 text-xs font-semibold uppercase tracking-[0.22em] text-white/65">
+      <section className="overflow-hidden rounded-3xl bg-gradient-to-r from-[var(--page-bg)] via-[var(--surface-soft)] to-teal-800 p-6 text-[var(--text-main)] shadow-[0_24px_60px_-30px_rgba(15,23,42,0.55)] sm:p-8">
+        <div className="flex flex-wrap items-center gap-3 text-xs font-semibold uppercase tracking-[0.22em] text-[var(--text-secondary)]">
           <span>Resident Directory</span>
           <span className="rounded-full border border-white/15 px-3 py-1 text-[10px] tracking-[0.18em]">Role-based control</span>
         </div>
         <div className="mt-5 grid gap-5 lg:grid-cols-[1.2fr_0.8fr] lg:items-end">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/65">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--text-secondary)]">
               User Management
             </p>
             <h2 className="mt-1 text-3xl font-semibold tracking-tight sm:text-4xl">Role-based users panel</h2>
@@ -325,8 +325,8 @@ function UsersPage() {
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4 lg:grid-cols-2">
             {userStats.map((stat) => (
               <div key={stat.label} className="rounded-2xl border border-white/10 bg-white/10 p-4 backdrop-blur">
-                <p className="text-[11px] uppercase tracking-[0.2em] text-white/60">{stat.label}</p>
-                <p className="mt-2 text-2xl font-semibold text-white">{stat.value}</p>
+                <p className="text-[11px] uppercase tracking-[0.2em] text-[var(--text-secondary)]">{stat.label}</p>
+                <p className="mt-2 text-2xl font-semibold text-[var(--text-main)]">{stat.value}</p>
               </div>
             ))}
           </div>
@@ -346,7 +346,7 @@ function UsersPage() {
                 onClick={() => handleRoleChange(tab.id)}
                 className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
                   isActive
-                    ? "border-slate-900 bg-slate-900 text-white"
+                    ? "border-slate-900 theme-surface text-[var(--text-main)]"
                     : "border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:text-slate-900"
                 }`}
               >
@@ -379,7 +379,7 @@ function UsersPage() {
           </select>
           <button
             type="submit"
-            className="rounded-2xl px-4 py-3 text-sm font-semibold text-white transition hover:opacity-95"
+            className="rounded-2xl px-4 py-3 text-sm font-semibold text-[var(--text-main)] transition hover:opacity-95"
             style={{ backgroundColor: "rgb(var(--app-accent-rgb))" }}
           >
             Search

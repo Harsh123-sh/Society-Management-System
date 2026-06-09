@@ -437,7 +437,7 @@ function VisitorEntryForm({ hub }) {
 
         <button
           type="submit"
-          className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-700 md:col-span-2"
+          className="rounded-lg theme-surface px-4 py-2 text-sm font-semibold text-[var(--text-main)] hover:theme-surface md:col-span-2"
         >
           Check-in
         </button>
@@ -526,7 +526,7 @@ function VisitorLogTable({ hub }) {
                     {!item.check_out_time ? (
                       <button
                         type="button"
-                        className="rounded-md bg-slate-900 px-2 py-1 text-xs font-semibold text-white"
+                        className="rounded-md theme-surface px-2 py-1 text-xs font-semibold text-[var(--text-main)]"
                         onClick={() => hub.checkOutVisitor(item.id)}
                       >
                         Check-out
@@ -564,12 +564,12 @@ function SecurityDashboard() {
 
   return (
     <div className="space-y-6">
-      <section className="rounded-2xl bg-gradient-to-r from-slate-900 via-slate-800 to-red-700 p-6 text-white shadow-lg">
+      <section className="rounded-2xl bg-gradient-to-r from-[var(--page-bg)] via-[var(--surface-soft)] to-red-700 p-6 text-[var(--text-main)] shadow-lg">
         <SectionHeader
           title="Security Dashboard"
           subtitle="Live view for visitor movement, deliveries, alerts, and emergency controls"
           action={
-            <button className="rounded-lg bg-red-500 px-4 py-2 text-sm font-semibold text-white hover:bg-red-400">
+            <button className="rounded-lg bg-red-500 px-4 py-2 text-sm font-semibold text-[var(--text-main)] hover:bg-red-400">
               Emergency Button
             </button>
           }
@@ -699,11 +699,11 @@ function PreApprovedPage() {
                         value={hub.otpMap[item.id] || ""}
                         onChange={(e) => hub.setOtpMap((prev) => ({ ...prev, [item.id]: e.target.value }))}
                       />
-                      <button onClick={() => hub.handleVerifyOtp(item.id, hub.otpMap[item.id] || "")} className="rounded-md bg-[rgb(var(--app-primary-rgb))] px-2 py-1 text-xs font-semibold text-white">Verify OTP</button>
-                      <button onClick={() => hub.handleVerifyQr(item.qr_pass_token || "")} className="rounded-md bg-[rgb(var(--app-secondary-rgb))] px-2 py-1 text-xs font-semibold text-white">Verify QR</button>
-                      <button onClick={() => hub.handleApprove(item.id)} className="rounded-md bg-[rgb(var(--app-accent-rgb))] px-2 py-1 text-xs font-semibold text-white">Approve</button>
-                      <button onClick={() => hub.handleReject(item.id)} className="rounded-md bg-rose-600 px-2 py-1 text-xs font-semibold text-white">Reject</button>
-                      <button onClick={() => hub.handleCheckIn(item.id)} className="rounded-md bg-[rgb(var(--app-primary-rgb))] px-2 py-1 text-xs font-semibold text-white">Check-In</button>
+                      <button onClick={() => hub.handleVerifyOtp(item.id, hub.otpMap[item.id] || "")} className="rounded-md bg-[rgb(var(--app-primary-rgb))] px-2 py-1 text-xs font-semibold text-[var(--text-main)]">Verify OTP</button>
+                      <button onClick={() => hub.handleVerifyQr(item.qr_pass_token || "")} className="rounded-md bg-[rgb(var(--app-secondary-rgb))] px-2 py-1 text-xs font-semibold text-[var(--text-main)]">Verify QR</button>
+                      <button onClick={() => hub.handleApprove(item.id)} className="rounded-md bg-[rgb(var(--app-accent-rgb))] px-2 py-1 text-xs font-semibold text-[var(--text-main)]">Approve</button>
+                      <button onClick={() => hub.handleReject(item.id)} className="rounded-md bg-rose-600 px-2 py-1 text-xs font-semibold text-[var(--text-main)]">Reject</button>
+                      <button onClick={() => hub.handleCheckIn(item.id)} className="rounded-md bg-[rgb(var(--app-primary-rgb))] px-2 py-1 text-xs font-semibold text-[var(--text-main)]">Check-In</button>
                     </td>
                   </tr>
                 ))
@@ -842,7 +842,7 @@ function GatePassPage() {
               <option>Daily</option>
               <option>Weekly</option>
             </select>
-            <button className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white">Generate Pass</button>
+            <button className="rounded-lg theme-surface px-4 py-2 text-sm font-semibold text-[var(--text-main)]">Generate Pass</button>
           </div>
         </article>
 
@@ -915,9 +915,9 @@ function AlertsPage() {
       />
 
       <section className="grid gap-3 sm:grid-cols-3">
-        <button className="rounded-xl bg-red-600 px-4 py-3 text-sm font-semibold text-white hover:bg-red-500">Panic Button</button>
-        <button className="rounded-xl bg-amber-500 px-4 py-3 text-sm font-semibold text-white hover:bg-amber-400">Fire Alert</button>
-        <button className="rounded-xl bg-slate-800 px-4 py-3 text-sm font-semibold text-white hover:bg-slate-700">Unauthorized Entry Alert</button>
+        <button className="rounded-xl bg-red-600 px-4 py-3 text-sm font-semibold text-[var(--text-main)] hover:bg-red-500">Panic Button</button>
+        <button className="rounded-xl bg-amber-500 px-4 py-3 text-sm font-semibold text-[var(--text-main)] hover:bg-amber-400">Fire Alert</button>
+        <button className="rounded-xl theme-surface px-4 py-3 text-sm font-semibold text-[var(--text-main)] hover:theme-surface">Unauthorized Entry Alert</button>
       </section>
 
       <section className="rounded-xl border border-[var(--border)] bg-[var(--card-bg)] p-5 shadow-sm">
@@ -962,7 +962,7 @@ function ReportsPage() {
             <option>Delivery</option>
             <option>Service</option>
           </select>
-          <button className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white">Apply Filters</button>
+          <button className="rounded-lg theme-surface px-4 py-2 text-sm font-semibold text-[var(--text-main)]">Apply Filters</button>
         </div>
       </section>
 
@@ -972,7 +972,7 @@ function ReportsPage() {
           <div className="mt-3 flex flex-wrap gap-2">
             <button className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700">Daily Visitor Report</button>
             <button className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700">Security Activity Report</button>
-            <button className="rounded-lg bg-slate-900 px-3 py-2 text-sm font-semibold text-white">Generate AI Report</button>
+            <button className="rounded-lg theme-surface px-3 py-2 text-sm font-semibold text-[var(--text-main)]">Generate AI Report</button>
           </div>
         </article>
 

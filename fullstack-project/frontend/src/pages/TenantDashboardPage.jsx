@@ -129,7 +129,7 @@ function TenantDashboardPage() {
             <input className="ui-input w-full px-3 py-2 text-sm" placeholder="Phone" value={visitorForm.phone} onChange={(event) => setVisitorForm((prev) => ({ ...prev, phone: event.target.value }))} />
             <input className="ui-input w-full px-3 py-2 text-sm" placeholder="Purpose" value={visitorForm.purpose} onChange={(event) => setVisitorForm((prev) => ({ ...prev, purpose: event.target.value }))} />
             <input className="ui-input w-full px-3 py-2 text-sm" type="datetime-local" value={visitorForm.expectedAt} onChange={(event) => setVisitorForm((prev) => ({ ...prev, expectedAt: event.target.value }))} />
-            <button className="rounded-xl bg-[rgb(var(--app-primary-rgb))] px-4 py-2 text-sm font-semibold text-white transition-all hover:opacity-90">Approve Visitor</button>
+            <button className="rounded-xl bg-[rgb(var(--app-primary-rgb))] px-4 py-2 text-sm font-semibold text-[var(--text-main)] transition-all hover:opacity-90">Approve Visitor</button>
           </form>
         </article>
 
@@ -179,7 +179,7 @@ function TenantDashboardPage() {
       </section>
 
       <div className="flex flex-wrap gap-2">
-        <Link className="rounded-xl bg-[rgb(var(--app-primary-rgb))] px-3 py-2 text-sm font-semibold text-white transition-all hover:opacity-90" to="/resident/documents">
+        <Link className="rounded-xl bg-[rgb(var(--app-primary-rgb))] px-3 py-2 text-sm font-semibold text-[var(--text-main)] transition-all hover:opacity-90" to="/resident/documents">
           Upload Documents
         </Link>
         <Link className="rounded-xl border border-[rgb(var(--app-border-rgb))] px-3 py-2 text-sm font-semibold text-[rgb(var(--app-text-rgb))] transition-colors hover:border-[rgb(var(--app-primary-rgb))]" to="/resident/billing">

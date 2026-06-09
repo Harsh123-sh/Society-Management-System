@@ -10,22 +10,71 @@
         try {
           var storageKey = 'society_theme_engine_v2';
           var raw = localStorage.getItem(storageKey);
-          var systemTheme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
           var preferences = raw ? JSON.parse(raw) : {};
-          var themeMode = preferences.themeMode || preferences.theme || systemTheme;
-          var theme = themeMode === 'auto' ? systemTheme : themeMode;
+          var themeMode = preferences.themeMode === 'dark' || preferences.theme === 'dark' ? 'dark' : 'light';
+          var theme = themeMode;
           var density = preferences.density || 'comfortable';
           var layout = preferences.layoutMode || preferences.layout || 'glass';
           var accent = preferences.accentColor || preferences.accent || '79 70 229';
           var primary = preferences.primaryColor || '#4f46e5';
           var secondary = preferences.secondaryColor || '#2563eb';
           var isDark = theme === 'dark';
+          var tokens = isDark
+            ? {
+                appBg: '#020617',
+                pageBg: '#020617',
+                surface: '#0f172a',
+                surfaceSoft: '#1e293b',
+                cardBg: '#111827',
+                heroBg: 'linear-gradient(135deg, #020617, #0f766e)',
+                sidebarBg: '#020617',
+                navbarBg: '#0f172a',
+                textMain: '#f8fafc',
+                textSecondary: '#cbd5e1',
+                textMuted: '#94a3b8',
+                border: '#334155',
+                inputBg: '#1e293b',
+                inputText: '#f8fafc',
+                modalBg: '#0f172a',
+                tableBg: '#0f172a',
+                tableHeaderBg: '#1e293b',
+                buttonPrimaryBg: '#06b6d4',
+                buttonPrimaryText: '#ffffff',
+                shadow: '0 12px 30px rgba(0, 0, 0, 0.35)'
+              }
+            : {
+                appBg: '#f8fafc',
+                pageBg: '#f8fafc',
+                surface: '#ffffff',
+                surfaceSoft: '#f1f5f9',
+                cardBg: '#ffffff',
+                heroBg: 'linear-gradient(135deg, #ffffff, #f1f5f9)',
+                sidebarBg: '#f8fafc',
+                navbarBg: '#ffffff',
+                textMain: '#0f172a',
+                textSecondary: '#334155',
+                textMuted: '#64748b',
+                border: '#e2e8f0',
+                inputBg: '#ffffff',
+                inputText: '#0f172a',
+                modalBg: '#ffffff',
+                tableBg: '#ffffff',
+                tableHeaderBg: '#f1f5f9',
+                buttonPrimaryBg: '#06b6d4',
+                buttonPrimaryText: '#ffffff',
+                shadow: '0 12px 30px rgba(15, 23, 42, 0.08)'
+              };
           var bg = isDark ? '2 6 23' : '248 250 252';
           var surface = isDark ? '15 23 42' : '255 255 255';
           var surfaceMuted = isDark ? '30 41 59' : '241 245 249';
           var border = isDark ? '51 65 85' : '226 232 240';
-          var text = isDark ? '226 232 240' : '15 23 42';
-          var textMuted = isDark ? '148 163 184' : '71 85 105';
+          var text = isDark ? '248 250 252' : '15 23 42';
+          var textMuted = isDark ? '148 163 184' : '100 116 139';
+
+          Object.keys(tokens).forEach(function (key) {
+            var cssName = key.replace(/[A-Z]/g, function (match) { return '-' + match.toLowerCase(); });
+            document.documentElement.style.setProperty('--' + cssName, tokens[key]);
+          });
 
           document.documentElement.style.setProperty('--app-accent-rgb', accent);
           document.documentElement.style.setProperty('--app-primary-rgb', primary === '#4f46e5' ? '79 70 229' : accent);
@@ -37,24 +86,25 @@
           document.documentElement.style.setProperty('--app-text-rgb', text);
           document.documentElement.style.setProperty('--app-text-muted-rgb', textMuted);
           document.documentElement.style.setProperty('--app-card-rgb', surface);
-          document.documentElement.style.setProperty('--bg-main', isDark ? '#020617' : '#f8fafc');
-          document.documentElement.style.setProperty('--bg-card', isDark ? '#0f172a' : '#ffffff');
-          document.documentElement.style.setProperty('--bg-sidebar', isDark ? '#020617' : '#ffffff');
-          document.documentElement.style.setProperty('--bg-header', isDark ? '#0f172a' : '#ffffff');
-          document.documentElement.style.setProperty('--text-primary', isDark ? '#f8fafc' : '#0f172a');
-          document.documentElement.style.setProperty('--text-secondary', isDark ? '#cbd5e1' : '#475569');
-          document.documentElement.style.setProperty('--text-muted', isDark ? '#94a3b8' : '#64748b');
-          document.documentElement.style.setProperty('--border-color', isDark ? '#334155' : '#e2e8f0');
-          document.documentElement.style.setProperty('--input-bg', isDark ? '#111827' : '#ffffff');
-          document.documentElement.style.setProperty('--input-border', isDark ? '#334155' : '#e2e8f0');
-          document.documentElement.style.setProperty('--input-placeholder', isDark ? '#94a3b8' : '#64748b');
-          document.documentElement.style.setProperty('--button-bg', isDark ? '#1e293b' : '#ffffff');
-          document.documentElement.style.setProperty('--button-text', isDark ? '#f8fafc' : '#0f172a');
-          document.documentElement.style.setProperty('--hero-bg', isDark ? 'linear-gradient(135deg, #020617, #064e3b)' : 'linear-gradient(135deg, #ffffff, #ecfdf5)');
-          document.documentElement.style.setProperty('--background', isDark ? '#020617' : '#f8fafc');
-          document.documentElement.style.setProperty('--surface', isDark ? '#0f172a' : '#ffffff');
-          document.documentElement.style.setProperty('--text', isDark ? '#f8fafc' : '#0f172a');
-          document.documentElement.style.setProperty('--border', isDark ? '#334155' : '#e2e8f0');
+          document.documentElement.style.setProperty('--bg-primary', tokens.pageBg);
+          document.documentElement.style.setProperty('--bg-secondary', tokens.surface);
+          document.documentElement.style.setProperty('--bg-card', tokens.cardBg);
+          document.documentElement.style.setProperty('--bg-main', tokens.appBg);
+          document.documentElement.style.setProperty('--bg-sidebar', tokens.sidebarBg);
+          document.documentElement.style.setProperty('--bg-header', tokens.navbarBg);
+          document.documentElement.style.setProperty('--text-primary', tokens.textMain);
+          document.documentElement.style.setProperty('--text-secondary', tokens.textSecondary);
+          document.documentElement.style.setProperty('--text-muted', tokens.textMuted);
+          document.documentElement.style.setProperty('--text', tokens.textMain);
+          document.documentElement.style.setProperty('--border-color', tokens.border);
+          document.documentElement.style.setProperty('--input-border', tokens.border);
+          document.documentElement.style.setProperty('--input-placeholder', tokens.textMuted);
+          document.documentElement.style.setProperty('--button-bg', tokens.buttonPrimaryBg);
+          document.documentElement.style.setProperty('--button-text', tokens.buttonPrimaryText);
+          document.documentElement.style.setProperty('--table-row-bg', tokens.tableBg);
+          document.documentElement.style.setProperty('--shadow-color', isDark ? 'rgba(0, 0, 0, 0.45)' : 'rgba(15, 23, 42, 0.10)');
+          document.documentElement.style.setProperty('--background', tokens.appBg);
+          document.documentElement.style.setProperty('--card', tokens.cardBg);
           document.documentElement.style.setProperty('--app-font-sans', 'Manrope, Space Grotesk, Segoe UI, sans-serif');
           document.documentElement.style.setProperty('--app-layout-mode', layout);
           document.documentElement.style.setProperty('--app-logo-url', preferences.logoUrl || '');

@@ -26,8 +26,8 @@ function EmergencyAlertsPanel() {
             <span
               className={`inline-flex rounded-full px-3 py-1 text-xs font-bold whitespace-nowrap ${
                 alert.status === "active"
-                  ? "bg-red-500 text-white"
-                  : "bg-green-500 text-white"
+                  ? "bg-red-500 text-[var(--text-main)]"
+                  : "bg-green-500 text-[var(--text-main)]"
               }`}
             >
               {alert.status === "active" ? "🔴 Active" : "✓ Resolved"}
@@ -36,7 +36,7 @@ function EmergencyAlertsPanel() {
         ))}
       </div>
 
-      <button className="mt-4 w-full px-4 py-3 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700 transition-colors">
+      <button className="mt-4 w-full px-4 py-3 bg-red-600 text-[var(--text-main)] font-bold rounded-lg hover:bg-red-700 transition-colors">
         📞 Emergency Contact
       </button>
     </div>

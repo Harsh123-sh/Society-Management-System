@@ -88,7 +88,7 @@ function SettingsPage() {
             </div>
           </div>
 
-          <button className="rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 px-6 py-3 font-semibold text-white hover:shadow-lg transition-all">
+          <button className="rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 px-6 py-3 font-semibold text-[var(--text-main)] hover:shadow-lg transition-all">
             💾 Save Changes
           </button>
         </div>
@@ -148,7 +148,7 @@ function SettingsPage() {
           </div>
         </div>
 
-        <button className="mt-6 rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 px-6 py-3 font-semibold text-white hover:shadow-lg transition-all">
+        <button className="mt-6 rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 px-6 py-3 font-semibold text-[var(--text-main)] hover:shadow-lg transition-all">
           💾 Update Charges
         </button>
       </div>
@@ -187,7 +187,7 @@ function SettingsPage() {
           ))}
         </div>
 
-        <button className="mt-6 rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 px-6 py-3 font-semibold text-white hover:shadow-lg transition-all">
+        <button className="mt-6 rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 px-6 py-3 font-semibold text-[var(--text-main)] hover:shadow-lg transition-all">
           ➕ Add New Role
         </button>
       </div>
@@ -225,7 +225,7 @@ function SettingsPage() {
           ))}
         </div>
 
-        <button className="mt-6 rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 px-6 py-3 font-semibold text-white hover:shadow-lg transition-all">
+        <button className="mt-6 rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 px-6 py-3 font-semibold text-[var(--text-main)] hover:shadow-lg transition-all">
           💾 Save Preferences
         </button>
       </div>
@@ -240,7 +240,7 @@ function SettingsPage() {
               <p className="font-semibold text-red-900">Clear Cache</p>
               <p className="text-sm text-red-700">Remove all cached data</p>
             </div>
-            <button className="rounded-lg bg-red-500 px-4 py-2 font-semibold text-white hover:bg-red-600 transition-colors">
+            <button className="rounded-lg bg-red-500 px-4 py-2 font-semibold text-[var(--text-main)] hover:bg-red-600 transition-colors">
               Clear
             </button>
           </div>
@@ -250,7 +250,7 @@ function SettingsPage() {
               <p className="font-semibold text-red-900">Reset Database</p>
               <p className="text-sm text-red-700">This action cannot be undone</p>
             </div>
-            <button className="rounded-lg bg-red-600 px-4 py-2 font-semibold text-white hover:bg-red-700 transition-colors">
+            <button className="rounded-lg bg-red-600 px-4 py-2 font-semibold text-[var(--text-main)] hover:bg-red-700 transition-colors">
               Reset
             </button>
           </div>

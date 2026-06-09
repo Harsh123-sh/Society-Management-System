@@ -73,7 +73,7 @@ function OwnersPage() {
       <AlertMessage type={alert.type} message={alert.message} />
 
       <div className="flex justify-end">
-        <button onClick={() => setShowCreateModal(true)} className="rounded-md bg-blue-600 px-3 py-2 text-white">Add Owner</button>
+        <button onClick={() => setShowCreateModal(true)} className="rounded-md bg-blue-600 px-3 py-2 text-[var(--text-main)]">Add Owner</button>
       </div>
 
       <div className="rounded-2xl border bg-white p-4">
@@ -113,7 +113,7 @@ function OwnersPage() {
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold">Properties for {selectedOwner.name}</h3>
             <div>
-              <button onClick={() => setShowAssignModal(true)} className="rounded-md bg-emerald-600 px-3 py-2 text-white">Assign Flat</button>
+              <button onClick={() => setShowAssignModal(true)} className="rounded-md bg-emerald-600 px-3 py-2 text-[var(--text-main)]">Assign Flat</button>
             </div>
           </div>
 
@@ -141,7 +141,7 @@ function OwnersPage() {
 
       {/* Assign modal */}
       {showAssignModal && selectedOwner && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40">
+        <div className="fixed inset-0 z-50 flex items-center justify-center theme-surface">
           <div className="w-full max-w-md rounded-lg bg-white p-6">
             <h4 className="text-lg font-semibold">Assign flat to {selectedOwner.name}</h4>
             <form className="mt-4 space-y-3" onSubmit={handleAssign}>
@@ -149,7 +149,7 @@ function OwnersPage() {
               <input type="date" placeholder="Living start date" value={assignForm.livingStartDate} onChange={(e) => setAssignForm((p) => ({ ...p, livingStartDate: e.target.value }))} className="w-full rounded-md border px-3 py-2" />
               <div className="flex justify-end gap-2">
                 <button type="button" onClick={() => setShowAssignModal(false)} className="px-3 py-2">Cancel</button>
-                <button type="submit" className="px-3 py-2 rounded-md bg-emerald-600 text-white">Assign</button>
+                <button type="submit" className="px-3 py-2 rounded-md bg-emerald-600 text-[var(--text-main)]">Assign</button>
               </div>
             </form>
           </div>
@@ -158,7 +158,7 @@ function OwnersPage() {
 
       {/* Create Owner modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40">
+        <div className="fixed inset-0 z-50 flex items-center justify-center theme-surface">
           <div className="w-full max-w-md rounded-lg bg-white p-6">
             <h4 className="text-lg font-semibold">Create Owner</h4>
             <form className="mt-4 space-y-3" onSubmit={async (e) => {
@@ -179,7 +179,7 @@ function OwnersPage() {
               <input className="w-full rounded-md border px-3 py-2" placeholder="Phone" value={createForm.phone} onChange={(e) => setCreateForm((p) => ({ ...p, phone: e.target.value }))} />
               <div className="flex justify-end gap-2">
                 <button type="button" onClick={() => setShowCreateModal(false)} className="px-3 py-2">Cancel</button>
-                <button type="submit" className="px-3 py-2 rounded-md bg-blue-600 text-white">Create</button>
+                <button type="submit" className="px-3 py-2 rounded-md bg-blue-600 text-[var(--text-main)]">Create</button>
               </div>
             </form>
           </div>

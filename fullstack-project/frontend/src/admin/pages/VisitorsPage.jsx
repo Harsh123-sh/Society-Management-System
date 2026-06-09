@@ -61,7 +61,7 @@ function VisitorsPage() {
           <h1 className="text-3xl font-bold text-slate-900">🚗 Visitor Management</h1>
           <p className="mt-2 text-slate-600">Track visitor entries and approvals</p>
         </div>
-        <button className="rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 px-6 py-3 font-semibold text-white hover:shadow-lg transition-all">
+        <button className="rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 px-6 py-3 font-semibold text-[var(--text-main)] hover:shadow-lg transition-all">
           ➕ Add Visitor
         </button>
       </div>
@@ -71,7 +71,7 @@ function VisitorsPage() {
         {stats.map((stat) => (
           <div
             key={stat.label}
-            className={`rounded-xl bg-gradient-to-br ${stat.color} p-5 shadow-sm text-white`}
+            className={`rounded-xl bg-gradient-to-br ${stat.color} p-5 shadow-sm text-[var(--text-main)]`}
           >
             <div className="flex items-center justify-between">
               <div>
@@ -132,10 +132,10 @@ function VisitorsPage() {
                   {new Date(visitor.entryTime).toLocaleString()}
                 </p>
                 <div className="mt-4 flex gap-2">
-                  <button className="flex-1 rounded-lg bg-green-500 px-3 py-2 text-sm font-semibold text-white hover:bg-green-600 transition-colors">
+                  <button className="flex-1 rounded-lg bg-green-500 px-3 py-2 text-sm font-semibold text-[var(--text-main)] hover:bg-green-600 transition-colors">
                     ✓ Approve
                   </button>
-                  <button className="flex-1 rounded-lg bg-red-500 px-3 py-2 text-sm font-semibold text-white hover:bg-red-600 transition-colors">
+                  <button className="flex-1 rounded-lg bg-red-500 px-3 py-2 text-sm font-semibold text-[var(--text-main)] hover:bg-red-600 transition-colors">
                     ✕ Reject
                   </button>
                 </div>

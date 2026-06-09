@@ -144,7 +144,7 @@ function MetricCard({ label, value, helper, tone = "cyan" }) {
       <div className={cn("absolute inset-x-0 top-0 h-1 bg-gradient-to-r", toneMap[tone])} />
       <p className="text-sm text-slate-400">{label}</p>
       <div className="mt-3 flex items-end justify-between gap-3">
-        <p className="text-3xl font-semibold tracking-tight text-white">{value}</p>
+        <p className="text-3xl font-semibold tracking-tight text-[var(--text-main)]">{value}</p>
       </div>
       <p className="mt-2 text-sm text-slate-500">{helper}</p>
     </motion.article>
@@ -158,7 +158,7 @@ function SectionShell({ title, eyebrow, description, children, actions }) {
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
             {eyebrow ? <p className="text-xs font-semibold uppercase tracking-[0.32em] text-cyan-300/80">{eyebrow}</p> : null}
-            <h2 className="mt-2 text-2xl font-semibold text-white">{title}</h2>
+            <h2 className="mt-2 text-2xl font-semibold text-[var(--text-main)]">{title}</h2>
             {description ? <p className="mt-1 max-w-3xl text-sm leading-6 text-slate-400">{description}</p> : null}
           </div>
           {actions ? <div className="flex flex-wrap gap-2">{actions}</div> : null}
@@ -176,7 +176,7 @@ function ChartCard({ title, subtitle, data, color = "#22d3ee", labelKey = "perio
   return (
     <div className="rounded-[24px] border border-white/10 bg-white/5 p-4 shadow-xl shadow-slate-950/20">
       <div className="mb-4">
-        <h3 className="text-base font-semibold text-white">{title}</h3>
+        <h3 className="text-base font-semibold text-[var(--text-main)]">{title}</h3>
         <p className="mt-1 text-sm text-slate-400">{subtitle}</p>
       </div>
       <div className="h-56">
@@ -213,7 +213,7 @@ function ChartCard({ title, subtitle, data, color = "#22d3ee", labelKey = "perio
 function emptyState(title, description, actionLabel, onAction) {
   return (
     <div className="rounded-[24px] border border-dashed border-white/15 bg-white/5 px-6 py-12 text-center">
-      <p className="text-lg font-semibold text-white">{title}</p>
+      <p className="text-lg font-semibold text-[var(--text-main)]">{title}</p>
       <p className="mx-auto mt-2 max-w-xl text-sm text-slate-400">{description}</p>
       {actionLabel ? (
         <button
@@ -657,7 +657,7 @@ function SuperAdminDashboardPage() {
           <div className="relative flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
             <div className="max-w-4xl">
               <p className="text-xs font-semibold uppercase tracking-[0.35em] text-cyan-300/80">Hidden Super Admin Control Center</p>
-              <h1 className="mt-3 text-4xl font-semibold tracking-tight text-white sm:text-5xl">Smart Society SaaS operator panel</h1>
+              <h1 className="mt-3 text-4xl font-semibold tracking-tight text-[var(--text-main)] sm:text-5xl">Smart Society SaaS operator panel</h1>
               <p className="mt-4 max-w-3xl text-sm leading-7 text-slate-300 sm:text-base">
                 Manage every society, subscription, approval, complaint, and platform event from a single production-grade console.
               </p>
@@ -672,7 +672,7 @@ function SuperAdminDashboardPage() {
               <button
                 type="button"
                 onClick={handleRefresh}
-                className="rounded-full border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/10"
+                className="rounded-full border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-semibold text-[var(--text-main)] transition hover:bg-white/10"
               >
                 Refresh
               </button>
@@ -723,12 +723,12 @@ function SuperAdminDashboardPage() {
                     value={societySearch}
                     onChange={(event) => setSocietySearch(event.target.value)}
                     placeholder="Search societies"
-                    className="min-w-[220px] rounded-full border border-white/10 bg-slate-950/70 px-4 py-2.5 text-sm text-white outline-none placeholder:text-slate-500 focus:border-cyan-400/40"
+                    className="min-w-[220px] rounded-full border border-white/10 theme-surface px-4 py-2.5 text-sm text-[var(--text-main)] outline-none placeholder:text-slate-500 focus:border-cyan-400/40"
                   />
                   <select
                     value={societyStatusFilter}
                     onChange={(event) => setSocietyStatusFilter(event.target.value)}
-                    className="rounded-full border border-white/10 bg-slate-950/70 px-4 py-2.5 text-sm text-white outline-none focus:border-cyan-400/40"
+                    className="rounded-full border border-white/10 theme-surface px-4 py-2.5 text-sm text-[var(--text-main)] outline-none focus:border-cyan-400/40"
                   >
                     <option value="all">All Statuses</option>
                     <option value="active">Active</option>
@@ -741,7 +741,7 @@ function SuperAdminDashboardPage() {
                   <select
                     value={societyPlanFilter}
                     onChange={(event) => setSocietyPlanFilter(event.target.value)}
-                    className="rounded-full border border-white/10 bg-slate-950/70 px-4 py-2.5 text-sm text-white outline-none focus:border-cyan-400/40"
+                    className="rounded-full border border-white/10 theme-surface px-4 py-2.5 text-sm text-[var(--text-main)] outline-none focus:border-cyan-400/40"
                   >
                     <option value="all">All Plans</option>
                     {DEFAULT_PLAN_OPTIONS.map((option) => (
@@ -751,7 +751,7 @@ function SuperAdminDashboardPage() {
                 </>
               }
             >
-              <div className="overflow-hidden rounded-[24px] border border-white/10 bg-slate-950/70">
+              <div className="overflow-hidden rounded-[24px] border border-white/10 theme-surface">
                 {societiesLoading ? (
                   <div className="px-6 py-10 text-sm text-slate-300">Loading societies...</div>
                 ) : societies.length === 0 ? (
@@ -786,7 +786,7 @@ function SuperAdminDashboardPage() {
                                     setSocietySortBy(key);
                                     setSocietySortOrder((current) => (societySortBy === key && current === "asc" ? "desc" : "asc"));
                                   }}
-                                  className="flex items-center gap-1 text-slate-300 transition hover:text-white"
+                                  className="flex items-center gap-1 text-slate-300 transition hover:text-[var(--text-main)]"
                                 >
                                   <span>{label}</span>
                                   {societySortBy === key ? <span className="text-cyan-300">{societySortOrder === "asc" ? "↑" : "↓"}</span> : null}
@@ -801,7 +801,7 @@ function SuperAdminDashboardPage() {
                             <tr key={society.id} className="border-b border-white/5 last:border-none hover:bg-white/5">
                               <td className="px-4 py-4">
                                 <div>
-                                  <p className="font-semibold text-white">{society.name}</p>
+                                  <p className="font-semibold text-[var(--text-main)]">{society.name}</p>
                                   <p className="mt-1 text-xs text-slate-500">{society.address || [society.city, society.state].filter(Boolean).join(", ") || "No address saved"}</p>
                                 </div>
                               </td>
@@ -855,7 +855,7 @@ function SuperAdminDashboardPage() {
                           type="button"
                           disabled={!societyPagination.hasPrevious}
                           onClick={() => loadSocieties(societyPagination.page - 1)}
-                          className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-semibold text-white disabled:opacity-40"
+                          className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-semibold text-[var(--text-main)] disabled:opacity-40"
                         >
                           Previous
                         </button>
@@ -866,7 +866,7 @@ function SuperAdminDashboardPage() {
                           type="button"
                           disabled={!societyPagination.hasNext}
                           onClick={() => loadSocieties(societyPagination.page + 1)}
-                          className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-semibold text-white disabled:opacity-40"
+                          className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-semibold text-[var(--text-main)] disabled:opacity-40"
                         >
                           Next
                         </button>
@@ -907,7 +907,7 @@ function SuperAdminDashboardPage() {
                 {filteredApprovals.length === 0 ? (
                   emptyState("No pending requests", "There are no pending approvals in this queue right now.")
                 ) : (
-                  <div className="overflow-hidden rounded-[24px] border border-white/10 bg-slate-950/70">
+                  <div className="overflow-hidden rounded-[24px] border border-white/10 theme-surface">
                     <div className="overflow-x-auto">
                       <table className="min-w-full text-left text-sm text-slate-300">
                         <thead className="border-b border-white/10 bg-white/5 text-xs uppercase tracking-[0.18em] text-slate-400">
@@ -924,7 +924,7 @@ function SuperAdminDashboardPage() {
                         <tbody>
                           {filteredApprovals.map((approval) => (
                             <tr key={approval.id} className="border-b border-white/5 last:border-none hover:bg-white/5">
-                              <td className="px-4 py-4 font-semibold text-white">{approval.name}</td>
+                              <td className="px-4 py-4 font-semibold text-[var(--text-main)]">{approval.name}</td>
                               <td className="px-4 py-4">{approval.email}</td>
                               <td className="px-4 py-4">{approval.society_name} ({approval.society_code})</td>
                               <td className="px-4 py-4">{getRoleLabel(approval.role)}</td>
@@ -979,7 +979,7 @@ function SuperAdminDashboardPage() {
                         <div key={item.id} className="rounded-[20px] border border-white/10 bg-white/5 px-4 py-3">
                           <div className="flex items-start justify-between gap-4">
                             <div>
-                              <p className="font-semibold text-white">{item.label}</p>
+                              <p className="font-semibold text-[var(--text-main)]">{item.label}</p>
                               <p className="mt-1 text-sm text-slate-400">
                                 {item.user_name || "System"}{item.user_email ? ` • ${item.user_email}` : ""}
                               </p>
@@ -999,7 +999,7 @@ function SuperAdminDashboardPage() {
                           type="button"
                           disabled={activityPage <= 1 || activityLoading}
                           onClick={() => loadActivityLogs(activityPage - 1)}
-                          className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-semibold text-white disabled:opacity-40"
+                          className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-semibold text-[var(--text-main)] disabled:opacity-40"
                         >
                           Previous
                         </button>
@@ -1010,7 +1010,7 @@ function SuperAdminDashboardPage() {
                           type="button"
                           disabled={activityPage >= activityPagination.totalPages || activityLoading}
                           onClick={() => loadActivityLogs(activityPage + 1)}
-                          className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-semibold text-white disabled:opacity-40"
+                          className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-semibold text-[var(--text-main)] disabled:opacity-40"
                         >
                           Next
                         </button>
@@ -1038,7 +1038,7 @@ function SuperAdminDashboardPage() {
                       ].map(([label, value, helper]) => (
                         <div key={label} className="rounded-[20px] border border-white/10 bg-white/5 p-4">
                           <p className="text-xs uppercase tracking-[0.22em] text-slate-500">{label}</p>
-                          <p className="mt-3 text-2xl font-semibold text-white">{value}</p>
+                          <p className="mt-3 text-2xl font-semibold text-[var(--text-main)]">{value}</p>
                           <p className="mt-1 text-sm text-slate-400">{helper}</p>
                         </div>
                       ))}
@@ -1046,9 +1046,9 @@ function SuperAdminDashboardPage() {
 
                     <div className="mt-5 space-y-3">
                       {subscriptions.plans?.map((plan) => (
-                        <div key={plan.key} className="flex items-center justify-between rounded-[20px] border border-white/10 bg-slate-950/70 px-4 py-3">
+                        <div key={plan.key} className="flex items-center justify-between rounded-[20px] border border-white/10 theme-surface px-4 py-3">
                           <div>
-                            <p className="font-semibold text-white">{plan.name}</p>
+                            <p className="font-semibold text-[var(--text-main)]">{plan.name}</p>
                             <p className="text-sm text-slate-400">Plan key: {plan.key}</p>
                           </div>
                           <p className="text-sm font-semibold text-cyan-200">{formatCurrency(plan.price)}/month</p>
@@ -1056,7 +1056,7 @@ function SuperAdminDashboardPage() {
                       ))}
                     </div>
 
-                    <div className="mt-5 overflow-hidden rounded-[24px] border border-white/10 bg-slate-950/70">
+                    <div className="mt-5 overflow-hidden rounded-[24px] border border-white/10 theme-surface">
                       <div className="max-h-[320px] overflow-auto">
                         <table className="min-w-full text-left text-sm text-slate-300">
                           <thead className="border-b border-white/10 bg-white/5 text-xs uppercase tracking-[0.18em] text-slate-400">
@@ -1071,7 +1071,7 @@ function SuperAdminDashboardPage() {
                             {subscriptions.subscriptions?.map((item) => (
                               <tr key={item.id} className="border-b border-white/5 last:border-none">
                                 <td className="px-4 py-3">
-                                  <p className="font-semibold text-white">{item.society_name}</p>
+                                  <p className="font-semibold text-[var(--text-main)]">{item.society_name}</p>
                                   <p className="text-xs text-slate-500">{item.society_code}</p>
                                 </td>
                                 <td className="px-4 py-3 capitalize">{item.plan_name}</td>
@@ -1119,7 +1119,7 @@ function SuperAdminDashboardPage() {
                   <button
                     type="button"
                     onClick={() => setSelectedSociety(null)}
-                    className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-white"
+                    className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-[var(--text-main)]"
                   >
                     Close
                   </button>
@@ -1143,7 +1143,7 @@ function SuperAdminDashboardPage() {
                     ].map(([label, value]) => (
                       <div key={label} className="rounded-[20px] border border-white/10 bg-white/5 p-4">
                         <p className="text-xs uppercase tracking-[0.2em] text-slate-500">{label}</p>
-                        <p className="mt-3 text-2xl font-semibold text-white">{value}</p>
+                        <p className="mt-3 text-2xl font-semibold text-[var(--text-main)]">{value}</p>
                       </div>
                     ))}
                   </div>
@@ -1157,17 +1157,17 @@ function SuperAdminDashboardPage() {
       </div>
 
       {modalOpen ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 px-4 py-8 backdrop-blur-md">
-          <div className="max-h-[90vh] w-full max-w-4xl overflow-auto rounded-[28px] border border-white/10 bg-slate-950 shadow-2xl shadow-slate-950/60">
+        <div className="fixed inset-0 z-50 flex items-center justify-center theme-surface px-4 py-8 backdrop-blur-md">
+          <div className="max-h-[90vh] w-full max-w-4xl overflow-auto rounded-[28px] border border-white/10 theme-page shadow-2xl shadow-slate-950/60">
             <div className="flex items-center justify-between border-b border-white/10 px-6 py-4">
               <div>
                 <p className="text-xs uppercase tracking-[0.28em] text-cyan-300/80">{modalMode === "create" ? "Create society" : modalMode === "code" ? "Change society code" : "Edit society"}</p>
-                <h3 className="mt-2 text-xl font-semibold text-white">{modalMode === "create" ? "Create a new society" : "Update society details"}</h3>
+                <h3 className="mt-2 text-xl font-semibold text-[var(--text-main)]">{modalMode === "create" ? "Create a new society" : "Update society details"}</h3>
               </div>
               <button
                 type="button"
                 onClick={() => setModalOpen(false)}
-                className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-white"
+                className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-[var(--text-main)]"
               >
                 Close
               </button>
@@ -1190,7 +1190,7 @@ function SuperAdminDashboardPage() {
                         type={String(field).includes("Email") ? "email" : "text"}
                         value={societyForm[field]}
                         onChange={(event) => setSocietyForm((current) => ({ ...current, [field]: event.target.value }))}
-                        className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none placeholder:text-slate-500 focus:border-cyan-400/40"
+                        className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-[var(--text-main)] outline-none placeholder:text-slate-500 focus:border-cyan-400/40"
                       />
                     </label>
                   ))
@@ -1210,7 +1210,7 @@ function SuperAdminDashboardPage() {
                         type={String(field).includes("Email") ? "email" : "text"}
                         value={societyForm[field]}
                         onChange={(event) => setSocietyForm((current) => ({ ...current, [field]: event.target.value }))}
-                        className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none placeholder:text-slate-500 focus:border-cyan-400/40"
+                        className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-[var(--text-main)] outline-none placeholder:text-slate-500 focus:border-cyan-400/40"
                       />
                     </label>
                   ))}
@@ -1220,7 +1220,7 @@ function SuperAdminDashboardPage() {
                 <select
                   value={societyForm.subscriptionPlan}
                   onChange={(event) => setSocietyForm((current) => ({ ...current, subscriptionPlan: event.target.value }))}
-                  className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none focus:border-cyan-400/40"
+                  className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-[var(--text-main)] outline-none focus:border-cyan-400/40"
                 >
                   {DEFAULT_PLAN_OPTIONS.map((plan) => (
                     <option key={plan} value={plan}>{plan[0].toUpperCase() + plan.slice(1)}</option>
@@ -1233,7 +1233,7 @@ function SuperAdminDashboardPage() {
                 <select
                   value={societyForm.status}
                   onChange={(event) => setSocietyForm((current) => ({ ...current, status: event.target.value }))}
-                  className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none focus:border-cyan-400/40"
+                  className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-[var(--text-main)] outline-none focus:border-cyan-400/40"
                 >
                   {[
                     ["active", "Active"],

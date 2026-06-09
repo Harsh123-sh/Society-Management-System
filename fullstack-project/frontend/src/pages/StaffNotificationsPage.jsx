@@ -16,7 +16,7 @@ function StaffNotificationsPage() {
 
   return (
     <div className="space-y-6">
-      <section className="rounded-2xl bg-gradient-to-r from-slate-900 via-slate-800 to-fuchsia-700 p-6 text-white shadow-lg">
+      <section className="rounded-2xl bg-gradient-to-r from-[var(--page-bg)] via-[var(--surface-soft)] to-fuchsia-700 p-6 text-[var(--text-main)] shadow-lg">
         <h2 className="text-2xl font-bold">Notifications</h2>
         <p className="mt-1 text-sm text-slate-200">Track new task assignments and urgent complaint alerts in real time.</p>
       </section>

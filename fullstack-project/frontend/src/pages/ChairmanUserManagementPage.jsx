@@ -187,7 +187,7 @@ function Avatar({ user }) {
   }
 
   return (
-    <div className="grid h-11 w-11 place-items-center rounded-2xl bg-[linear-gradient(135deg,rgba(var(--app-primary-rgb),0.95),rgba(var(--app-accent-rgb),0.8))] text-sm font-bold text-white shadow-lg">
+    <div className="grid h-11 w-11 place-items-center rounded-2xl bg-[linear-gradient(135deg,rgba(var(--app-primary-rgb),0.95),rgba(var(--app-accent-rgb),0.8))] text-sm font-bold text-[var(--text-main)] shadow-lg">
       {initials}
     </div>
   );
@@ -433,7 +433,7 @@ function ChairmanUserManagementPage() {
         <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           {summaryCards.map((card) => (
             <article key={card.key} className="rounded-3xl border border-[rgb(var(--app-border-rgb))] bg-[rgb(var(--app-surface-rgb))] p-4 shadow-sm">
-              <div className={`inline-flex rounded-full bg-gradient-to-r ${card.tone} px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-white`}>
+              <div className={`inline-flex rounded-full bg-gradient-to-r ${card.tone} px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-[var(--text-main)]`}>
                 {card.label}
               </div>
               <p className="mt-4 text-3xl font-semibold tracking-tight">{card.value}</p>
@@ -706,7 +706,7 @@ function ChairmanUserManagementPage() {
 
       {selectedUser ? (
         <div className="fixed inset-0 z-50 flex">
-          <button type="button" aria-label="Close profile drawer" onClick={closeDrawer} className="absolute inset-0 bg-slate-950/50 backdrop-blur-sm" />
+          <button type="button" aria-label="Close profile drawer" onClick={closeDrawer} className="absolute inset-0 theme-surface backdrop-blur-sm" />
           <aside className="relative ml-auto flex h-full w-full max-w-2xl flex-col overflow-y-auto border-l border-[rgb(var(--app-border-rgb))] bg-[rgb(var(--app-surface-rgb))] shadow-[0_24px_80px_rgba(15,23,42,0.45)]">
             <div className="flex items-center justify-between border-b border-[rgb(var(--app-border-rgb))] px-6 py-5">
               <div>
@@ -756,7 +756,7 @@ function ChairmanUserManagementPage() {
                     </label>
                   </div>
                   <div className="flex flex-wrap gap-3">
-                    <button type="submit" disabled={saving} className="rounded-2xl bg-[rgb(var(--app-primary-rgb))] px-4 py-3 text-sm font-semibold text-white disabled:opacity-60">
+                    <button type="submit" disabled={saving} className="rounded-2xl bg-[rgb(var(--app-primary-rgb))] px-4 py-3 text-sm font-semibold text-[var(--text-main)] disabled:opacity-60">
                       {saving ? "Saving..." : "Save changes"}
                     </button>
                     <button type="button" onClick={() => setDrawerMode("view")} className="rounded-2xl border border-[rgb(var(--app-border-rgb))] px-4 py-3 text-sm font-semibold">
@@ -788,21 +788,21 @@ function ChairmanUserManagementPage() {
                 </button>
                 {String(selectedUser.status || "").toLowerCase() === "pending" ? (
                   <>
-                    <button type="button" onClick={() => changeUserStatus(selectedUser.id, "active")} className="rounded-2xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white">
+                    <button type="button" onClick={() => changeUserStatus(selectedUser.id, "active")} className="rounded-2xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-[var(--text-main)]">
                       Approve
                     </button>
-                    <button type="button" onClick={() => changeUserStatus(selectedUser.id, "rejected")} className="rounded-2xl bg-rose-600 px-4 py-3 text-sm font-semibold text-white">
+                    <button type="button" onClick={() => changeUserStatus(selectedUser.id, "rejected")} className="rounded-2xl bg-rose-600 px-4 py-3 text-sm font-semibold text-[var(--text-main)]">
                       Reject
                     </button>
                   </>
                 ) : null}
                 {String(selectedUser.status || "").toLowerCase() === "active" ? (
-                  <button type="button" onClick={() => changeUserStatus(selectedUser.id, "inactive")} className="rounded-2xl bg-amber-500 px-4 py-3 text-sm font-semibold text-white">
+                  <button type="button" onClick={() => changeUserStatus(selectedUser.id, "inactive")} className="rounded-2xl bg-amber-500 px-4 py-3 text-sm font-semibold text-[var(--text-main)]">
                     Suspend
                   </button>
                 ) : null}
                 {String(selectedUser.status || "").toLowerCase() === "inactive" || String(selectedUser.status || "").toLowerCase() === "rejected" ? (
-                  <button type="button" onClick={() => changeUserStatus(selectedUser.id, "active")} className="rounded-2xl bg-cyan-600 px-4 py-3 text-sm font-semibold text-white">
+                  <button type="button" onClick={() => changeUserStatus(selectedUser.id, "active")} className="rounded-2xl bg-cyan-600 px-4 py-3 text-sm font-semibold text-[var(--text-main)]">
                     Activate
                   </button>
                 ) : null}

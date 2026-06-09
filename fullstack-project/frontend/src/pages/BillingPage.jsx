@@ -2,9 +2,11 @@ import { useEffect, useMemo, useState } from "react";
 import AlertMessage from "../components/AlertMessage";
 import { getApiMessage, getCurrentUserFromToken } from "../services/authApi";
 import {
-  createBill,
+  createBillTemplate,
   createPaymentOrder,
   fetchAllBills,
+  fetchBillingDashboard,
+  fetchFinancialAnalytics,
   fetchInvoice,
   fetchMyBills,
   fetchMyPaymentPortal,
@@ -16,6 +18,7 @@ import {
 } from "../services/billingApi";
 
 const BILL_TYPES = ["maintenance", "parking", "utility", "other"];
+const BILLING_PERIODS = ["monthly", "quarterly", "yearly", "special"];
 
 function BillingPage() {
   const currentUser = useMemo(() => getCurrentUserFromToken(), []);
@@ -35,15 +38,28 @@ function BillingPage() {
   const [billTypeFilter, setBillTypeFilter] = useState("");
   const [invoicePreview, setInvoicePreview] = useState(null);
   const [activePaymentBillId, setActivePaymentBillId] = useState(null);
+  const [dashboard, setDashboard] = useState(null);
+  const [analytics, setAnalytics] = useState(null);
+  const [wingFilter, setWingFilter] = useState("");
+  const [floorFilter, setFloorFilter] = useState("");
+  const [sortKey, setSortKey] = useState("created_at");
+  const [page, setPage] = useState(1);
 
   const [form, setForm] = useState({
-    residentId: "",
-    title: "",
+    name: "",
+    description: "",
+    amount: "",
     dueDate: "",
     billingMonth: "",
+    billingPeriod: "monthly",
     billType: "maintenance",
-    notes: "",
-    charges: [{ charge_name: "", charge_type: "maintenance", amount: "" }],
+    gracePeriodDays: "0",
+    lateFeeFixedAmount: "0",
+    lateFeePercentage: "0",
+    targetType: "society",
+    wing: "",
+    floor: "",
+    flatIds: [],
   });
 
   async function loadData({ searchValue = search, statusValue = statusFilter, billTypeValue = billTypeFilter } = {}) {
@@ -57,7 +73,7 @@ function BillingPage() {
       };
 
       const tasks = [fetchMyBills(queryParams), fetchMyPaymentPortal()];
-      if (canViewAllBills) tasks.push(fetchAllBills(queryParams));
+      if (canViewAllBills) tasks.push(fetchAllBills({ ...queryParams, wing: wingFilter || undefined, floor: floorFilter || undefined }), fetchBillingDashboard(), fetchFinancialAnalytics());
       if (canCreateBill) tasks.push(fetchResidents());
 
       const results = await Promise.all(tasks);
@@ -71,7 +87,11 @@ function BillingPage() {
 
       if (canViewAllBills) {
         const allBillsResponse = results[cursor++];
+        const dashboardResponse = results[cursor++];
+        const analyticsResponse = results[cursor++];
         setAllBills(allBillsResponse.data || []);
+        setDashboard(dashboardResponse.data || null);
+        setAnalytics(analyticsResponse.data || null);
       }
 
       if (canCreateBill) {
@@ -93,43 +113,45 @@ function BillingPage() {
     loadData();
   }, []);
 
-  function updateCharge(index, key, value) {
-    setForm((prev) => {
-      const updatedCharges = [...prev.charges];
-      updatedCharges[index] = { ...updatedCharges[index], [key]: value };
-      return { ...prev, charges: updatedCharges };
-    });
-  }
-
   async function handleCreateBill(event) {
     event.preventDefault();
     setAlert({ type: "", message: "" });
 
     try {
       setSubmitting(true);
-      await createBill({
-        residentId: Number(form.residentId),
-        title: form.title,
+      const response = await createBillTemplate({
+        name: form.name,
+        description: form.description || null,
+        amount: Number(form.amount),
         dueDate: form.dueDate,
         billingMonth: form.billingMonth || null,
+        billingPeriod: form.billingPeriod,
         billType: form.billType,
-        notes: form.notes || null,
-        charges: form.charges.map((charge) => ({
-          charge_name: charge.charge_name,
-          charge_type: charge.charge_type,
-          amount: Number(charge.amount),
-        })),
+        gracePeriodDays: Number(form.gracePeriodDays || 0),
+        lateFeeFixedAmount: Number(form.lateFeeFixedAmount || 0),
+        lateFeePercentage: Number(form.lateFeePercentage || 0),
+        targetType: form.targetType,
+        wing: form.wing || null,
+        floor: form.floor || null,
+        flatIds: form.flatIds,
       });
 
-      setAlert({ type: "success", message: "Bill generated successfully" });
+      setAlert({ type: "success", message: `${response.data?.generatedCount || 0} bills generated successfully` });
       setForm({
-        residentId: "",
-        title: "",
+        name: "",
+        description: "",
+        amount: "",
         dueDate: "",
         billingMonth: "",
+        billingPeriod: "monthly",
         billType: "maintenance",
-        notes: "",
-        charges: [{ charge_name: "", charge_type: "maintenance", amount: "" }],
+        gracePeriodDays: "0",
+        lateFeeFixedAmount: "0",
+        lateFeePercentage: "0",
+        targetType: "society",
+        wing: "",
+        floor: "",
+        flatIds: [],
       });
       await loadData();
     } catch (error) {
@@ -202,6 +224,19 @@ function BillingPage() {
   }
 
   const historyBills = canViewAllBills ? allBills : myBills;
+  const sortedBills = useMemo(() => {
+    const rows = [...historyBills];
+    rows.sort((a, b) => {
+      if (sortKey === "amount") return Number(b.total_amount || 0) - Number(a.total_amount || 0);
+      if (sortKey === "due_date") return String(a.due_date || "").localeCompare(String(b.due_date || ""));
+      if (sortKey === "status") return String(a.status || "").localeCompare(String(b.status || ""));
+      return String(b.created_at || "").localeCompare(String(a.created_at || ""));
+    });
+    return rows;
+  }, [historyBills, sortKey]);
+  const pageSize = 8;
+  const pagedBills = sortedBills.slice((page - 1) * pageSize, page * pageSize);
+  const pageCount = Math.max(1, Math.ceil(sortedBills.length / pageSize));
   const outstandingAmount = historyBills.reduce((sum, bill) => sum + Math.max(0, Number(bill.total_amount || 0) - Number(bill.paid_amount || 0)), 0);
 
   const billingStats = useMemo(() => {
@@ -210,14 +245,41 @@ function BillingPage() {
       total: source.length,
       paid: source.filter((bill) => bill.status === "paid").length,
       overdue: source.filter((bill) => bill.status === "overdue").length,
+      unpaid: source.filter((bill) => bill.status === "unpaid").length,
+      collected: source.reduce((sum, bill) => sum + Number(bill.paid_amount || 0), 0),
       outstandingAmount,
     };
   }, [allBills, canViewAllBills, myBills, outstandingAmount]);
 
+  const kpiTotals = dashboard?.totals || {};
+
+  function exportCsv(extension = "csv") {
+    const headers = ["Bill Number", "Bill Name", "Flat", "Resident", "Amount", "Paid", "Due Date", "Status", "Created"];
+    const rows = sortedBills.map((bill) => [
+      bill.invoice_number || `BILL-${bill.id}`,
+      bill.title || "",
+      bill.flat_number || "",
+      bill.resident_name || "",
+      Number(bill.total_amount || 0).toFixed(2),
+      Number(bill.paid_amount || 0).toFixed(2),
+      String(bill.due_date || "").slice(0, 10),
+      bill.status || "",
+      String(bill.created_at || "").slice(0, 10),
+    ]);
+    const csv = [headers, ...rows].map((row) => row.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `billing-export.${extension}`;
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
   return (
     <div className="space-y-6">
-      <section className="overflow-hidden rounded-3xl bg-gradient-to-r from-slate-950 via-slate-900 to-cyan-900 p-6 text-white shadow-[0_24px_60px_-30px_rgba(15,23,42,0.55)] sm:p-8">
-        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-white/70">Billing and payments</p>
+      <section className="overflow-hidden rounded-3xl bg-gradient-to-r from-[var(--page-bg)] via-[var(--surface-soft)] to-cyan-900 p-6 text-[var(--text-main)] shadow-[0_24px_60px_-30px_rgba(15,23,42,0.55)] sm:p-8">
+        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--text-secondary)]">Billing and payments</p>
         <h2 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">Invoice and payment center</h2>
         <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-200 sm:text-base">
           Maintenance, parking, and utility billing with online UPI and Razorpay-ready payment APIs, reminders, late fees, and invoice tracking.
@@ -226,27 +288,35 @@ function BillingPage() {
 
       <AlertMessage type={alert.type} message={alert.message} />
 
-      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-6">
         <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
           <p className="text-xs uppercase tracking-wide text-slate-500">Total bills</p>
-          <p className="mt-2 text-2xl font-bold text-slate-900">{billingStats.total}</p>
+          <p className="mt-2 text-2xl font-bold text-slate-900">{kpiTotals.totalbills || billingStats.total}</p>
         </div>
         <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
           <p className="text-xs uppercase tracking-wide text-slate-500">Paid</p>
-          <p className="mt-2 text-2xl font-bold text-emerald-700">{billingStats.paid}</p>
+          <p className="mt-2 text-2xl font-bold text-emerald-700">{kpiTotals.paidbills || billingStats.paid}</p>
+        </div>
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+          <p className="text-xs uppercase tracking-wide text-slate-500">Unpaid</p>
+          <p className="mt-2 text-2xl font-bold text-cyan-700">{kpiTotals.unpaidbills || billingStats.unpaid}</p>
         </div>
         <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
           <p className="text-xs uppercase tracking-wide text-slate-500">Overdue</p>
-          <p className="mt-2 text-2xl font-bold text-rose-700">{billingStats.overdue}</p>
+          <p className="mt-2 text-2xl font-bold text-rose-700">{kpiTotals.overduecount || billingStats.overdue}</p>
+        </div>
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+          <p className="text-xs uppercase tracking-wide text-slate-500">Collection</p>
+          <p className="mt-2 text-2xl font-bold text-indigo-700">INR {Number(kpiTotals.totalcollected || billingStats.collected).toFixed(2)}</p>
         </div>
         <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
           <p className="text-xs uppercase tracking-wide text-slate-500">Outstanding</p>
-          <p className="mt-2 text-2xl font-bold text-amber-700">INR {Number(outstandingAmount).toFixed(2)}</p>
+          <p className="mt-2 text-2xl font-bold text-amber-700">INR {Number(kpiTotals.totaloutstanding || outstandingAmount).toFixed(2)}</p>
         </div>
       </section>
 
       <section className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
-        <div className="grid gap-3 md:grid-cols-[1fr_170px_170px_auto]">
+        <div className="grid gap-3 lg:grid-cols-[1fr_150px_150px_120px_120px_150px_auto_auto_auto_auto]">
           <input
             type="text"
             className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none"
@@ -267,7 +337,18 @@ function BillingPage() {
               <option key={item} value={item}>{item}</option>
             ))}
           </select>
-          <button type="button" onClick={() => loadData()} className="rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white">Apply</button>
+          <input type="text" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none" placeholder="Wing" value={wingFilter} onChange={(event) => setWingFilter(event.target.value)} />
+          <input type="text" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none" placeholder="Floor" value={floorFilter} onChange={(event) => setFloorFilter(event.target.value)} />
+          <select className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none" value={sortKey} onChange={(event) => setSortKey(event.target.value)}>
+            <option value="created_at">Newest</option>
+            <option value="due_date">Due date</option>
+            <option value="amount">Amount</option>
+            <option value="status">Status</option>
+          </select>
+          <button type="button" onClick={() => loadData()} className="rounded-2xl theme-surface px-4 py-3 text-sm font-semibold text-[var(--text-main)]">Apply</button>
+          <button type="button" onClick={() => exportCsv("csv")} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700">CSV</button>
+          <button type="button" onClick={() => exportCsv("xls")} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700">Excel</button>
+          <button type="button" onClick={() => window.print()} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700">Print</button>
         </div>
       </section>
 
@@ -282,47 +363,64 @@ function BillingPage() {
           </div>
 
           <form className="mt-4 space-y-4" onSubmit={handleCreateBill}>
-            <div className="grid gap-3 md:grid-cols-3">
-              <select className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none" value={form.residentId} onChange={(event) => setForm((prev) => ({ ...prev, residentId: event.target.value }))}>
-                <option value="">Select resident</option>
-                {residents.map((resident) => (
-                  <option key={resident.id} value={resident.id}>{resident.name} ({resident.email})</option>
-                ))}
-              </select>
+            <div className="grid gap-3 md:grid-cols-4">
+              <input required type="text" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none" placeholder="Bill name" value={form.name} onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))} />
+              <input required type="number" min="1" step="0.01" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none" placeholder="Amount" value={form.amount} onChange={(event) => setForm((prev) => ({ ...prev, amount: event.target.value }))} />
               <select className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none" value={form.billType} onChange={(event) => setForm((prev) => ({ ...prev, billType: event.target.value }))}>
-                {BILL_TYPES.map((item) => (
-                  <option key={item} value={item}>{item}</option>
-                ))}
+                {BILL_TYPES.map((item) => <option key={item} value={item}>{item}</option>)}
               </select>
-              <input type="text" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none" placeholder="Bill title" value={form.title} onChange={(event) => setForm((prev) => ({ ...prev, title: event.target.value }))} />
+              <select className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none" value={form.billingPeriod} onChange={(event) => setForm((prev) => ({ ...prev, billingPeriod: event.target.value }))}>
+                {BILLING_PERIODS.map((item) => <option key={item} value={item}>{item}</option>)}
+              </select>
             </div>
 
-            <div className="grid gap-3 md:grid-cols-3">
-              <input type="date" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none" value={form.dueDate} onChange={(event) => setForm((prev) => ({ ...prev, dueDate: event.target.value }))} />
+            <div className="grid gap-3 md:grid-cols-4">
+              <input required type="date" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none" value={form.dueDate} onChange={(event) => setForm((prev) => ({ ...prev, dueDate: event.target.value }))} />
               <input type="date" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none" value={form.billingMonth} onChange={(event) => setForm((prev) => ({ ...prev, billingMonth: event.target.value }))} />
-              <input type="text" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none" placeholder="Notes" value={form.notes} onChange={(event) => setForm((prev) => ({ ...prev, notes: event.target.value }))} />
+              <input type="number" min="0" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none" placeholder="Grace days" value={form.gracePeriodDays} onChange={(event) => setForm((prev) => ({ ...prev, gracePeriodDays: event.target.value }))} />
+              <input type="text" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none" placeholder="Description" value={form.description} onChange={(event) => setForm((prev) => ({ ...prev, description: event.target.value }))} />
             </div>
 
-            <div className="space-y-2 rounded-2xl border border-slate-200 bg-slate-50 p-4">
-              {form.charges.map((charge, index) => (
-                <div key={index} className="grid gap-2 md:grid-cols-[1fr_170px_140px_90px]">
-                  <input type="text" className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none" placeholder="Charge name" value={charge.charge_name} onChange={(event) => updateCharge(index, "charge_name", event.target.value)} />
-                  <select className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none" value={charge.charge_type} onChange={(event) => updateCharge(index, "charge_type", event.target.value)}>
-                    <option value="maintenance">maintenance</option>
-                    <option value="parking">parking</option>
-                    <option value="utility">utility</option>
-                    <option value="misc">misc</option>
-                  </select>
-                  <input type="number" min="0" step="0.01" className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none" placeholder="Amount" value={charge.amount} onChange={(event) => updateCharge(index, "amount", event.target.value)} />
-                  <button type="button" onClick={() => setForm((prev) => ({ ...prev, charges: prev.charges.filter((_, i) => i !== index) || [{ charge_name: "", charge_type: "maintenance", amount: "" }] }))} className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">Remove</button>
-                </div>
-              ))}
-
-              <button type="button" onClick={() => setForm((prev) => ({ ...prev, charges: [...prev.charges, { charge_name: "", charge_type: "maintenance", amount: "" }] }))} className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700">Add charge</button>
+            <div className="grid gap-3 md:grid-cols-4">
+              <input type="number" min="0" step="0.01" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none" placeholder="Late fee fixed" value={form.lateFeeFixedAmount} onChange={(event) => setForm((prev) => ({ ...prev, lateFeeFixedAmount: event.target.value }))} />
+              <input type="number" min="0" step="0.01" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none" placeholder="Late fee %" value={form.lateFeePercentage} onChange={(event) => setForm((prev) => ({ ...prev, lateFeePercentage: event.target.value }))} />
+              <select className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none" value={form.targetType} onChange={(event) => setForm((prev) => ({ ...prev, targetType: event.target.value, flatIds: [] }))}>
+                <option value="society">Entire society</option>
+                <option value="wing">Wing wise</option>
+                <option value="floor">Floor wise</option>
+                <option value="custom">Custom flats</option>
+              </select>
+              {form.targetType === "wing" ? (
+                <input type="text" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none" placeholder="Wing" value={form.wing} onChange={(event) => setForm((prev) => ({ ...prev, wing: event.target.value }))} />
+              ) : form.targetType === "floor" ? (
+                <input type="text" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none" placeholder="Floor" value={form.floor} onChange={(event) => setForm((prev) => ({ ...prev, floor: event.target.value }))} />
+              ) : (
+                <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">{form.targetType === "society" ? "All active flats" : `${form.flatIds.length} flats selected`}</div>
+              )}
             </div>
 
-            <button type="submit" disabled={submitting} className="rounded-2xl bg-emerald-700 px-4 py-3 text-sm font-semibold text-white disabled:opacity-60">
-              {submitting ? "Generating..." : "Generate invoice"}
+            {form.targetType === "custom" ? (
+              <div className="grid max-h-48 gap-2 overflow-auto rounded-2xl border border-slate-200 bg-slate-50 p-3 sm:grid-cols-2 lg:grid-cols-3">
+                {residents.map((resident) => (
+                  <label key={resident.id} className="flex items-center gap-2 rounded-xl bg-white px-3 py-2 text-sm text-slate-700">
+                    <input
+                      type="checkbox"
+                      checked={form.flatIds.includes(resident.flat_id)}
+                      onChange={(event) => setForm((prev) => ({
+                        ...prev,
+                        flatIds: event.target.checked
+                          ? [...prev.flatIds, resident.flat_id].filter(Boolean)
+                          : prev.flatIds.filter((id) => id !== resident.flat_id),
+                      }))}
+                    />
+                    <span>{resident.flat_number || "Flat"} - {resident.name}</span>
+                  </label>
+                ))}
+              </div>
+            ) : null}
+
+            <button type="submit" disabled={submitting} className="rounded-2xl bg-emerald-700 px-4 py-3 text-sm font-semibold text-[var(--text-main)] disabled:opacity-60">
+              {submitting ? "Generating..." : "Generate society bills"}
             </button>
           </form>
         </section>
@@ -352,7 +450,7 @@ function BillingPage() {
                 <div className="mt-4 flex flex-wrap gap-2">
                   <button type="button" onClick={() => handleOpenInvoice(bill.id)} className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700">View invoice</button>
                   {!canViewAllBills && balance > 0 ? (
-                    <button type="button" disabled={activePaymentBillId === bill.id} onClick={() => handlePayWithUpi(bill)} className="rounded-xl bg-emerald-600 px-3 py-2 text-xs font-semibold text-white disabled:opacity-60">
+                    <button type="button" disabled={activePaymentBillId === bill.id} onClick={() => handlePayWithUpi(bill)} className="rounded-xl bg-emerald-600 px-3 py-2 text-xs font-semibold text-[var(--text-main)] disabled:opacity-60">
                       {activePaymentBillId === bill.id ? "Processing..." : "Pay online (UPI)"}
                     </button>
                   ) : null}
