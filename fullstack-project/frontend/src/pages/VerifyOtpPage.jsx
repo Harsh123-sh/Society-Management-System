@@ -11,11 +11,13 @@ function VerifyOtpPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const emailParam = searchParams.get("email") || "";
+  const societyCodeParam = searchParams.get("societyCode") || "";
 
   const [email, setEmail] = useState(emailParam);
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
   const [resendLoading, setResendLoading] = useState(false);
+  const [otpSent, setOtpSent] = useState(false);
   const [alert, setAlert] = useState({ type: "", message: "" });
   const [countdown, setCountdown] = useState(0);
   const [verificationAttempts, setVerificationAttempts] = useState(0);
@@ -77,7 +79,16 @@ function VerifyOtpPage() {
       setIsVerified(true);
 
       window.setTimeout(() => {
-        navigate(`/login?email=${encodeURIComponent(trimmedEmail)}&verified=true`, { replace: true });
+        const query = new URLSearchParams({
+          email: trimmedEmail,
+          verified: "true",
+        });
+
+        if (societyCodeParam) {
+          query.set("societyCode", societyCodeParam);
+        }
+
+        navigate(`/login?${query.toString()}`, { replace: true });
       }, 2000);
     } catch (error) {
       const newAttempts = verificationAttempts + 1;
@@ -111,6 +122,7 @@ function VerifyOtpPage() {
       const response = await resendVerificationOtp({ email: email.trim() });
 
       setOtp("");
+      setOtpSent(true);
       setCountdown(60);
       setVerificationAttempts(0);
       setAlert({
@@ -147,6 +159,16 @@ function VerifyOtpPage() {
               disabled={Boolean(emailParam)}
               helperText={emailParam ? "Email selected from login recovery" : ""}
             />
+
+            {societyCodeParam && (
+              <div
+                className="rounded-2xl border px-4 py-3 text-sm"
+                style={{ backgroundColor: "var(--surface)", borderColor: "var(--border)", color: "var(--text)" }}
+              >
+                <span style={{ color: "var(--text-muted)" }}>Society Code: </span>
+                <strong>{societyCodeParam}</strong>
+              </div>
+            )}
 
             <div
               className="rounded-2xl border p-4"
@@ -196,7 +218,13 @@ function VerifyOtpPage() {
               style={{ backgroundColor: "var(--surface)", borderColor: "var(--border)", color: "var(--text)" }}
               aria-live="polite"
             >
-              {resendLoading ? "Sending OTP..." : countdown > 0 ? `Resend OTP in ${countdown}s` : "Resend OTP"}
+              {resendLoading
+                ? "Sending OTP..."
+                : countdown > 0
+                  ? `Resend OTP in ${countdown}s`
+                  : otpSent
+                    ? "Resend OTP"
+                    : "Send OTP"}
             </button>
           </div>
 

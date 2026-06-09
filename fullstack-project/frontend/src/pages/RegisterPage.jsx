@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import AlertMessage from "../components/AlertMessage";
 import AuthLayout, { authLabelClass } from "../components/AuthLayout";
 import AuthInput from "../components/AuthInput";
@@ -19,6 +19,8 @@ import {
 
 function RegisterPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const societyCodeParam = searchParams.get("societyCode") || "";
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -38,6 +40,14 @@ function RegisterPage() {
 
   const isResidentRole = ["owner", "tenant"].includes(form.role);
   const isOfficerRole = ["chairman", "secretary"].includes(form.role);
+
+  useEffect(() => {
+    const code = societyCodeParam.trim().toUpperCase();
+    if (!code) return;
+
+    setForm((prev) => (prev.societyCode === code ? prev : { ...prev, societyCode: code }));
+    loadSocietyContext(code);
+  }, [societyCodeParam]);
 
   function validate() {
     if (!form.name || !form.email || !form.password || !form.confirmPassword || !form.societyCode || !form.role) {
@@ -102,7 +112,9 @@ function RegisterPage() {
         message: response.message || "Registered successfully. Verify OTP next.",
       });
 
-      navigate(`/verify-otp?email=${encodeURIComponent(form.email)}`);
+      navigate(
+        `/verify-otp?email=${encodeURIComponent(form.email)}&societyCode=${encodeURIComponent(form.societyCode)}`
+      );
     } catch (error) {
       setAlert({
         type: "error",

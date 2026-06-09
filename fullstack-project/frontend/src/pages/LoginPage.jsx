@@ -48,6 +48,7 @@ function LoginPage() {
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
     const societyId = searchParams.get("societyId");
+    const societyCode = searchParams.get("societyCode");
     const email = searchParams.get("email");
     const verified = searchParams.get("verified");
 
@@ -58,6 +59,14 @@ function LoginPage() {
     if (verified === "true") {
       setAlert({ type: "success", message: "Email verified successfully. Please login." });
       setUnverifiedEmail(null);
+    }
+
+    if (societyCode) {
+      const society = { id: societyCode, name: societyCode };
+      saveSelectedSociety(society);
+      setSelectedSociety(society);
+      setForm((prev) => ({ ...prev, societyCode: society.id }));
+      return;
     }
 
     if (societyId) {
@@ -169,7 +178,10 @@ function LoginPage() {
   }
 
   function handleGoToVerify() {
-    navigate(`/verify-otp?email=${encodeURIComponent(unverifiedEmail)}`);
+    const societyCode = selectedSociety?.id || form.societyCode;
+    navigate(
+      `/verify-otp?email=${encodeURIComponent(unverifiedEmail || form.email)}&societyCode=${encodeURIComponent(societyCode)}`
+    );
   }
 
   const renderValidationError = validate();
@@ -202,7 +214,7 @@ function LoginPage() {
                   className="w-full rounded-xl bg-amber-500 px-4 py-3 text-sm font-semibold text-slate-950 shadow-sm transition hover:bg-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2"
                   aria-label={`Verify email ${unverifiedEmail}`}
                 >
-                  Verify Email
+                  Verify Email Now
                 </button>
               </div>
             </div>
@@ -305,7 +317,11 @@ function LoginPage() {
           </AuthLink>
         </p>
 
-        <SocialButtons />
+        <SocialButtons
+          email={form.email}
+          societyCode={selectedSociety?.id || form.societyCode}
+          onNotice={(message) => setAlert({ type: "info", message })}
+        />
       </div>
 
       <p className="text-xs text-[rgb(var(--app-text-muted-rgb))]">Your data is encrypted and secure.</p>
