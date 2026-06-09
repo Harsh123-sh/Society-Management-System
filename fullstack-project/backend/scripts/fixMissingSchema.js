@@ -160,6 +160,124 @@ await pool.query(`ALTER TABLE bills ADD COLUMN IF NOT EXISTS due_date DATE;`);
 await pool.query(`ALTER TABLE bills ADD COLUMN IF NOT EXISTS payment_status VARCHAR(50) DEFAULT 'unpaid';`);
 await pool.query(`ALTER TABLE bills ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT 'active';`);
 await pool.query(`ALTER TABLE bills ADD COLUMN IF NOT EXISTS paid_at TIMESTAMP;`);
+await pool.query(`ALTER TABLE notifications ADD COLUMN IF NOT EXISTS priority VARCHAR(20) DEFAULT 'medium';`);
+await pool.query(`ALTER TABLE notifications ADD COLUMN IF NOT EXISTS category VARCHAR(100);`);
+await pool.query(`ALTER TABLE notifications ADD COLUMN IF NOT EXISTS deep_link TEXT;`);
+await pool.query(`ALTER TABLE notifications ADD COLUMN IF NOT EXISTS related_type VARCHAR(100);`);
+await pool.query(`ALTER TABLE notifications ADD COLUMN IF NOT EXISTS related_id INTEGER;`);
+
+await pool.query(`
+  CREATE TABLE IF NOT EXISTS chat_threads (
+    id SERIAL PRIMARY KEY,
+    society_id INTEGER,
+    thread_type VARCHAR(50) DEFAULT 'direct',
+    title VARCHAR(255),
+    description TEXT,
+    avatar_url TEXT,
+    created_by INTEGER,
+    last_message_at TIMESTAMP,
+    pinned_message_id INTEGER,
+    archived_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  );
+`);
+
+await pool.query(`
+  CREATE TABLE IF NOT EXISTS chat_thread_members (
+    id SERIAL PRIMARY KEY,
+    thread_id INTEGER REFERENCES chat_threads(id) ON DELETE CASCADE,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    left_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  );
+`);
+
+await pool.query(`
+  CREATE TABLE IF NOT EXISTS chat_messages (
+    id SERIAL PRIMARY KEY,
+    thread_id INTEGER REFERENCES chat_threads(id) ON DELETE CASCADE,
+    sender_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+    receiver_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+    message_type VARCHAR(50) DEFAULT 'text',
+    message TEXT,
+    media_url TEXT,
+    media_name TEXT,
+    mime_type VARCHAR(100),
+    deleted_for_all BOOLEAN DEFAULT FALSE,
+    deleted_for_sender BOOLEAN DEFAULT FALSE,
+    deleted_for_receiver BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  );
+`);
+
+await pool.query(`
+  CREATE TABLE IF NOT EXISTS chat_message_receipts (
+    id SERIAL PRIMARY KEY,
+    message_id INTEGER REFERENCES chat_messages(id) ON DELETE CASCADE,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    read_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  );
+`);
+await pool.query(`
+  CREATE TABLE IF NOT EXISTS chat_threads (
+    id SERIAL PRIMARY KEY,
+    society_id INTEGER,
+    thread_type VARCHAR(50) DEFAULT 'direct',
+    title VARCHAR(255),
+    description TEXT,
+    avatar_url TEXT,
+    created_by INTEGER,
+    last_message_at TIMESTAMP,
+    pinned_message_id INTEGER,
+    archived_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  );
+`);
+
+await pool.query(`
+  CREATE TABLE IF NOT EXISTS chat_thread_members (
+    id SERIAL PRIMARY KEY,
+    thread_id INTEGER REFERENCES chat_threads(id) ON DELETE CASCADE,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    left_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  );
+`);
+
+await pool.query(`
+  CREATE TABLE IF NOT EXISTS chat_messages (
+    id SERIAL PRIMARY KEY,
+    thread_id INTEGER REFERENCES chat_threads(id) ON DELETE CASCADE,
+    sender_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+    receiver_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+    message_type VARCHAR(50) DEFAULT 'text',
+    message TEXT,
+    media_url TEXT,
+    media_name TEXT,
+    mime_type VARCHAR(100),
+    deleted_for_all BOOLEAN DEFAULT FALSE,
+    deleted_for_sender BOOLEAN DEFAULT FALSE,
+    deleted_for_receiver BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  );
+`);
+
+await pool.query(`
+  CREATE TABLE IF NOT EXISTS chat_message_receipts (
+    id SERIAL PRIMARY KEY,
+    message_id INTEGER REFERENCES chat_messages(id) ON DELETE CASCADE,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    read_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  );
+`);
+
+
+
+
 
 await pool.query(`
   CREATE TABLE IF NOT EXISTS ai_chats (

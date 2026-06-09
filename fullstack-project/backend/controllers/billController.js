@@ -172,6 +172,124 @@ async function createAutoInvoices(req, res) {
   }
 }
 
+async function createBillTemplate(req, res) {
+  try {
+    const societyId = req.user?.societyId || req.user?.society_id || null;
+    if (!societyId) {
+      return res.status(403).json({ success: false, message: "Society context required" });
+    }
+
+    const {
+      name,
+      description = null,
+      amount,
+      dueDate,
+      billingPeriod = "monthly",
+      billType = "maintenance",
+      gracePeriodDays = 0,
+      lateFeeFixedAmount = 0,
+      lateFeePercentage = 0,
+      targetType = "society",
+      wing = null,
+      floor = null,
+      flatIds = [],
+    } = req.body || {};
+
+    if (!name || !dueDate || Number(amount) <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Bill name, amount, and due date are required",
+      });
+    }
+
+    const normalizedTargetType = ["society", "wing", "floor", "custom"].includes(targetType)
+      ? targetType
+      : "society";
+
+    if (normalizedTargetType === "wing" && !String(wing || "").trim()) {
+      return res.status(400).json({ success: false, message: "Wing is required for wing-wise bills" });
+    }
+
+    if (normalizedTargetType === "floor" && !String(floor || "").trim()) {
+      return res.status(400).json({ success: false, message: "Floor is required for floor-wise bills" });
+    }
+
+    if (normalizedTargetType === "custom" && (!Array.isArray(flatIds) || !flatIds.length)) {
+      return res.status(400).json({ success: false, message: "At least one flat is required for custom bills" });
+    }
+
+    const targets = await billModel.getBillTargets({
+      societyId,
+      targetType: normalizedTargetType,
+      wing,
+      floor,
+      flatIds,
+    });
+
+    if (!targets.length) {
+      return res.status(400).json({
+        success: false,
+        message: "No active resident flats matched the selected target",
+      });
+    }
+
+    const targetValue = normalizedTargetType === "wing"
+      ? { wing }
+      : normalizedTargetType === "floor"
+        ? { floor }
+        : normalizedTargetType === "custom"
+          ? { flatIds }
+          : { scope: "all" };
+
+    const templateId = await billModel.createBillTemplate({
+      societyId,
+      name,
+      description,
+      billType,
+      amount: Number(amount),
+      dueDate,
+      billingPeriod,
+      gracePeriodDays,
+      lateFeeFixedAmount,
+      lateFeePercentage,
+      targetType: normalizedTargetType,
+      targetValue,
+      createdBy: req.user.id,
+    });
+
+    const billIds = await billModel.createBillsFromTemplate({
+      societyId,
+      builderId: req.user?.builder_id || null,
+      templateId,
+      targets,
+      title: name,
+      description,
+      dueDate,
+      billingMonth: req.body?.billingMonth || null,
+      billType,
+      amount: Number(amount),
+      lateFeeFixedAmount,
+      lateFeePercentage,
+      gracePeriodDays,
+      createdBy: req.user.id,
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: "Billing template created and bills generated",
+      data: {
+        templateId,
+        billIds,
+        generatedCount: billIds.length,
+        targetCount: targets.length,
+      },
+    });
+  } catch (error) {
+    console.error("createBillTemplate error:", error?.message || error);
+    return res.status(500).json({ success: false, message: "Internal server error" });
+  }
+}
+
 async function getAllBills(req, res) {
   try {
     const societyId = req.user?.societyId || req.user?.society_id || null;
@@ -179,13 +297,20 @@ async function getAllBills(req, res) {
     const status = req.query.status ? String(req.query.status).trim() : "";
     const billType = req.query.billType ? String(req.query.billType).trim() : "";
     const paymentStatus = req.query.paymentStatus ? String(req.query.paymentStatus).trim() : "";
+    const wing = req.query.wing ? String(req.query.wing).trim() : "";
+    const floor = req.query.floor ? String(req.query.floor).trim() : "";
 
     const bills = await billModel.getBillsForAdmin({ search, status, billType, paymentStatus, societyId });
-    const charges = await billModel.getChargesByBillIds(bills.map((bill) => bill.id));
+    const filteredBills = bills.filter((bill) => {
+      if (wing && String(bill.wing || "").toLowerCase() !== wing.toLowerCase()) return false;
+      if (floor && String(bill.floor || "") !== floor) return false;
+      return true;
+    });
+    const charges = await billModel.getChargesByBillIds(filteredBills.map((bill) => bill.id));
 
     return res.json({
       success: true,
-      data: groupChargesByBillId(bills, charges),
+      data: groupChargesByBillId(filteredBills, charges),
     });
   } catch (_error) {
     return res.status(500).json({ success: false, message: "Internal server error" });
@@ -476,6 +601,7 @@ async function runLateFeeAutomation(req, res) {
       lateFeeType,
       lateFeeValue,
       graceDays,
+      societyId: req.user?.societyId || req.user?.society_id || null,
     });
 
     return res.json({
@@ -491,11 +617,13 @@ async function runLateFeeAutomation(req, res) {
 async function runPaymentReminders(req, res) {
   try {
     const dueSoonDays = Number(req.body?.dueSoonDays || 3);
-    const pendingBills = await billModel.getBillsForAdmin({ status: "", paymentStatus: "" });
+    const societyId = req.user?.societyId || req.user?.society_id || null;
+    const pendingBills = await billModel.getBillsForAdmin({ status: "", paymentStatus: "", societyId });
 
     const result = await billModel.createPaymentReminders({
       createdBy: req.user.id,
       dueSoonDays,
+      societyId,
     });
 
     for (const bill of pendingBills) {
@@ -547,7 +675,9 @@ async function runPaymentReminders(req, res) {
 
 async function getBillingDashboard(req, res) {
   try {
-    const dashboard = await billModel.getBillingDashboard();
+    const dashboard = await billModel.getBillingDashboard({
+      societyId: req.user?.societyId || req.user?.society_id || null,
+    });
     return res.json({ success: true, data: dashboard });
   } catch (_error) {
     return res.status(500).json({ success: false, message: "Internal server error" });
@@ -556,7 +686,9 @@ async function getBillingDashboard(req, res) {
 
 async function getFinancialAnalytics(req, res) {
   try {
-    const analyticsData = await billModel.getFinancialAnalyticsData();
+    const analyticsData = await billModel.getFinancialAnalyticsData({
+      societyId: req.user?.societyId || req.user?.society_id || null,
+    });
 
     let aiInsights = null;
     try {
@@ -595,6 +727,7 @@ async function getFinancialAnalytics(req, res) {
 module.exports = {
   createBill,
   createAutoInvoices,
+  createBillTemplate,
   getAllBills,
   getMyBills,
   getMyPaymentPortal,

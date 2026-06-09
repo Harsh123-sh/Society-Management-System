@@ -23,6 +23,7 @@ router.post(
   billController.createBill
 );
 router.post("/auto-invoices", authorizeRoles("admin", "secretary"), billController.createAutoInvoices);
+router.post("/templates", authorizeRoles("admin", "secretary"), billController.createBillTemplate);
 router.get(
   "/",
   authorizeRoles("admin", "secretary"),

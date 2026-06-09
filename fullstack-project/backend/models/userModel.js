@@ -559,7 +559,15 @@ async function getUserById(id) {
 }
 
 async function verifyUserByEmail(email) {
-  await db.query("UPDATE users SET is_verified = TRUE, status = 'pending' WHERE email = ?", [email]);
+  await db.query("UPDATE users SET is_verified = TRUE WHERE LOWER(TRIM(email)) = LOWER(TRIM(?))", [email]);
+}
+
+async function logUserActivity({ userId, action, entityType = "user", entityId = null, metadata = {} }) {
+  await db.query(
+    `INSERT INTO activity_logs (user_id, action, entity_type, entity_id, metadata)
+     VALUES (?, ?, ?, ?, ?::jsonb)`,
+    [userId || null, action, entityType, entityId || userId || null, JSON.stringify(metadata || {})]
+  );
 }
 
 async function hasOwnerForFlat({ societyId, flatNumber }) {
@@ -1225,6 +1233,7 @@ module.exports = {
   updateUserRoleById,
   updateUserStatusById,
   verifyUserByEmail,
+  logUserActivity,
   hasOwnerForFlat,
   hasOwnerForFlatId,
   createOwnerProperty,

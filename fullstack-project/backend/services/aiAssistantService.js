@@ -242,10 +242,11 @@ async function searchKnowledgeBase({ societyId, query }) {
   const { rows: noticeRows } = await db.query(
     `SELECT id, title, message, created_at
      FROM notices
-     WHERE title LIKE ? OR message LIKE ?
+     WHERE (title LIKE ? OR message LIKE ?)
+       AND (CAST(? AS INTEGER) IS NULL OR society_id = ?)
      ORDER BY created_at DESC
      LIMIT 8`,
-    [like, like]
+    [like, like, societyId || null, societyId || null]
   );
 
   const { rows: complaintRows } = await db.query(
@@ -253,7 +254,7 @@ async function searchKnowledgeBase({ societyId, query }) {
      FROM complaints c
      JOIN users u ON u.id = c.resident_id
      WHERE (c.title LIKE ? OR c.description LIKE ?)
-       AND (? IS NULL OR u.society_id = ?)
+       AND (CAST(? AS INTEGER) IS NULL OR u.society_id = ?)
      ORDER BY c.created_at DESC
      LIMIT 8`,
     [like, like, societyId || null, societyId || null]
@@ -264,7 +265,7 @@ async function searchKnowledgeBase({ societyId, query }) {
      FROM bills b
      JOIN users u ON u.id = b.resident_id
      WHERE b.title LIKE ?
-       AND (? IS NULL OR u.society_id = ?)
+       AND (CAST(? AS INTEGER) IS NULL OR u.society_id = ?)
      ORDER BY b.created_at DESC
      LIMIT 8`,
     [like, societyId || null, societyId || null]
@@ -287,6 +288,7 @@ async function predictMaintenanceIssues({ societyId }) {
      FROM complaints c
      JOIN users u ON u.id = c.resident_id
      WHERE c.created_at >= NOW() - make_interval(days => 180)
+       AND (CAST(? AS INTEGER) IS NULL OR u.society_id = ?)
      GROUP BY month_key
      ORDER BY month_key ASC`,
     [societyId || null, societyId || null]

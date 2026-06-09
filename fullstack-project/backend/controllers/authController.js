@@ -9,6 +9,8 @@ const otpModel = require("../models/otpModel");
 const { sendOtpEmail } = require("../utils/mailer");
 
 const OTP_VALIDITY_MINUTES = 10;
+const OTP_RESEND_WINDOW_MINUTES = 15;
+const OTP_RESEND_LIMIT = 3;
 
 function generateOtp() {
   return String(Math.floor(100000 + Math.random() * 900000));
@@ -33,6 +35,30 @@ async function issueAndSendOtp({ userId, email, purpose }) {
   const otpId = await otpModel.createOtp({ userId, email, otpHash, purpose, expiresAt });
   console.log("[OTP CREATED]", { email, purpose, otpId });
   await sendOtpEmail({ to: email, otp, purpose });
+}
+
+async function logVerificationActivity(user, action, metadata = {}) {
+  if (!user?.id) return;
+
+  try {
+    await userModel.logUserActivity({
+      userId: user.id,
+      action,
+      entityType: "user",
+      entityId: user.id,
+      metadata: {
+        email: user.email,
+        purpose: "email_verification",
+        ...metadata,
+      },
+    });
+  } catch (error) {
+    console.warn("[EMAIL VERIFICATION LOG FAILED]", {
+      userId: user.id,
+      action,
+      message: error.message,
+    });
+  }
 }
 
 function signToken(user) {
@@ -263,8 +289,24 @@ async function verifyEmailOtp(req, res) {
       });
     }
 
+    const user = await userModel.getUserByEmail(email);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    if (user.is_verified) {
+      return res.status(400).json({
+        success: false,
+        message: "User is already verified",
+      });
+    }
+
     const activeOtp = await otpModel.getLatestActiveOtp(email, "email_verification");
     if (!activeOtp) {
+      await logVerificationActivity(user, "email_verification_failed", { reason: "otp_not_found_or_expired" });
       return res.status(400).json({
         success: false,
         message: "OTP not found or expired",
@@ -272,6 +314,7 @@ async function verifyEmailOtp(req, res) {
     }
 
     if (activeOtp.otp_hash !== hashOtp(otp)) {
+      await logVerificationActivity(user, "email_verification_failed", { reason: "invalid_otp" });
       return res.status(400).json({
         success: false,
         message: "Invalid OTP",
@@ -280,22 +323,23 @@ async function verifyEmailOtp(req, res) {
 
     await otpModel.markOtpAsUsed(activeOtp.id);
     await userModel.verifyUserByEmail(email);
-
-    const user = await userModel.getUserByEmail(email);
+    const verifiedUser = await userModel.getUserByEmail(email);
+    const responseUser = verifiedUser || { ...user, is_verified: true };
+    await logVerificationActivity(responseUser, "email_verified", { otpId: activeOtp.id });
 
     res.json({
       success: true,
-      message: "Email verified successfully. Your account is waiting for admin approval.",
+      message: "Email verified successfully.",
       data: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        resident_type: user.resident_type || null,
-        status: user.status || null,
-        society_code: user.society_code || null,
-        flat_id: user.flat_id || null,
-        flat_number: user.flat_number || null,
+        id: responseUser.id,
+        name: responseUser.name,
+        email: responseUser.email,
+        role: responseUser.role,
+        resident_type: responseUser.resident_type || null,
+        status: responseUser.status || null,
+        society_code: responseUser.society_code || null,
+        flat_id: responseUser.flat_id || null,
+        flat_number: responseUser.flat_number || null,
       },
     });
   } catch (error) {
@@ -329,11 +373,30 @@ async function resendVerificationOtp(req, res) {
       });
     }
 
+    const recentOtpCount = await otpModel.countOtpsCreatedSince(
+      user.email,
+      "email_verification",
+      OTP_RESEND_WINDOW_MINUTES
+    );
+
+    if (recentOtpCount >= OTP_RESEND_LIMIT) {
+      await logVerificationActivity(user, "email_verification_resend_limited", {
+        windowMinutes: OTP_RESEND_WINDOW_MINUTES,
+        limit: OTP_RESEND_LIMIT,
+      });
+      return res.status(429).json({
+        success: false,
+        code: "OTP_RESEND_LIMIT_EXCEEDED",
+        message: `Too many OTP requests. Please try again after ${OTP_RESEND_WINDOW_MINUTES} minutes.`,
+      });
+    }
+
     await issueAndSendOtp({
       userId: user.id,
       email: user.email,
       purpose: "email_verification",
     });
+    await logVerificationActivity(user, "email_verification_otp_resent");
 
     res.json({
       success: true,
@@ -401,13 +464,6 @@ async function login(req, res) {
       });
     }
 
-    if (!user.is_verified) {
-      return res.status(403).json({
-        success: false,
-        message: "Please verify your email first",
-      });
-    }
-
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       return res.status(401).json({
@@ -425,6 +481,15 @@ async function login(req, res) {
             : user.status === "inactive"
               ? "Your account is inactive"
             : "Your account is pending approval.",
+      });
+    }
+
+    if (!user.is_verified) {
+      return res.status(403).json({
+        success: false,
+        code: "EMAIL_NOT_VERIFIED",
+        message: "Please verify your email before login.",
+        email: user.email,
       });
     }
 

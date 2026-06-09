@@ -36,9 +36,23 @@ async function markOtpAsUsed(id) {
   await db.query("UPDATE user_otps SET used_at = NOW() WHERE id = ?", [id]);
 }
 
+async function countOtpsCreatedSince(email, purpose, minutes) {
+  const { rows } = await db.query(
+    `SELECT COUNT(*) AS count
+     FROM user_otps
+     WHERE LOWER(TRIM(email)) = LOWER(TRIM(?))
+       AND purpose = ?
+       AND created_at >= NOW() - (? * INTERVAL '1 minute')`,
+    [email, purpose, minutes]
+  );
+
+  return Number(rows[0]?.count || 0);
+}
+
 module.exports = {
   createOtp,
   invalidateActiveOtps,
   getLatestActiveOtp,
   markOtpAsUsed,
+  countOtpsCreatedSince,
 };
