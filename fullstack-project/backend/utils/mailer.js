@@ -11,13 +11,10 @@ const smtpConfig = {
 };
 
 const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: Number(process.env.SMTP_PORT || 2525),
-  secure: false,
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
+  host: smtpConfig.host,
+  port: smtpConfig.port,
+  secure: smtpConfig.secure,
+  auth: smtpConfig.auth,
   connectionTimeout: 20000,
   greetingTimeout: 20000,
   socketTimeout: 30000,
@@ -47,16 +44,11 @@ async function verifyTransporter() {
     transporterVerifyPromise = transporter.verify().then(() => {
       console.log("SMTP READY");
       return true;
+    }).catch((error) => {
+      console.error("SMTP ERROR:", error);
+      throw error;
     });
   }
-
-    transporter.verify((error) => {
-  if (error) {
-    console.error("SMTP ERROR:", error);
-  } else {
-    console.log("SMTP READY");
-  }
-});
 
   return transporterVerifyPromise;
 }

@@ -354,6 +354,11 @@ export async function refreshToken() {
   return data;
 }
 
+export async function logoutUser() {
+  const { data } = await api.post("/auth/logout", {});
+  return data;
+}
+
 export async function fetchPublicSocieties() {
   console.log("[PublicSocietyAPI] list URL:", `${API_BASE_URL}/public/societies`);
   const { data } = await api.get("/public/societies", {

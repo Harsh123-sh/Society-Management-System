@@ -207,6 +207,52 @@
       "description": "प्लेटफ़ॉर्म एक प्रीमियम अनुभव में संचालन, संचार, वित्त और AI को एकीकृत करता है।"
     }
   },
+  "auth": {
+    "welcomeBack": "वापस स्वागत है",
+    "signInSubtitle": "अपना सोसाइटी वर्कस्पेस जारी रखने के लिए साइन इन करें।",
+    "registerTitle": "खाता बनाएं",
+    "registerSubtitleOfficer": "सुपर एडमिन अनुमोदन के लिए चेयरमैन या सचिव के रूप में पंजीकरण करें।",
+    "registerSubtitleResident": "अपने सोसाइटी कोड, विंग और फ्लैट नंबर के साथ निवासी के रूप में पंजीकरण करें।",
+    "registerSubtitleStaff": "स्टाफ या सुरक्षा के रूप में पंजीकरण करें।",
+    "emailVerificationRequired": "ईमेल सत्यापन आवश्यक है",
+    "verifyEmailNow": "अब ईमेल सत्यापित करें",
+    "emailVerifiedSuccess": "ईमेल सफलतापूर्वक सत्यापित हुआ। कृपया लॉगिन करें।",
+    "fieldRequired": "सभी फ़ील्ड आवश्यक हैं।",
+    "invalidEmail": "कृपया एक मान्य ईमेल पता दर्ज करें।",
+    "passwordTooShort": "पासवर्ड कम से कम 8 वर्ण का होना चाहिए।",
+    "passwordMismatch": "पासवर्ड मेल नहीं खाते।",
+    "societyCodeRequired": "सोसाइटी कोड आवश्यक है।",
+    "email": "ईमेल",
+    "password": "पासवर्ड",
+    "confirmPassword": "पासवर्ड की पुष्टि करें",
+    "name": "नाम",
+    "roleSelection": "मैं निम्न रूप में पंजीकरण कर रहा हूँ",
+    "flatNumber": "फ्लैट नंबर",
+    "wing": "विंग",
+    "societyCode": "सोसाइटी कोड",
+    "loginSuccessful": "लॉगिन सफल",
+    "loginFailed": "लॉगिन विफल",
+    "registerSuccess": "सफलतापूर्वक पंजीकृत। अगले OTP सत्यापित करें।",
+    "verifyEmailPrompt": "कृपया लॉगिन से पहले अपना ईमेल सत्यापित करें।"
+  },
+  "theme": {
+    "system": "सिस्टम",
+    "light": "लाइट",
+    "dark": "डार्क",
+    "auto": "ऑटो",
+    "accentColor": "एक्सेंट कलर",
+    "backgroundImage": "बैकग्राउंड इमेज",
+    "themeMode": "थीम मोड",
+    "preview": "लाइव पूर्वावलोकन"
+  },
+  "form": {
+    "required": "यह फ़ील्ड आवश्यक है।",
+    "invalidEmail": "कृपया एक मान्य ईमेल पता दर्ज करें।",
+    "passwordTooShort": "पासवर्ड में कम से कम 8 वर्ण होने चाहिए।",
+    "passwordMismatch": "पासवर्ड मेल नहीं खाते।",
+    "invalidFlat": "फ्लैट नंबर अमान्य है।",
+    "allFieldsRequired": "सभी फ़ील्ड आवश्यक हैं।"
+  },
   "dashboard": {
     "title": "{{role}} डैशबोर्ड"
   },

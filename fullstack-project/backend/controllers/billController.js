@@ -1,4 +1,6 @@
 const crypto = require("crypto");
+const PdfKit = require("pdfkit");
+const ExcelJS = require("exceljs");
 const billModel = require("../models/billModel");
 const userModel = require("../models/userModel");
 const notificationModel = require("../models/notificationModel");
@@ -21,7 +23,7 @@ function groupChargesByBillId(bills, charges) {
 }
 
 function buildInvoicePayload(bill) {
-  const invoiceDate = new Date().toISOString();
+  const invoiceDate = bill.created_at ? new Date(bill.created_at).toISOString() : new Date().toISOString();
   return {
     invoiceNumber: bill.invoice_number,
     invoiceDate,
@@ -52,6 +54,145 @@ function buildInvoicePayload(bill) {
       paidAt: bill.paid_at,
     },
   };
+}
+
+function formatCurrency(amount) {
+  return `INR ${Number(amount || 0).toFixed(2)}`;
+}
+
+function streamPdfResponse(res, filename, buildFn) {
+  res.setHeader("Content-Type", "application/pdf");
+  res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+  const doc = new PdfKit({ size: "A4", margin: 40 });
+  doc.pipe(res);
+  buildFn(doc);
+  doc.end();
+}
+
+function buildInvoicePdf(doc, payload) {
+  doc.fontSize(18).text("Invoice", { align: "center" });
+  doc.moveDown();
+
+  doc.fontSize(12).text(`Invoice Number: ${payload.invoiceNumber}`);
+  doc.text(`Invoice Date: ${payload.invoiceDate}`);
+  doc.text(`Status: ${payload.bill.status}`);
+  doc.text(`Payment Status: ${payload.bill.paymentStatus}`);
+  doc.moveDown();
+
+  doc.fontSize(14).text("Resident Details", { underline: true });
+  doc.fontSize(12).text(`Name: ${payload.resident.name}`);
+  doc.text(`Email: ${payload.resident.email}`);
+  doc.moveDown();
+
+  doc.fontSize(14).text("Bill Summary", { underline: true });
+  doc.fontSize(12).text(`Title: ${payload.bill.title}`);
+  doc.text(`Billing Month: ${payload.bill.billingMonth || "N/A"}`);
+  doc.text(`Due Date: ${payload.bill.dueDate || "N/A"}`);
+  doc.text(`Total Amount: ${formatCurrency(payload.bill.totalAmount)}`);
+  doc.text(`Paid Amount: ${formatCurrency(payload.bill.paidAmount)}`);
+  doc.text(`Balance Amount: ${formatCurrency(payload.bill.balanceAmount)}`);
+  doc.text(`Late Fee: ${formatCurrency(payload.bill.lateFeeAmount)}`);
+  doc.moveDown();
+
+  doc.fontSize(14).text("Charges", { underline: true });
+  payload.bill.charges.forEach((charge, index) => {
+    doc.fontSize(12).text(`${index + 1}. ${charge.charge_name} (${charge.charge_type || "misc"}) - ${formatCurrency(charge.amount)}`);
+  });
+  doc.moveDown();
+
+  doc.fontSize(14).text("Payment Info", { underline: true });
+  doc.fontSize(12).text(`Gateway Provider: ${payload.paymentInfo.gatewayProvider || "N/A"}`);
+  if (payload.paymentInfo.gatewayOrderId) doc.text(`Gateway Order: ${payload.paymentInfo.gatewayOrderId}`);
+  if (payload.paymentInfo.gatewayPaymentId) doc.text(`Payment ID: ${payload.paymentInfo.gatewayPaymentId}`);
+  if (payload.paymentInfo.upiReference) doc.text(`UPI Reference: ${payload.paymentInfo.upiReference}`);
+  if (payload.paymentInfo.paidAt) doc.text(`Paid At: ${payload.paymentInfo.paidAt}`);
+  doc.moveDown();
+
+  doc.fontSize(10).fillColor("gray").text("Thank you for your prompt payment.", { align: "center" });
+}
+
+async function exportBillingReport(req, res) {
+  try {
+    const societyId = req.user?.societyId || req.user?.society_id || null;
+    const search = req.query.search ? String(req.query.search).trim() : "";
+    const status = req.query.status ? String(req.query.status).trim() : "";
+    const billType = req.query.billType ? String(req.query.billType).trim() : "";
+    const paymentStatus = req.query.paymentStatus ? String(req.query.paymentStatus).trim() : "";
+    const format = String(req.query.format || "json").toLowerCase();
+
+    const bills = await billModel.getBillsForAdmin({ search, status, billType, paymentStatus, societyId });
+    const charges = await billModel.getChargesByBillIds(bills.map((bill) => bill.id));
+    const rows = groupChargesByBillId(bills, charges);
+
+    if (format === "csv") {
+      const csvLines = [
+        ["Invoice", "Resident", "Flat", "Type", "Status", "Payment Status", "Total", "Paid", "Balance", "Due Date", "Created At"].join(","),
+      ];
+      for (const bill of rows) {
+        csvLines.push(
+          [
+            bill.invoice_number,
+            bill.resident_name,
+            bill.flat_number || "",
+            bill.bill_type,
+            bill.status,
+            bill.payment_status,
+            bill.total_amount,
+            bill.paid_amount,
+            bill.total_amount - bill.paid_amount,
+            bill.due_date,
+            bill.created_at,
+          ].map((value) => `"${String(value || "").replace(/"/g, '""')}"`).join(",")
+        );
+      }
+      res.setHeader("Content-Type", "text/csv");
+      res.setHeader("Content-Disposition", "attachment; filename=billing-report.csv");
+      return res.send(csvLines.join("\n"));
+    }
+
+    if (format === "excel") {
+      const workbook = new ExcelJS.Workbook();
+      const sheet = workbook.addWorksheet("Billing Report");
+      sheet.columns = [
+        { header: "Invoice", key: "invoice", width: 20 },
+        { header: "Resident", key: "resident", width: 25 },
+        { header: "Flat", key: "flat", width: 12 },
+        { header: "Type", key: "type", width: 16 },
+        { header: "Status", key: "status", width: 16 },
+        { header: "Payment Status", key: "paymentStatus", width: 16 },
+        { header: "Total", key: "total", width: 16 },
+        { header: "Paid", key: "paid", width: 16 },
+        { header: "Balance", key: "balance", width: 16 },
+        { header: "Due Date", key: "dueDate", width: 16 },
+        { header: "Created At", key: "createdAt", width: 20 },
+      ];
+
+      rows.forEach((bill) => {
+        sheet.addRow({
+          invoice: bill.invoice_number,
+          resident: bill.resident_name,
+          flat: bill.flat_number || "",
+          type: bill.bill_type,
+          status: bill.status,
+          paymentStatus: bill.payment_status,
+          total: Number(bill.total_amount || 0),
+          paid: Number(bill.paid_amount || 0),
+          balance: Number(bill.total_amount || 0) - Number(bill.paid_amount || 0),
+          dueDate: bill.due_date || "",
+          createdAt: bill.created_at || "",
+        });
+      });
+
+      res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+      res.setHeader("Content-Disposition", "attachment; filename=billing-report.xlsx");
+      await workbook.xlsx.write(res);
+      return res.end();
+    }
+
+    return res.json({ success: true, data: rows });
+  } catch (_error) {
+    return res.status(500).json({ success: false, message: "Internal server error" });
+  }
 }
 
 async function createBill(req, res) {
@@ -590,6 +731,28 @@ async function generateInvoice(req, res) {
   }
 }
 
+async function downloadInvoicePdf(req, res) {
+  try {
+    const billId = Number(req.params.id);
+    const bill = await billModel.getBillById(billId);
+
+    if (!bill) {
+      return res.status(404).json({ success: false, message: "Bill not found" });
+    }
+
+    if (![bill.resident_id, bill.created_by].includes(Number(req.user.id)) && !["admin", "secretary", "super_admin"].includes(req.user.role)) {
+      return res.status(403).json({ success: false, message: "Not allowed" });
+    }
+
+    const payload = buildInvoicePayload(bill);
+    const filename = `invoice-${payload.invoiceNumber || bill.id}.pdf`;
+    streamPdfResponse(res, filename, (doc) => buildInvoicePdf(doc, payload));
+    return null;
+  } catch (_error) {
+    return res.status(500).json({ success: false, message: "Internal server error" });
+  }
+}
+
 async function runLateFeeAutomation(req, res) {
   try {
     const lateFeeType = String(req.body?.lateFeeType || "percentage").toLowerCase();
@@ -736,6 +899,8 @@ module.exports = {
   verifyRazorpayPayment,
   payViaUpi,
   generateInvoice,
+  downloadInvoicePdf,
+  exportBillingReport,
   runLateFeeAutomation,
   runPaymentReminders,
   getBillingDashboard,

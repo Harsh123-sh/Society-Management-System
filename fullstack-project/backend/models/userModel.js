@@ -437,6 +437,22 @@ async function updateUserById(id, { name, email, phone, profilePhotoUrl, familyM
   return getUserById(id);
 }
 
+async function updateUserKycStatus({ userId, kycStatus, reviewedBy }) {
+  const userColumns = await getUserTableColumns();
+  if (!userColumns.has("kyc_status") || !userColumns.has("kyc_reviewed_at") || !userColumns.has("kyc_reviewed_by")) {
+    return false;
+  }
+
+  await db.query(
+    `UPDATE users
+     SET kyc_status = ?, kyc_reviewed_at = NOW(), kyc_reviewed_by = ?
+     WHERE id = ?`,
+    [kycStatus, reviewedBy || null, userId]
+  );
+
+  return true;
+}
+
 async function deleteOwnerPropertyById(propertyId) {
   if (!(await tableExists("owner_properties"))) {
     return false;
@@ -450,9 +466,8 @@ async function deleteOwnerPropertyById(propertyId) {
   return result.rowCount > 0;
 }
 
-async function getUserByEmail(email) {
-  const { rows } = await db.query(
-    `SELECT
+async function getUserByEmail(email, societyId = null) {
+  const baseQuery = `SELECT
        u.id,
        u.name,
        u.full_name,
@@ -475,9 +490,14 @@ async function getUserByEmail(email) {
      FROM users u
      LEFT JOIN societies s ON s.id = u.society_id
      WHERE LOWER(TRIM(u.email)) = LOWER(TRIM($1))
-     LIMIT 1`,
-    [email]
-  );
+       AND u.deleted_at IS NULL`;
+
+  const params = [email];
+  const query = societyId
+    ? `${baseQuery} AND u.society_id = $2 LIMIT 1`
+    : `${baseQuery} LIMIT 1`;
+
+  const { rows } = await db.query(query, societyId ? [email, societyId] : params);
 
   const user = rows[0] || null;
   if (user) {
@@ -490,10 +510,36 @@ async function getUserByEmail(email) {
       society_id: user.society_id,
     });
   } else {
-    console.log("[userModel.getUserByEmail] no user found for email", email);
+    console.log("[userModel.getUserByEmail] no user found for email", email, {
+      societyId: societyId || "all",
+    });
   }
 
   return user;
+}
+
+async function verifyUserById(id) {
+  await db.query("UPDATE users SET is_verified = TRUE WHERE id = ?", [id]);
+}
+
+async function verifyUserByEmail(email, societyId = null) {
+  const query = societyId
+    ? "UPDATE users SET is_verified = TRUE WHERE LOWER(TRIM(email)) = LOWER(TRIM(?)) AND society_id = ?"
+    : "UPDATE users SET is_verified = TRUE WHERE LOWER(TRIM(email)) = LOWER(TRIM(?))";
+  const params = societyId ? [email, societyId] : [email];
+  await db.query(query, params);
+}
+
+async function updatePasswordById(userId, hashedPassword) {
+  await db.query("UPDATE users SET password = ? WHERE id = ?", [hashedPassword, userId]);
+}
+
+async function updatePasswordByEmail(email, hashedPassword, societyId = null) {
+  const query = societyId
+    ? "UPDATE users SET password = ? WHERE LOWER(TRIM(email)) = LOWER(TRIM(?)) AND society_id = ?"
+    : "UPDATE users SET password = ? WHERE LOWER(TRIM(email)) = LOWER(TRIM(?))";
+  const params = societyId ? [hashedPassword, email, societyId] : [hashedPassword, email];
+  await db.query(query, params);
 }
 
 async function getSuperAdminByEmail(email) {
@@ -544,11 +590,42 @@ async function getSuperAdminByEmail(email) {
 }
 
 async function getUserById(id) {
+  const userColumns = await getUserTableColumns();
+  const selectFields = [
+    "u.id",
+    "u.name",
+    "u.email",
+    "u.role",
+    "u.resident_type",
+    "u.status",
+    "u.is_verified",
+    "u.society_id",
+    "u.flat_id",
+    "u.flat_number",
+  ];
+
+  if (userColumns.has("kyc_status")) {
+    selectFields.push("u.kyc_status");
+  }
+  if (userColumns.has("kyc_reviewed_at")) {
+    selectFields.push("u.kyc_reviewed_at");
+  }
+  if (userColumns.has("kyc_reviewed_by")) {
+    selectFields.push("u.kyc_reviewed_by");
+  }
+
+  selectFields.push(
+    "s.code AS society_code",
+    "s.slug AS society_slug",
+    "s.subdomain AS society_subdomain",
+    "s.name AS society_name",
+    "s.builder_id",
+    "u.created_at",
+    "u.updated_at"
+  );
+
   const { rows } = await db.query(
-        `SELECT u.id, u.name, u.email, u.role, u.resident_type, u.status, u.is_verified,
-          u.society_id, u.flat_id, u.flat_number, s.code AS society_code, s.slug AS society_slug,
-          s.subdomain AS society_subdomain, s.name AS society_name, s.builder_id,
-            u.created_at, u.updated_at
+        `SELECT ${selectFields.join(", ")} 
      FROM users u
      LEFT JOIN societies s ON s.id = u.society_id
      WHERE u.id = $1
@@ -1233,6 +1310,7 @@ module.exports = {
   updateUserRoleById,
   updateUserStatusById,
   verifyUserByEmail,
+  updatePasswordById,
   logUserActivity,
   hasOwnerForFlat,
   hasOwnerForFlatId,
@@ -1251,4 +1329,5 @@ module.exports = {
   getUsersByCategory,
   getUserDirectory,
   touchUserLastLogin,
+  updateUserKycStatus,
 };

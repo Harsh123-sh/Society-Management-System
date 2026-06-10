@@ -22,7 +22,7 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-export async function login(payload: { email: string; password: string }) {
+export async function login(payload: { email: string; password: string; societyCode?: string }) {
   const { data } = await api.post('/api/auth/login', payload);
   return data;
 }

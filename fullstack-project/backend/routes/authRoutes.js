@@ -6,7 +6,7 @@ const validationMiddleware = require("../middleware/validationMiddleware");
 const {
   registerValidation,
   loginValidation,
-  emailOnlyValidation,
+  emailWithSocietyValidation,
   otpValidation,
   resetPasswordValidation,
 } = require("../validators/requestValidators");
@@ -17,13 +17,13 @@ router.post("/register", registerValidation, validationMiddleware, authControlle
 router.post("/verify-email-otp", otpValidation, validationMiddleware, authController.verifyEmailOtp);
 router.post(
   "/resend-verification-otp",
-  emailOnlyValidation,
+  emailWithSocietyValidation,
   validationMiddleware,
   authController.resendVerificationOtp
 );
 router.post("/login", loginValidation, validationMiddleware, authController.login);
 router.post("/super-admin/login", loginValidation, validationMiddleware, authController.loginSuperAdmin);
-router.post("/forgot-password", emailOnlyValidation, validationMiddleware, authController.forgotPassword);
+router.post("/forgot-password", emailWithSocietyValidation, validationMiddleware, authController.forgotPassword);
 router.post("/reset-password", resetPasswordValidation, validationMiddleware, authController.resetPassword);
 router.post("/refresh-token", authenticateToken, authController.refreshToken);
 router.post("/logout", authenticateToken, authController.logout);

@@ -70,7 +70,10 @@ function VerifyOtpPage() {
     try {
       setLoading(true);
       const trimmedEmail = email.trim();
-      const response = await verifyEmailOtp({ email: trimmedEmail, otp });
+      if (!societyCodeParam) {
+        throw new Error("Society code is required for OTP verification.");
+      }
+      const response = await verifyEmailOtp({ email: trimmedEmail, otp, societyCode: societyCodeParam });
 
       setAlert({
         type: "success",
@@ -119,7 +122,10 @@ function VerifyOtpPage() {
 
     try {
       setResendLoading(true);
-      const response = await resendVerificationOtp({ email: email.trim() });
+      if (!societyCodeParam) {
+        throw new Error("Society code is required to resend the OTP.");
+      }
+      const response = await resendVerificationOtp({ email: email.trim(), societyCode: societyCodeParam });
 
       setOtp("");
       setOtpSent(true);

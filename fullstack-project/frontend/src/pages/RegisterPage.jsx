@@ -9,6 +9,7 @@ import AuthLink from "../components/AuthLink";
 import RoleSelectCard from "../components/RoleSelectCard";
 import SocietyCodeInput from "../components/SocietyCodeInput";
 import ThemeSelect from "../components/ThemeSelect";
+import { useTranslation } from "../contexts/LanguageContext";
 import {
   getApiMessage,
   registerUser,
@@ -40,6 +41,7 @@ function RegisterPage() {
 
   const isResidentRole = ["owner", "tenant"].includes(form.role);
   const isOfficerRole = ["chairman", "secretary"].includes(form.role);
+  const { t } = useTranslation();
 
   useEffect(() => {
     const code = societyCodeParam.trim().toUpperCase();
@@ -51,30 +53,30 @@ function RegisterPage() {
 
   function validate() {
     if (!form.name || !form.email || !form.password || !form.confirmPassword || !form.societyCode || !form.role) {
-      return "All fields are required";
+      return t("form.allFieldsRequired");
     }
 
     if (isResidentRole && (!form.wing || !form.flatNumber)) {
-      return "Wing and flat number are required for resident roles";
+      return t("form.allFieldsRequired");
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(form.email)) {
-      return "Please enter a valid email address";
+      return t("auth.invalidEmail");
     }
 
     if (form.password.length < 8) {
-      return "Password must be at least 8 characters";
+      return t("auth.passwordTooShort");
     }
 
     if (form.password !== form.confirmPassword) {
-      return "Passwords do not match";
+      return t("auth.passwordMismatch");
     }
 
     if (isResidentRole) {
       const flatRegex = /^[A-Za-z0-9\-\/]+$/;
       if (!flatRegex.test(form.flatNumber)) {
-        return "Flat number is invalid";
+        return t("form.invalidFlat");
       }
     }
 
@@ -109,7 +111,7 @@ function RegisterPage() {
       const response = await registerUser(payload);
       setAlert({
         type: "success",
-        message: response.message || "Registered successfully. Verify OTP next.",
+        message: response.message || t("auth.registerSuccess"),
       });
 
       navigate(
@@ -189,29 +191,20 @@ function RegisterPage() {
   }
 
   return (
-    <AuthLayout
-      title="Create account"
-      subtitle={
-        isOfficerRole
-          ? "Register as Chairman or Secretary for super admin approval"
-          : isResidentRole
-            ? "Register as a resident with your society code, wing, and flat number"
-            : "Register as staff or security"
-      }
-    >
+    <AuthLayout title={t("auth.registerTitle")} subtitle={isOfficerRole ? t("auth.registerSubtitleOfficer") : isResidentRole ? t("auth.registerSubtitleResident") : t("auth.registerSubtitleStaff")}>
       <AlertMessage type={alert.type} message={alert.message} />
 
       <form className="space-y-4" onSubmit={handleSubmit}>
-        <AuthInput label="Name" type="text" value={form.name} onChange={(v) => setForm((prev) => ({ ...prev, name: v }))} autoComplete="name" required />
+        <AuthInput label={t("auth.name")} type="text" value={form.name} onChange={(v) => setForm((prev) => ({ ...prev, name: v }))} autoComplete="name" required />
 
-        <AuthInput label="Email" type="email" value={form.email} onChange={(v) => setForm((prev) => ({ ...prev, email: v.trim() }))} autoComplete="email" required />
+        <AuthInput label={t("auth.email")} type="email" value={form.email} onChange={(v) => setForm((prev) => ({ ...prev, email: v.trim() }))} autoComplete="email" required />
 
-        <AuthPasswordInput label="Password" value={form.password} onChange={(v) => setForm((prev) => ({ ...prev, password: v }))} autoComplete="new-password" required />
+        <AuthPasswordInput label={t("auth.password")} value={form.password} onChange={(v) => setForm((prev) => ({ ...prev, password: v }))} autoComplete="new-password" required />
 
-        <AuthPasswordInput label="Confirm Password" value={form.confirmPassword} onChange={(v) => setForm((prev) => ({ ...prev, confirmPassword: v }))} autoComplete="new-password" required />
+        <AuthPasswordInput label={t("auth.confirmPassword")} value={form.confirmPassword} onChange={(v) => setForm((prev) => ({ ...prev, confirmPassword: v }))} autoComplete="new-password" required />
 
         <div>
-          <label className={authLabelClass}>I am registering as a</label>
+          <label className={authLabelClass}>{t("auth.roleSelection")}</label>
           <div className="mt-3 grid gap-3 sm:grid-cols-2">
             {[
               { value: "chairman", title: "Chairman", description: "Initial society onboarding role" },
@@ -244,7 +237,7 @@ function RegisterPage() {
         {isResidentRole && (
           <div className="grid gap-3 md:grid-cols-2">
             <div>
-              <label className={authLabelClass}>Wing</label>
+              <label className={authLabelClass}>{t("auth.wing") || "Wing"}</label>
               {availableWings.length ? (
                 <ThemeSelect
                   id="wing-select"
@@ -265,7 +258,7 @@ function RegisterPage() {
             </div>
             <div>
               <AuthInput
-                label="Flat Number"
+                label={t("auth.flatNumber")}
                 type="text"
                 value={form.flatNumber}
                 onChange={(v) => setForm((prev) => ({ ...prev, flatNumber: v.trim() }))}

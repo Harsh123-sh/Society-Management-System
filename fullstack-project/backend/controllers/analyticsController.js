@@ -3,6 +3,12 @@ const ownerDashboardModel = require("../models/ownerDashboardModel");
 
 async function getOverviewStats(req, res) {
   try {
+    if (!req.user?.societyId) {
+      return res.status(403).json({ success: false, message: "Society context required" });
+    }
+
+    const societyId = req.user.societyId;
+
     const [
       totalResidents,
       pendingComplaints,
@@ -11,12 +17,12 @@ async function getOverviewStats(req, res) {
       billStatus,
       monthlyTrend,
     ] = await Promise.all([
-      analyticsModel.getTotalResidents(),
-      analyticsModel.getPendingComplaints(),
-      analyticsModel.getUnpaidBills(),
-      analyticsModel.getComplaintStatusBreakdown(),
-      analyticsModel.getBillStatusBreakdown(),
-      analyticsModel.getMonthlyComplaintsAndBills(6),
+      analyticsModel.getTotalResidents(societyId),
+      analyticsModel.getPendingComplaints(societyId),
+      analyticsModel.getUnpaidBills(societyId),
+      analyticsModel.getComplaintStatusBreakdown(societyId),
+      analyticsModel.getBillStatusBreakdown(societyId),
+      analyticsModel.getMonthlyComplaintsAndBills(6, societyId),
     ]);
 
     res.json({
@@ -245,7 +251,8 @@ function getDateRange(req) {
 async function getVisitorAnalyticsDash(req, res) {
   try {
     const { startDate, endDate } = getDateRange(req);
-    const data = await analyticsModel.getVisitorAnalytics(startDate, endDate);
+    const societyId = req.user?.role === "super_admin" ? Number(req.query.societyId) || null : req.user?.societyId || req.user?.society_id || null;
+    const data = await analyticsModel.getVisitorAnalytics(startDate, endDate, societyId);
     res.json({ success: true, data });
   } catch (error) {
     console.error("Visitor Analytics Error:", error);
@@ -256,7 +263,8 @@ async function getVisitorAnalyticsDash(req, res) {
 async function getFinancialAnalyticsDash(req, res) {
   try {
     const { startDate, endDate } = getDateRange(req);
-    const data = await analyticsModel.getFinancialAnalytics(startDate, endDate);
+    const societyId = req.user?.role === "super_admin" ? Number(req.query.societyId) || null : req.user?.societyId || req.user?.society_id || null;
+    const data = await analyticsModel.getFinancialAnalytics(startDate, endDate, societyId);
     res.json({ success: true, data });
   } catch (error) {
     console.error("Financial Analytics Error:", error);
@@ -267,7 +275,8 @@ async function getFinancialAnalyticsDash(req, res) {
 async function getComplaintAnalyticsDash(req, res) {
   try {
     const { startDate, endDate } = getDateRange(req);
-    const data = await analyticsModel.getComplaintAnalytics(startDate, endDate);
+    const societyId = req.user?.role === "super_admin" ? Number(req.query.societyId) || null : req.user?.societyId || req.user?.society_id || null;
+    const data = await analyticsModel.getComplaintAnalytics(startDate, endDate, societyId);
     res.json({ success: true, data });
   } catch (error) {
     console.error("Complaint Analytics Error:", error);
@@ -278,7 +287,8 @@ async function getComplaintAnalyticsDash(req, res) {
 async function getChatAnalyticsDash(req, res) {
   try {
     const { startDate, endDate } = getDateRange(req);
-    const data = await analyticsModel.getChatAnalytics(startDate, endDate);
+    const societyId = req.user?.role === "super_admin" ? Number(req.query.societyId) || null : req.user?.societyId || req.user?.society_id || null;
+    const data = await analyticsModel.getChatAnalytics(startDate, endDate, societyId);
     res.json({ success: true, data });
   } catch (error) {
     console.error("Chat Analytics Error:", error);
@@ -289,7 +299,8 @@ async function getChatAnalyticsDash(req, res) {
 async function getPaymentAnalyticsDash(req, res) {
   try {
     const { startDate, endDate } = getDateRange(req);
-    const data = await analyticsModel.getPaymentAnalytics(startDate, endDate);
+    const societyId = req.user?.role === "super_admin" ? Number(req.query.societyId) || null : req.user?.societyId || req.user?.society_id || null;
+    const data = await analyticsModel.getPaymentAnalytics(startDate, endDate, societyId);
     res.json({ success: true, data });
   } catch (error) {
     console.error("Payment Analytics Error:", error);
@@ -300,7 +311,8 @@ async function getPaymentAnalyticsDash(req, res) {
 async function getAIAnalyticsDash(req, res) {
   try {
     const { startDate, endDate } = getDateRange(req);
-    const data = await analyticsModel.getAIAnalytics(startDate, endDate);
+    const societyId = req.user?.role === "super_admin" ? Number(req.query.societyId) || null : req.user?.societyId || req.user?.society_id || null;
+    const data = await analyticsModel.getAIAnalytics(startDate, endDate, societyId);
     res.json({ success: true, data });
   } catch (error) {
     console.error("AI Analytics Error:", error);
@@ -311,7 +323,8 @@ async function getAIAnalyticsDash(req, res) {
 async function getStaffPerformanceDash(req, res) {
   try {
     const { startDate, endDate } = getDateRange(req);
-    const data = await analyticsModel.getStaffPerformance(startDate, endDate);
+    const societyId = req.user?.role === "super_admin" ? Number(req.query.societyId) || null : req.user?.societyId || req.user?.society_id || null;
+    const data = await analyticsModel.getStaffPerformance(startDate, endDate, societyId);
     res.json({ success: true, data });
   } catch (error) {
     console.error("Staff Performance Error:", error);
@@ -322,7 +335,8 @@ async function getStaffPerformanceDash(req, res) {
 async function getSecurityAnalyticsDash(req, res) {
   try {
     const { startDate, endDate } = getDateRange(req);
-    const data = await analyticsModel.getSecurityAnalytics(startDate, endDate);
+    const societyId = req.user?.role === "super_admin" ? Number(req.query.societyId) || null : req.user?.societyId || req.user?.society_id || null;
+    const data = await analyticsModel.getSecurityAnalytics(startDate, endDate, societyId);
     res.json({ success: true, data });
   } catch (error) {
     console.error("Security Analytics Error:", error);
@@ -333,7 +347,8 @@ async function getSecurityAnalyticsDash(req, res) {
 async function getAllAnalytics(req, res) {
   try {
     const { startDate, endDate } = getDateRange(req);
-    const data = await analyticsModel.getFullAnalyticsData(startDate, endDate);
+    const societyId = req.user?.role === "super_admin" ? Number(req.query.societyId) || null : req.user?.societyId || req.user?.society_id || null;
+    const data = await analyticsModel.getFullAnalyticsData(startDate, endDate, societyId);
     res.json({ success: true, data });
   } catch (error) {
     console.error("Full Analytics Error:", error);
@@ -360,6 +375,7 @@ function convertToCSV(data, headers) {
 async function exportAnalytics(req, res) {
   try {
     const { format = 'json', type = 'all', startDate, endDate, days = 30 } = req.query;
+    const societyId = req.user?.role === "super_admin" ? Number(req.query.societyId) || null : req.user?.societyId || req.user?.society_id || null;
     
     const start = startDate 
       ? startDate 
@@ -370,26 +386,26 @@ async function exportAnalytics(req, res) {
 
     let data;
     if (type === 'all') {
-      data = await analyticsModel.getFullAnalyticsData(start, end);
+      data = await analyticsModel.getFullAnalyticsData(start, end, societyId);
     } else {
       const methodName = `get${type.charAt(0).toUpperCase() + type.slice(1)}Analytics`;
       if (analyticsModel[methodName]) {
-        data = { [type]: await analyticsModel[methodName](start, end) };
+        data = { [type]: await analyticsModel[methodName](start, end, societyId) };
       } else {
         return res.status(400).json({ success: false, message: "Invalid analytics type" });
       }
     }
 
     if (format === 'csv') {
-      // Flatten data for CSV export
-      let csvData = [];
-      
+      const csvData = [];
+      const metrics = data[type] || data;
+
       if (type === 'financial' || type === 'all') {
-        const financialData = data.financial || data;
+        const financialData = data.financial || metrics;
         if (financialData.billStatus) {
-          csvData = csvData.concat(financialData.billStatus.map(item => ({
-            type: 'Bill Status',
-            name: item.name,
+          csvData.push(...financialData.billStatus.map((item) => ({
+            category: 'Bill Status',
+            label: item.name,
             count: item.count,
             amount: item.amount,
           })));
@@ -397,24 +413,47 @@ async function exportAnalytics(req, res) {
       }
 
       if (type === 'complaint' || type === 'all') {
-        const complaintData = data.complaint || data;
+        const complaintData = data.complaint || metrics;
         if (complaintData.topCategories) {
-          csvData = csvData.concat(complaintData.topCategories.map(item => ({
-            type: 'Complaint Category',
-            category: item.category,
+          csvData.push(...complaintData.topCategories.map((item) => ({
+            category: 'Complaint Category',
+            label: item.category,
             count: item.count,
           })));
         }
       }
 
       if (type === 'payment' || type === 'all') {
-        const paymentData = data.payment || data;
+        const paymentData = data.payment || metrics;
         if (paymentData.paymentMethods) {
-          csvData = csvData.concat(paymentData.paymentMethods.map(item => ({
-            type: 'Payment Method',
-            method: item.method,
+          csvData.push(...paymentData.paymentMethods.map((item) => ({
+            category: 'Payment Method',
+            label: item.method,
             count: item.count,
             amount: item.amount,
+          })));
+        }
+      }
+
+      if (type === 'visitor' || type === 'all') {
+        const visitorData = data.visitor || metrics;
+        if (visitorData.visitorTypes) {
+          csvData.push(...visitorData.visitorTypes.map((item) => ({
+            category: 'Visitor Type',
+            label: item.name,
+            count: item.value,
+          })));
+        }
+      }
+
+      if (type === 'chat' || type === 'all') {
+        const chatData = data.chat || metrics;
+        if (chatData.topThreads) {
+          csvData.push(...chatData.topThreads.map((item) => ({
+            category: 'Chat Thread',
+            label: item.title || item.threadId,
+            threadType: item.threadType,
+            messages: item.messages,
           })));
         }
       }

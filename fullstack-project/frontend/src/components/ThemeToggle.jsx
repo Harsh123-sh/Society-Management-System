@@ -1,43 +1,51 @@
 import { useThemeEngine } from "../contexts/ThemeContext";
 
+const MODE_ORDER = ["auto", "light", "dark"];
+const MODE_LABELS = {
+  auto: "System",
+  light: "Light",
+  dark: "Dark",
+};
+
 export default function ThemeToggle() {
   const { preferences, setThemeMode } = useThemeEngine();
-  const theme = preferences.themeMode === "dark" ? "dark" : "light";
-  const nextTheme = theme === "dark" ? "light" : "dark";
+  const currentMode = MODE_ORDER.includes(preferences.themeMode) ? preferences.themeMode : "light";
+  const nextMode = MODE_ORDER[(MODE_ORDER.indexOf(currentMode) + 1) % MODE_ORDER.length];
 
   const toggleTheme = () => {
-    setThemeMode(nextTheme);
+    setThemeMode(nextMode);
   };
 
-  const label = theme === "dark" ? "Light" : "Dark";
+  const icon =
+    currentMode === "dark" ? (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    ) : currentMode === "light" ? (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="12" cy="12" r="5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+        <path d="M12 1v6m0 6v6m11-11h-6m-6 0H1m15.657-1.657l-4.243 4.243m-3.428 0l-4.243-4.243M4.343 19.657l4.243-4.243m3.428 0l4.243 4.243" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    ) : (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 2a10 10 0 100 20 10 10 0 000-20zm0 2v4m0 8v4m10-10h-4m-8 0H2m14.5-6.5l-2.5 2.5m-6 6l-2.5 2.5m12.5 2.5l-2.5-2.5m-6-6l-2.5-2.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    );
 
   return (
     <button
       className="inline-flex items-center gap-2 rounded-md border px-3 py-1 text-sm shadow-sm backdrop-blur transition-colors duration-200"
       onClick={toggleTheme}
-      aria-label={`Toggle theme mode, current ${theme}`}
+      aria-label={`Toggle theme mode, current ${currentMode}`}
       style={{
         backgroundColor: "var(--bg-card)",
         borderColor: "var(--border-color)",
-        color: "var(--text-primary)"
+        color: "var(--text-primary)",
       }}
-      title={`Switch to ${label} mode`}
+      title={`Switch to ${MODE_LABELS[nextMode]} mode`}
     >
-      {theme === "dark" ? (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
-      ) : theme === "light" ? (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="12" cy="12" r="5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
-          <path d="M12 1v6m0 6v6m11-11h-6m-6 0H1m15.657-1.657l-4.243 4.243m-3.428 0l-4.243-4.243M4.343 19.657l4.243-4.243m3.428 0l4.243 4.243" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
-      ) : (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M12 2a10 10 0 100 20 10 10 0 000-20zm0 2v4m0 8v4m10-10h-4m-8 0H2m14.5-6.5l-2.5 2.5m-6 6l-2.5 2.5m12.5 2.5l-2.5-2.5m-6-6l-2.5-2.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
-      )}
-      <span className="text-xs font-medium">{label}</span>
+      {icon}
+      <span className="text-xs font-medium">{MODE_LABELS[currentMode]}</span>
     </button>
   );
 }

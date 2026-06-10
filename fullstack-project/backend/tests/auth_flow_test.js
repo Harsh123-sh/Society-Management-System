@@ -13,12 +13,14 @@ async function run() {
   try {
     console.log('Starting auth flow model-level test');
 
+    const societies = await societyModel.listSocieties();
     const society = await societyModel.getSocietyByCode('GRR-0001');
     if (!society) {
       console.error('Test requires society GRR-0001 to exist');
       process.exit(1);
     }
 
+    const alternateSociety = societies.find((item) => item.id !== society.id);
     const testEmail = `test.user+${Date.now()}@example.com`;
     const password = 'TestPass123!';
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -38,6 +40,28 @@ async function run() {
     });
 
     console.log('Created user id', user.id);
+
+    if (alternateSociety) {
+      const crossSocietyLookup = await userModel.getUserByEmail(testEmail, alternateSociety.id);
+      if (crossSocietyLookup) {
+        console.error('Email lookup is not properly scoped by society id');
+        process.exit(1);
+      }
+
+      const secondUser = await userModel.createUser({
+        name: 'Test User Alt Society',
+        email: testEmail,
+        password: hashedPassword,
+        role: 'staff',
+        residentType: null,
+        status: 'pending',
+        isVerified: false,
+        societyId: alternateSociety.id,
+        flatId: null,
+        flatNumber: null,
+      });
+      console.log('Created second user in alternate society id', secondUser.id);
+    }
 
     // Create OTP for email verification
     const otpPlain = '123456';

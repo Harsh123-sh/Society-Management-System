@@ -243,7 +243,7 @@ async function textToSpeech(req, res) {
 async function chatSmartReply(req, res) {
   try {
     const { prompt, context } = req.body;
-    const data = await aiService.answerSocietyQuestion({ query: prompt, context });
+    const data = await aiService.answerSocietyQuestion({ query: prompt, context: { ...context, ...getSocietyContext(req) } });
     res.json({ success: true, data: { reply: data.answer, ...data } });
   } catch (_error) {
     res.status(500).json({ success: false, message: "Failed to generate smart reply" });

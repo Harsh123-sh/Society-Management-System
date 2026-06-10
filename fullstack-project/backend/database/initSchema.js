@@ -398,9 +398,16 @@ async function ensureSchema() {
         notes TEXT NULL,
         reviewed_by INT NULL,
         reviewed_at TIMESTAMP NULL,
+        version INT NOT NULL DEFAULT 1,
+        deleted_at TIMESTAMP NULL,
+        deleted_by INT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
+
+    await db.query(`ALTER TABLE documents ADD COLUMN IF NOT EXISTS version INT NOT NULL DEFAULT 1;`);
+    await db.query(`ALTER TABLE documents ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP;`);
+    await db.query(`ALTER TABLE documents ADD COLUMN IF NOT EXISTS deleted_by INT;`);
 
     await db.query(`
       CREATE TABLE IF NOT EXISTS society_subscriptions (
@@ -484,12 +491,16 @@ async function ensureSchema() {
         approval_status VARCHAR(50),
         approved_at TIMESTAMP,
         kyc_status VARCHAR(50),
+        kyc_reviewed_at TIMESTAMP,
+        kyc_reviewed_by INT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
 
     await db.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS name VARCHAR(200);`);
+    await db.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS kyc_reviewed_at TIMESTAMP;`);
+    await db.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS kyc_reviewed_by INT;`);
     await db.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS full_name VARCHAR(200);`);
     await db.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS address VARCHAR(255);`);
     await db.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS resident_type VARCHAR(50);`);

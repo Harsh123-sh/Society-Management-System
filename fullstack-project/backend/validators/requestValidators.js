@@ -59,6 +59,28 @@ const loginValidation = [
     .withMessage("Email must be valid")
     .normalizeEmail(),
   body("password").notEmpty().withMessage("Password is required"),
+  body("societyCode")
+    .trim()
+    .notEmpty()
+    .withMessage("Society code is required")
+    .isLength({ min: 2, max: 30 })
+    .withMessage("Society code must be between 2 and 30 characters"),
+];
+
+const emailWithSocietyValidation = [
+  body("email")
+    .trim()
+    .notEmpty()
+    .withMessage("Email is required")
+    .isEmail()
+    .withMessage("Email must be valid")
+    .normalizeEmail(),
+  body("societyCode")
+    .trim()
+    .notEmpty()
+    .withMessage("Society code is required")
+    .isLength({ min: 2, max: 30 })
+    .withMessage("Society code must be between 2 and 30 characters"),
 ];
 
 const emailOnlyValidation = [
@@ -72,7 +94,7 @@ const emailOnlyValidation = [
 ];
 
 const otpValidation = [
-  ...emailOnlyValidation,
+  ...emailWithSocietyValidation,
   body("otp")
     .trim()
     .notEmpty()
@@ -688,6 +710,7 @@ module.exports = {
   registerValidation,
   loginValidation,
   emailOnlyValidation,
+  emailWithSocietyValidation,
   otpValidation,
   resetPasswordValidation,
   superAdminResetPasswordValidation,

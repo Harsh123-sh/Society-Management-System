@@ -2,7 +2,7 @@ const THEME_STORAGE_KEY = 'society_theme_engine_v2';
 
 const DEFAULT_THEME_STATE = {
   selectedSocietyId: '1',
-  themeMode: 'light',
+  themeMode: 'auto',
   density: 'comfortable',
   layoutMode: 'glass',
   fontFamily: 'Manrope',
@@ -11,12 +11,14 @@ const DEFAULT_THEME_STATE = {
   primaryColor: '#4f46e5',
   secondaryColor: '#2563eb',
   accentColor: '79 70 229',
+  backgroundImage: '',
   themeJson: {
-    mode: 'light',
+    mode: 'auto',
     layout: 'glass',
     density: 'comfortable',
     navigationStyle: 'floating',
     radius: '24px',
+    autoContrast: true,
   },
 };
 
@@ -128,19 +130,19 @@ function hexToRgbString(color) {
 
 function getPreferredThemeMode() {
   if (typeof window === 'undefined') {
-    return DEFAULT_THEME_STATE.themeMode;
+    return DEFAULT_THEME_STATE.themeMode === 'auto' ? 'light' : DEFAULT_THEME_STATE.themeMode;
   }
 
   try {
     return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
   } catch {
-    return DEFAULT_THEME_STATE.themeMode;
+    return DEFAULT_THEME_STATE.themeMode === 'auto' ? 'light' : DEFAULT_THEME_STATE.themeMode;
   }
 }
 
 function normalizeThemeState(partialState = {}) {
-  const rawThemeMode = partialState.themeMode || partialState.theme || getPreferredThemeMode();
-  const themeMode = rawThemeMode === 'dark' ? 'dark' : 'light';
+  const rawThemeMode = partialState.themeMode || partialState.theme || DEFAULT_THEME_STATE.themeMode;
+  const themeMode = rawThemeMode === 'dark' || rawThemeMode === 'auto' ? rawThemeMode : 'light';
   const density = partialState.density || DEFAULT_THEME_STATE.density;
   const layoutMode = partialState.layoutMode || partialState.layout || DEFAULT_THEME_STATE.layoutMode;
   const accentColor = partialState.accentColor || partialState.accent || DEFAULT_THEME_STATE.accentColor;
@@ -152,6 +154,7 @@ function normalizeThemeState(partialState = {}) {
     density,
     layoutMode,
     accentColor: hexToRgbString(accentColor),
+    backgroundImage: partialState.backgroundImage || DEFAULT_THEME_STATE.backgroundImage,
     primaryColor: partialState.primaryColor || DEFAULT_THEME_STATE.primaryColor,
     secondaryColor: partialState.secondaryColor || DEFAULT_THEME_STATE.secondaryColor,
     themeJson: {
@@ -160,6 +163,7 @@ function normalizeThemeState(partialState = {}) {
       mode: themeMode,
       layout: layoutMode,
       density,
+      autoContrast: partialState.themeJson?.autoContrast ?? DEFAULT_THEME_STATE.themeJson.autoContrast,
     },
   };
 }
@@ -187,6 +191,24 @@ function writeStoredThemeState(partialState) {
   return nextState;
 }
 
+function getEffectiveThemeMode(themeMode) {
+  if (themeMode === 'auto') {
+    return getPreferredThemeMode();
+  }
+  return themeMode === 'dark' ? 'dark' : 'light';
+}
+
+function getContrastColor(rgbString) {
+  const parts = String(rgbString).split(' ').map((value) => Number.parseInt(value, 10));
+  if (parts.length !== 3 || parts.some(Number.isNaN)) {
+    return '#ffffff';
+  }
+
+  const [r, g, b] = parts;
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  return luminance > 0.55 ? '#0f172a' : '#ffffff';
+}
+
 function applyThemeState(partialState) {
   if (typeof document === 'undefined') {
     return normalizeThemeState(partialState);
@@ -195,7 +217,7 @@ function applyThemeState(partialState) {
   const nextState = normalizeThemeState(partialState);
   const root = document.documentElement;
   const body = document.body;
-  const effectiveThemeMode = nextState.themeMode;
+  const effectiveThemeMode = getEffectiveThemeMode(nextState.themeMode);
   const isDark = effectiveThemeMode === 'dark';
   const tokens = isDark ? DARK_THEME_TOKENS : LIGHT_THEME_TOKENS;
 
@@ -237,6 +259,8 @@ function applyThemeState(partialState) {
   root.style.setProperty('--brand-rgb', nextState.accentColor);
   root.style.setProperty('--hero-start', nextState.primaryColor);
   root.style.setProperty('--hero-end', nextState.secondaryColor);
+  root.style.setProperty('--app-background-image', nextState.backgroundImage ? `url('${nextState.backgroundImage}')` : 'none');
+  root.style.setProperty('--app-foreground-contrast', getContrastColor(nextState.accentColor));
   root.style.colorScheme = effectiveThemeMode;
 
   root.dataset.theme = effectiveThemeMode;

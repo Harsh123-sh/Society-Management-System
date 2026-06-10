@@ -6,7 +6,7 @@ import type { AppRole, UserProfile } from '../types/models';
 type AuthState = {
   user: UserProfile | null;
   isBootstrapping: boolean;
-  signIn: (email: string, password: string, role?: AppRole) => Promise<void>;
+  signIn: (email: string, password: string, societyCode?: string, role?: AppRole) => Promise<void>;
   signOut: () => Promise<void>;
   setRole: (role: AppRole) => void;
 };
@@ -49,8 +49,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const value = useMemo(() => ({
     user,
     isBootstrapping,
-    async signIn(email: string, password: string, role?: AppRole) {
-      const response = await login({ email, password });
+    async signIn(email: string, password: string, societyCode?: string, role?: AppRole) {
+      const response = await login({ email, password, societyCode });
       await persist({
         id: response.user.id,
         name: response.user.name,

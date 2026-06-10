@@ -2,7 +2,7 @@ const db = require("../config/db");
 const analyticsModel = require("../models/analyticsModel");
 const complaintModel = require("../models/complaintModel");
 const noticeModel = require("../models/noticeModel");
-const { buildPrompt } = require("../config/aiPrompts");
+const { SYSTEM_PROMPTS, buildPrompt } = require("../config/aiPrompts");
 
 const OPENAI_API_BASE = process.env.OPENAI_API_BASE_URL || "https://api.openai.com/v1";
 const OPENAI_MODEL = process.env.OPENAI_MODEL || "gpt-4o-mini";
@@ -30,6 +30,75 @@ function tryParseJson(text, fallback = null) {
 
 function normalizeLanguage(code = "en") {
   return String(code || "en").trim().toLowerCase();
+}
+
+function buildRoleAwareSystemPrompt(role, societyContext = {}) {
+  const roleGuidance = {
+    super_admin: "Respond with platform-wide governance, multi-society insights, and administrator controls when relevant.",
+    admin: "Offer society management, billing, security, and resident communications guidance.",
+    secretary: "Focus on notices, approvals, resident coordination, and administrative workflows.",
+    staff: "Keep responses operational, task-driven, and suitable for staff members working on service delivery.",
+    security: "Prioritize safety, visitor verification, patrol guidance, and access control best practices.",
+    resident: "Provide friendly, clear answers that help residents understand policies, bills, and requests.",
+  }[role] || "Provide practical society management advice.";
+
+  const societyHint = societyContext?.societyCode || societyContext?.societyId
+    ? `Society context: code=${societyContext.societyCode || 'unknown'}, id=${societyContext.societyId || 'unknown'}.`
+    : "";
+
+  return `${SYSTEM_PROMPTS.assistant}\n${roleGuidance}\n${societyHint}\nUse only verified society records and recent operational context when answering.`;
+}
+
+async function getSocietyKnowledgeSources({ societyId, query, limit = 5 }) {
+  const like = `%${String(query || "").trim()}%`;
+  const societyClause = societyId ? "AND society_id = ?" : "";
+  const noticeParams = societyId ? [like, like, societyId, limit] : [like, like, limit];
+  const complaintParams = societyId ? [like, like, societyId, limit] : [like, like, limit];
+  const billParams = societyId ? [like, societyId, limit] : [like, limit];
+  const documentParams = societyId ? [like, societyId, limit] : [like, limit];
+
+  const [noticeRows, complaintRows, billRows, documentRows] = await Promise.all([
+    db.query(
+      `SELECT id, title, message, created_at FROM notices
+       WHERE (title LIKE ? OR message LIKE ?) ${societyClause}
+       ORDER BY created_at DESC LIMIT ?`,
+      noticeParams
+    ),
+    db.query(
+      `SELECT id, title, description, status, created_at FROM complaints
+       WHERE (title LIKE ? OR description LIKE ?) ${societyClause}
+       ORDER BY created_at DESC LIMIT ?`,
+      complaintParams
+    ),
+    db.query(
+      `SELECT id, title, status, total_amount, created_at FROM bills
+       WHERE title LIKE ? ${societyClause}
+       ORDER BY created_at DESC LIMIT ?`,
+      billParams
+    ),
+    db.query(
+      `SELECT id, document_type, file_url, status, created_at FROM documents
+       WHERE document_type LIKE ? ${societyClause}
+       ORDER BY created_at DESC LIMIT ?`,
+      documentParams
+    ),
+  ]);
+
+  return {
+    notices: noticeRows.rows || noticeRows || [],
+    complaints: complaintRows.rows || complaintRows || [],
+    bills: billRows.rows || billRows || [],
+    documents: documentRows.rows || documentRows || [],
+  };
+}
+
+function summarizeKnowledgeSources(sources = {}) {
+  return [
+    `Notices: ${sources.notices?.length || 0}`,
+    `Complaints: ${sources.complaints?.length || 0}`,
+    `Bills: ${sources.bills?.length || 0}`,
+    `Documents: ${sources.documents?.length || 0}`,
+  ].join("; ");
 }
 
 function detectIntent(text = "") {
@@ -131,13 +200,16 @@ function fallbackTranslation(text = "", targetLanguage = "en") {
 
 async function askModel({ systemKey, input, context = {}, jsonFallback = {} }) {
   const { system, user } = buildPrompt({ systemKey, input, context });
+  const systemMessage = systemKey === "assistant" && context?.role
+    ? buildRoleAwareSystemPrompt(context.role, context.societyContext)
+    : system;
 
   if (!hasOpenAi()) {
     return jsonFallback;
   }
 
   try {
-    const output = await callOpenAiChat({ system, user, json: true });
+    const output = await callOpenAiChat({ system: systemMessage, user, json: true });
     return tryParseJson(output, jsonFallback) || jsonFallback;
   } catch (_error) {
     return jsonFallback;
@@ -213,18 +285,21 @@ async function translateMessage({ text, targetLanguage }) {
 
 async function answerSocietyQuestion({ query, context = {} }) {
   const intent = detectIntent(query);
+  const knowledgeSources = await getSocietyKnowledgeSources({ societyId: context?.societyId || null, query, limit: 6 });
+  const knowledgeSummary = summarizeKnowledgeSources(knowledgeSources);
 
   const fallback = {
     answer: "I can help with notices, complaints, billing communication, maintenance planning, and analytics summaries.",
     intent,
     confidence: 0.62,
     suggestedActions: ["summarize_report", "generate_notice", "predict_maintenance"],
+    knowledgeSummary,
   };
 
   const ai = await askModel({
     systemKey: "assistant",
-    input: { query },
-    context,
+    input: { query, knowledgeSummary },
+    context: { ...context, societyContext: { societyId: context?.societyId } },
     jsonFallback: fallback,
   });
 
@@ -233,6 +308,8 @@ async function answerSocietyQuestion({ query, context = {} }) {
     intent: ai.intent || intent,
     confidence: Number(ai.confidence || fallback.confidence),
     suggestedActions: Array.isArray(ai.suggestedActions) ? ai.suggestedActions : fallback.suggestedActions,
+    knowledgeSummary: ai.knowledgeSummary || knowledgeSummary,
+    knowledgeSources,
   };
 }
 
@@ -271,10 +348,21 @@ async function searchKnowledgeBase({ societyId, query }) {
     [like, societyId || null, societyId || null]
   );
 
+  const { rows: documentRows } = await db.query(
+    `SELECT id, document_type, file_url, status, created_at
+     FROM documents
+     WHERE document_type LIKE ?
+       AND (CAST(? AS INTEGER) IS NULL OR society_id = ?)
+     ORDER BY created_at DESC
+     LIMIT 8`,
+    [like, societyId || null, societyId || null]
+  );
+
   return {
     notices: noticeRows,
     complaints: complaintRows,
     bills: billRows,
+    documents: documentRows,
   };
 }
 

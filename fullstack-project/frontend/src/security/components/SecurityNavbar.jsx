@@ -6,6 +6,7 @@ import { useTranslation } from "../../contexts/LanguageContext";
 import { clearAuthSession, getStoredUser } from "../../utils/session";
 import { Link } from "react-router-dom";
 import { fetchSecurityProfile } from "../../services/securityApi";
+import { logoutUser } from "../../services/authApi";
 
 function SecurityNavbar() {
   const { t } = useTranslation();
@@ -54,9 +55,16 @@ function SecurityNavbar() {
     .map((part) => part[0]?.toUpperCase())
     .join("") || "S";
 
-  function handleLogout() {
+  async function handleLogout() {
     setShowProfile(false);
     setShowNotifications(false);
+
+    try {
+      await logoutUser();
+    } catch (error) {
+      console.warn("Logout API failed, clearing local session anyway.", error);
+    }
+
     localStorage.clear();
     sessionStorage.clear();
     clearAuthSession();

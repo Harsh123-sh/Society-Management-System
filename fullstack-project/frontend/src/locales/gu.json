@@ -204,6 +204,55 @@
   },  "dashboard": {
     "title": "{{role}} ડેશબોર્ડ"
   },
+  "auth": {
+    "welcomeBack": "પાછુ સ્વાગત છે",
+    "signInSubtitle": "તમારા સોસાયટી વર્કસ્પેસ ચાલુ રાખવા માટે સાઇન ઇનમાં કરો.",
+    "registerTitle": "એકાઉન્ટ બનાવો",
+    "registerSubtitleOfficer": "સુપરે એડમિન મંજૂરી માટે ચેરમેન અથવા સેક્રેટરી તરીકે નોંધણી કરો.",
+    "registerSubtitleResident": "સોસાયટી કોડ, વિંગ અને ફ્લેટ નંબરથી રહેવાસી તરીકે નોંધણી કરો.",
+    "registerSubtitleStaff": "સ્ટાફ અથવા સુરક્ષા તરીકે નોંધણી કરો.",
+    "emailVerificationRequired": "ઇમેલ વેરિફિકેશન આવશ્યક છે",
+    "verifyEmailNow": "હવે ઇમેલ વેરિફાય કરો",
+    "emailVerifiedSuccess": "ઇમેલ સફળતાપૂર્વક વેરિફાય થઈ. કૃપા કરીને લૉગિન કરો.",
+    "fieldRequired": "બધી ફીલ્ડ ضروری છે.",
+    "invalidEmail": "કૃપા કરીને માન્ય ઇમેલ સરનામું દાખલ કરો.",
+    "passwordTooShort": "પાસવર્ડ ઓછામાં ઓછા 8 અક્ષરો રાખવો જરૂરી છે.",
+    "passwordMismatch": "પાસવર્ડ મેળ ખાતા નથી.",
+    "societyCodeRequired": "સોસાયટી કોડ જરૂરી છે.",
+    "email": "ઇમેલ",
+    "password": "પાસવર્ડ",
+    "confirmPassword": "પાસવર્ડની પુષ્ટિ",
+    "name": "નામ",
+    "roleSelection": "હું નીચે બતાવેલા તરીકે નોંધણી કરી રહ્યો છું",
+    "flatNumber": "ફ્લેટ નંબર",
+    "wing": "વિંગ",
+    "societyCode": "સોસાયટી કોડ",
+    "loginSuccessful": "લૉગિન સફળ",
+    "loginFailed": "લૉગિન નિષ્ફળ",
+    "registerSuccess": "સફળતાપૂર્વક નોંધણી થઈ. પછીના OTP ને વેરિફાય કરો.",
+    "verifyEmailPrompt": "કૃપા કરીને લૉગિન પહેલાં તમારું ઇમેલ વેરિફાય કરો."
+  },
+  "theme": {
+    "system": "સિસ્ટમ",
+    "light": "લાઈટ",
+    "dark": "ડાર્ક",
+    "auto": "ઓટો",
+    "accentColor": "ઍક્સેન્ટ રંગ",
+    "backgroundImage": "પૃષ્ઠભૂમિ ચિત્ર",
+    "themeMode": "થીમ મોડ",
+    "preview": "લાઇવ પૂર્વદર્શન"
+  },
+  "form": {
+    "required": "આ ક્ષેત્ર જરૂરી છે.",
+    "invalidEmail": "કૃપા કરીને માન્ય ઇમેલ સરનામું દાખલ કરો.",
+    "passwordTooShort": "પાસવર્ડ ઓછામાં ઓછા 8 અક્ષરો હોવો જોઈએ.",
+    "passwordMismatch": "પાસવર્ડ મેચ નથી કરતી.",
+    "invalidFlat": "ફ્લેટ નંબર અમાન્ય છે.",
+    "allFieldsRequired": "બધા ફીલ્ડ જરૂરી છે."
+  },
+  "dashboard": {
+    "title": "{{role}} ડેશબોર્ડ"
+  },
   "role": {
     "admin": "ચેરમેન",
     "secretary": "સચિવ",

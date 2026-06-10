@@ -31,9 +31,9 @@ async function issueAndSendOtp({ userId, email, purpose }) {
   const otpHash = hashOtp(otp);
   const expiresAt = getOtpExpiryDate();
 
-  await otpModel.invalidateActiveOtps(email, purpose);
+  await otpModel.invalidateActiveOtps(email, purpose, userId);
   const otpId = await otpModel.createOtp({ userId, email, otpHash, purpose, expiresAt });
-  console.log("[OTP CREATED]", { email, purpose, otpId });
+  console.log("[OTP CREATED]", { email, purpose, otpId, userId });
   await sendOtpEmail({ to: email, otp, purpose });
 }
 
@@ -280,16 +280,24 @@ async function register(req, res) {
 
 async function verifyEmailOtp(req, res) {
   try {
-    const { email, otp } = req.body;
+    const { email, otp, societyCode } = req.body;
 
-    if (!email || !otp) {
+    if (!email || !otp || !societyCode) {
       return res.status(400).json({
         success: false,
-        message: "email and otp are required",
+        message: "email, otp and societyCode are required",
       });
     }
 
-    const user = await userModel.getUserByEmail(email);
+    const society = await societyModel.getSocietyByCode(societyCode);
+    if (!society) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid society code",
+      });
+    }
+
+    const user = await userModel.getUserByEmail(email, society.id);
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -304,7 +312,7 @@ async function verifyEmailOtp(req, res) {
       });
     }
 
-    const activeOtp = await otpModel.getLatestActiveOtp(email, "email_verification");
+    const activeOtp = await otpModel.getLatestActiveOtp(email, "email_verification", user.id);
     if (!activeOtp) {
       await logVerificationActivity(user, "email_verification_failed", { reason: "otp_not_found_or_expired" });
       return res.status(400).json({
@@ -349,16 +357,24 @@ async function verifyEmailOtp(req, res) {
 
 async function resendVerificationOtp(req, res) {
   try {
-    const { email } = req.body;
+    const { email, societyCode } = req.body;
 
-    if (!email) {
+    if (!email || !societyCode) {
       return res.status(400).json({
         success: false,
-        message: "email is required",
+        message: "email and societyCode are required",
       });
     }
 
-    const user = await userModel.getUserByEmail(email);
+    const society = await societyModel.getSocietyByCode(societyCode);
+    if (!society) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid society code",
+      });
+    }
+
+    const user = await userModel.getUserByEmail(email, society.id);
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -376,7 +392,8 @@ async function resendVerificationOtp(req, res) {
     const recentOtpCount = await otpModel.countOtpsCreatedSince(
       user.email,
       "email_verification",
-      OTP_RESEND_WINDOW_MINUTES
+      OTP_RESEND_WINDOW_MINUTES,
+      user.id
     );
 
     if (recentOtpCount >= OTP_RESEND_LIMIT) {
@@ -411,14 +428,22 @@ async function login(req, res) {
   try {
     const { email, password, societyCode } = req.body;
 
-    if (!email || !password) {
+    if (!email || !password || !societyCode) {
       return res.status(400).json({
         success: false,
-        message: "email and password are required",
+        message: "email, password and societyCode are required",
       });
     }
 
-    const user = await userModel.getUserByEmail(email);
+    const society = await societyModel.getSocietyByCode(societyCode);
+    if (!society) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid society code",
+      });
+    }
+
+    const user = await userModel.getUserByEmail(email, society.id);
     if (!user) {
       return res.status(401).json({
         success: false,
@@ -430,22 +455,6 @@ async function login(req, res) {
       return res.status(403).json({
         success: false,
         message: "Super admin logins must use the hidden super admin login route",
-      });
-    }
-
-    if (!societyCode) {
-      return res.status(400).json({
-        success: false,
-        message: "societyCode is required",
-      });
-    }
-
-    // Verify society exists
-    const society = await societyModel.getSocietyByCode(societyCode);
-    if (!society) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid society code",
       });
     }
 
@@ -652,9 +661,24 @@ async function loginSuperAdmin(req, res) {
 async function forgotPassword(req, res) {
   try {
     console.log("[FORGOT PASSWORD REQUEST]", req.body);
-    const { email } = req.body;
+    const { email, societyCode } = req.body;
 
-    const user = await userModel.getUserByEmail(email);
+    if (!email || !societyCode) {
+      return res.status(400).json({
+        success: false,
+        message: "email and societyCode are required",
+      });
+    }
+
+    const society = await societyModel.getSocietyByCode(societyCode);
+    if (!society) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid society code",
+      });
+    }
+
+    const user = await userModel.getUserByEmail(email, society.id);
     if (user) {
       await issueAndSendOtp({
         userId: user.id,
@@ -676,16 +700,24 @@ async function forgotPassword(req, res) {
 
 async function resetPassword(req, res) {
   try {
-    const { email, otp, newPassword } = req.body;
+    const { email, otp, newPassword, societyCode } = req.body;
 
-    if (!email || !otp || !newPassword) {
+    if (!email || !otp || !newPassword || !societyCode) {
       return res.status(400).json({
         success: false,
-        message: "email, otp and newPassword are required",
+        message: "email, otp, newPassword and societyCode are required",
       });
     }
 
-    const user = await userModel.getUserByEmail(email);
+    const society = await societyModel.getSocietyByCode(societyCode);
+    if (!society) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid society code",
+      });
+    }
+
+    const user = await userModel.getUserByEmail(email, society.id);
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -693,7 +725,7 @@ async function resetPassword(req, res) {
       });
     }
 
-    const activeOtp = await otpModel.getLatestActiveOtp(email, "password_reset");
+    const activeOtp = await otpModel.getLatestActiveOtp(email, "password_reset", user.id);
     if (!activeOtp) {
       return res.status(400).json({
         success: false,
@@ -709,7 +741,7 @@ async function resetPassword(req, res) {
     }
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
-    await userModel.updatePasswordByEmail(email, hashedPassword);
+    await userModel.updatePasswordById(user.id, hashedPassword);
     await otpModel.markOtpAsUsed(activeOtp.id);
 
     res.json({

@@ -35,6 +35,8 @@ router.get("/dashboard", authorizeRoles("admin", "secretary"), billController.ge
 router.get("/analytics/financial", authorizeRoles("admin", "secretary"), billController.getFinancialAnalytics);
 router.post("/automations/late-fees", authorizeRoles("admin", "secretary"), billController.runLateFeeAutomation);
 router.post("/automations/reminders", authorizeRoles("admin", "secretary"), billController.runPaymentReminders);
+router.get("/export", authorizeRoles("admin", "secretary"), billListQueryValidation, validationMiddleware, billController.exportBillingReport);
+router.get("/invoices/:id/download", idParamValidation, validationMiddleware, billController.downloadInvoicePdf);
 router.get("/invoices/:id", idParamValidation, validationMiddleware, billController.generateInvoice);
 router.get("/my", billListQueryValidation, validationMiddleware, billController.getMyBills);
 router.get("/my/portal", billController.getMyPaymentPortal);

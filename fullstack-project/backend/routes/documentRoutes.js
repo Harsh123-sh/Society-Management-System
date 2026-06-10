@@ -18,6 +18,12 @@ router.post(
 );
 
 router.get("/my", authorizeRoles("resident"), documentController.getMyDocuments);
+router.get(
+  "/history/:id",
+  authorizeRoles("resident", "admin", "secretary"),
+  validationMiddleware,
+  documentController.getDocumentHistory
+);
 
 router.get(
   "/",
@@ -31,6 +37,27 @@ router.patch(
   documentReviewValidation,
   validationMiddleware,
   documentController.reviewDocument
+);
+
+router.delete(
+  "/:id",
+  authorizeRoles("resident", "admin", "secretary"),
+  validationMiddleware,
+  documentController.softDeleteDocument
+);
+
+router.patch(
+  "/:id/restore",
+  authorizeRoles("admin", "secretary"),
+  validationMiddleware,
+  documentController.restoreDocument
+);
+
+router.delete(
+  "/:id/permanent",
+  authorizeRoles("admin"),
+  validationMiddleware,
+  documentController.permanentlyDeleteDocument
 );
 
 module.exports = router;

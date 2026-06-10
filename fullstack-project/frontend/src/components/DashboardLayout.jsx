@@ -3,6 +3,7 @@ import { Outlet, useNavigate } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import TopNavbar from "./TopNavbar";
 import { clearAuthSession, getStoredRole, getStoredUser } from "../utils/session";
+import { logoutUser } from "../services/authApi";
 import { useTranslation } from "../contexts/LanguageContext";
 
 function getDashboardRoleLabel(role, t) {
@@ -23,7 +24,13 @@ function DashboardLayout({ basePath = "/admin" }) {
 
   // Theme is initialized by the ThemeProvider.
 
-  function handleLogout() {
+  async function handleLogout() {
+    try {
+      await logoutUser();
+    } catch (error) {
+      console.warn("Logout API failed, clearing local session anyway.", error);
+    }
+
     localStorage.clear();
     sessionStorage.clear();
     clearAuthSession();

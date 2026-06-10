@@ -610,6 +610,10 @@ async function verifyOtp(req, res) {
 
 async function recognizeFace(req, res) {
   try {
+    if (!req.user?.societyId) {
+      return res.status(403).json({ success: false, message: "Society context required" });
+    }
+
     const { photoBase64, visitorName, phone, flatId, faceSignature } = req.body;
     if (!photoBase64) {
       return res.status(400).json({ success: false, message: "Please capture visitor face before check-in." });
@@ -623,6 +627,7 @@ async function recognizeFace(req, res) {
       phone,
       visitorName,
       flatId,
+      societyId: req.user.societyId,
     });
 
     if (recognition.matchFound && recognition.match) {
@@ -635,6 +640,7 @@ async function recognizeFace(req, res) {
         faceSignature: computedSignature,
         faceMatchConfidence: recognition.confidence,
         createdBy: req.user.id,
+        societyId: req.user.societyId,
       });
     }
 
@@ -648,6 +654,10 @@ async function recognizeFace(req, res) {
 
 async function addBlacklist(req, res) {
   try {
+    if (!req.user?.societyId) {
+      return res.status(403).json({ success: false, message: "Society context required" });
+    }
+
     const { visitorName, phone, reason, flatId, faceSignature } = req.body;
     if (!reason) {
       return res.status(400).json({ success: false, message: "reason is required" });
@@ -660,6 +670,7 @@ async function addBlacklist(req, res) {
       flatId: flatId ? Number(flatId) : null,
       faceSignature: faceSignature ? visitorModel.createSignature(faceSignature) : null,
       blockedBy: req.user.id,
+      societyId: req.user.societyId,
     });
 
     emitSafe("visitor:blacklist_added", { id, visitorName, phone, reason });
@@ -717,7 +728,14 @@ async function createVehicleEntry(req, res) {
 
 async function listVehicleEntries(req, res) {
   try {
-    const rows = await visitorModel.listVehicleEntries({ search: req.query.search });
+    if (!req.user?.societyId) {
+      return res.status(403).json({ success: false, message: "Society context required" });
+    }
+
+    const rows = await visitorModel.listVehicleEntries({ 
+      search: req.query.search,
+      societyId: req.user.societyId 
+    });
     return res.json({ success: true, data: rows });
   } catch (error) {
     return res.status(500).json({ success: false, message: "Failed to fetch vehicle entries" });
@@ -752,7 +770,15 @@ async function createDeliveryEntry(req, res) {
 
 async function listDeliveryEntries(req, res) {
   try {
-    const rows = await visitorModel.listDeliveryEntries({ status: req.query.status, search: req.query.search });
+    if (!req.user?.societyId) {
+      return res.status(403).json({ success: false, message: "Society context required" });
+    }
+
+    const rows = await visitorModel.listDeliveryEntries({ 
+      status: req.query.status, 
+      search: req.query.search,
+      societyId: req.user.societyId 
+    });
     return res.json({ success: true, data: rows });
   } catch (error) {
     return res.status(500).json({ success: false, message: "Failed to fetch delivery entries" });
@@ -761,7 +787,13 @@ async function listDeliveryEntries(req, res) {
 
 async function getVisitorAnalytics(req, res) {
   try {
-    const data = await visitorModel.createVisitorAnalyticsSnapshot();
+    if (!req.user?.societyId) {
+      return res.status(403).json({ success: false, message: "Society context required" });
+    }
+
+    const data = await visitorModel.createVisitorAnalyticsSnapshot({ 
+      societyId: req.user.societyId 
+    });
     return res.json({ success: true, data });
   } catch (error) {
     return res.status(500).json({ success: false, message: "Failed to fetch analytics" });
@@ -782,6 +814,10 @@ async function getVisitorDashboard(req, res) {
 
 async function createEmergencyAlert(req, res) {
   try {
+    if (!req.user?.societyId) {
+      return res.status(403).json({ success: false, message: "Society context required" });
+    }
+
     const { alertType, severity, message, location } = req.body;
     if (!message) {
       return res.status(400).json({ success: false, message: "message is required" });
@@ -793,6 +829,7 @@ async function createEmergencyAlert(req, res) {
       severity,
       message,
       location,
+      societyId: req.user.societyId,
     });
 
     await notificationModel.createNotification({
@@ -804,6 +841,7 @@ async function createEmergencyAlert(req, res) {
       relatedType: "emergency_alert",
       relatedId: id,
       deepLink: `/security?alert=${id}`,
+      societyId: req.user.societyId,
     });
 
     emitSafe("visitor:emergency_alert", { id, alertType, severity, message, location });
@@ -815,7 +853,14 @@ async function createEmergencyAlert(req, res) {
 
 async function listEmergencyAlerts(req, res) {
   try {
-    const rows = await visitorModel.listEmergencyAlerts({ status: req.query.status });
+    if (!req.user?.societyId) {
+      return res.status(403).json({ success: false, message: "Society context required" });
+    }
+
+    const rows = await visitorModel.listEmergencyAlerts({ 
+      status: req.query.status,
+      societyId: req.user.societyId 
+    });
     return res.json({ success: true, data: rows });
   } catch (error) {
     return res.status(500).json({ success: false, message: "Failed to fetch emergency alerts" });

@@ -11,11 +11,15 @@ import {
   getApiMessage,
   resetPassword,
 } from "../services/authApi";
+import { getSelectedSociety, saveSelectedSociety } from "../utils/session";
 
 function ForgotPasswordPage() {
+  const selectedSociety = getSelectedSociety();
   const [requestEmail, setRequestEmail] = useState("");
+  const [societyCode, setSocietyCode] = useState(selectedSociety?.id || "");
   const [resetForm, setResetForm] = useState({
     email: "",
+    societyCode: selectedSociety?.id || "",
     otp: "",
     newPassword: "",
     confirmPassword: "",
@@ -28,10 +32,11 @@ function ForgotPasswordPage() {
   function validateReset() {
     if (
       !resetForm.email ||
+      !resetForm.societyCode ||
       !resetForm.otp ||
       !resetForm.confirmPassword
     ) {
-      return "All reset fields are required";
+      return "Society code, email, OTP, and passwords are required";
     }
 
     if (!/^\d{6}$/.test(resetForm.otp)) {
@@ -53,15 +58,16 @@ function ForgotPasswordPage() {
     event.preventDefault();
     setAlert({ type: "", message: "" });
 
-    if (!requestEmail) {
-      setAlert({ type: "error", message: "Email is required" });
+    if (!requestEmail || !societyCode) {
+      setAlert({ type: "error", message: "Email and society code are required" });
       return;
     }
 
     try {
       setRequestLoading(true);
-      const response = await forgotPassword({ email: requestEmail });
-      setResetForm((prev) => ({ ...prev, email: requestEmail }));
+      const response = await forgotPassword({ email: requestEmail, societyCode });
+      setResetForm((prev) => ({ ...prev, email: requestEmail, societyCode }));
+      saveSelectedSociety({ id: societyCode, name: societyCode });
       setAlert({
         type: "info",
         message: response.message || "OTP sent for password reset",
@@ -89,6 +95,7 @@ function ForgotPasswordPage() {
       setResetLoading(true);
       const response = await resetPassword({
         email: resetForm.email,
+        societyCode: resetForm.societyCode,
         otp: resetForm.otp,
         newPassword: resetForm.newPassword,
       });
@@ -100,6 +107,7 @@ function ForgotPasswordPage() {
 
       setResetForm({
         email: resetForm.email,
+        societyCode: resetForm.societyCode,
         otp: "",
         newPassword: "",
         confirmPassword: "",
@@ -123,12 +131,29 @@ function ForgotPasswordPage() {
 
       <form className="space-y-4" onSubmit={handleRequestOtp}>
         <h2 className="text-sm font-semibold text-[var(--text-main)]">Step 1: Request OTP</h2>
+        <AuthInput
+          label="Society code"
+          value={societyCode}
+          onChange={(v) => setSocietyCode(v.trim().toUpperCase())}
+          placeholder="e.g., GRR-0001"
+          required
+        />
         <AuthInput label="Email" type="email" value={requestEmail} onChange={(v) => setRequestEmail(v)} autoComplete="email" required />
         <AuthButton type="submit" loading={requestLoading}>{requestLoading ? "Sending OTP..." : "Send OTP"}</AuthButton>
       </form>
 
       <form className="space-y-4" onSubmit={handleResetPassword}>
         <h2 className="text-sm font-semibold text-[var(--text-main)]">Step 2: Reset Password</h2>
+        <div>
+          <label className={authLabelClass}>Society code</label>
+          <AuthInput
+            label="Society code"
+            value={resetForm.societyCode}
+            onChange={(v) => setResetForm((prev) => ({ ...prev, societyCode: v.trim().toUpperCase() }))}
+            placeholder="e.g., GRR-0001"
+            required
+          />
+        </div>
         <div>
           <label className={authLabelClass}>Email</label>
           <AuthInput label="Email" type="email" value={resetForm.email} onChange={(v) => setResetForm((prev) => ({ ...prev, email: v }))} autoComplete="email" required />

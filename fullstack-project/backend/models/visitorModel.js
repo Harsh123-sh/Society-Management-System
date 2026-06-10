@@ -650,12 +650,12 @@ async function recognizeVisitorFace({ faceCaptureUrl, faceSignature, phone, visi
   };
 }
 
-async function addBlacklistEntry({ visitorName, phone, reason, blockedBy, flatId, faceSignature }) {
+async function addBlacklistEntry({ visitorName, phone, reason, blockedBy, flatId, faceSignature, societyId }) {
   const { rows: result } = await db.query(
     `INSERT INTO visitor_blacklist_entries
-     (visitor_name, phone, reason, flat_id, face_signature, blocked_by, status, created_at)
-     VALUES (?, ?, ?, ?, ?, ?, 'active', NOW())`,
-    [visitorName || null, phone || null, reason, flatId || null, faceSignature || null, blockedBy || null]
+     (visitor_name, phone, reason, flat_id, face_signature, blocked_by, society_id, status, created_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, 'active', NOW())`,
+    [visitorName || null, phone || null, reason, flatId || null, faceSignature || null, blockedBy || null, societyId || null]
   );
 
   return result.insertId;
@@ -894,24 +894,29 @@ async function getVisitorDashboard({ wing, societyId } = {}) {
   };
 }
 
-async function createEmergencyAlert({ triggeredBy, alertType, severity, message, location }) {
+async function createEmergencyAlert({ triggeredBy, alertType, severity, message, location, societyId }) {
   const { rows: result } = await db.query(
     `INSERT INTO visitor_emergency_alerts
-     (triggered_by, alert_type, severity, message, location, status, created_at)
-     VALUES (?, ?, ?, ?, ?, 'active', NOW())`,
-    [triggeredBy, alertType || "security", severity || "high", normalizeText(message), location || null]
+     (triggered_by, alert_type, severity, message, location, status, society_id, created_at)
+     VALUES (?, ?, ?, ?, ?, 'active', ?, NOW())`,
+    [triggeredBy, alertType || "security", severity || "high", normalizeText(message), location || null, societyId || null]
   );
 
   return result.insertId;
 }
 
-async function listEmergencyAlerts({ status } = {}) {
+async function listEmergencyAlerts({ status, societyId } = {}) {
   const params = [];
   const filters = [];
 
   if (["active", "acknowledged", "resolved"].includes(normalizeText(status))) {
     filters.push("status = ?");
     params.push(normalizeText(status));
+  }
+
+  if (societyId) {
+    filters.push("society_id = ?");
+    params.push(societyId);
   }
 
   const whereClause = filters.length ? `WHERE ${filters.join(" AND ")}` : "";

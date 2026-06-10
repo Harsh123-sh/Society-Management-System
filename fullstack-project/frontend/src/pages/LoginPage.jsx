@@ -8,6 +8,7 @@ import AuthButton from "../components/AuthButton";
 import AuthLink from "../components/AuthLink";
 import SocialButtons from "../components/SocialButtons";
 import { getApiMessage, loginUser } from "../services/authApi";
+import { useTranslation } from "../contexts/LanguageContext";
 import { clearAuthSession, clearSuperAdminSession } from "../utils/session";
 import {
   getRoleHomePath,
@@ -27,6 +28,7 @@ function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [alert, setAlert] = useState({ type: "", message: "" });
   const [unverifiedEmail, setUnverifiedEmail] = useState(null);
+  const { t } = useTranslation();
 
   const token = localStorage.getItem("token");
   const storedRole = getStoredRole();
@@ -57,7 +59,7 @@ function LoginPage() {
     }
 
     if (verified === "true") {
-      setAlert({ type: "success", message: "Email verified successfully. Please login." });
+      setAlert({ type: "success", message: t("auth.emailVerifiedSuccess") });
       setUnverifiedEmail(null);
     }
 
@@ -86,24 +88,24 @@ function LoginPage() {
 
   function validate() {
     if (!form.email) {
-      return "Email is required";
+      return t("form.required");
     }
 
     if (!form.password) {
-      return "Password is required";
+      return t("form.required");
     }
 
     if (!form.societyCode) {
-      return "Society code is required";
+      return t("auth.societyCodeRequired");
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(form.email)) {
-      return "Please enter a valid email address";
+      return t("auth.invalidEmail");
     }
 
     if (form.password.length < 8) {
-      return "Password must be at least 8 characters";
+      return t("auth.passwordTooShort");
     }
 
     return null;

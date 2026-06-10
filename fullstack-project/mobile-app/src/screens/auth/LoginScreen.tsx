@@ -8,14 +8,16 @@ export default function LoginScreen() {
   const { signIn } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [societyCode, setSocietyCode] = useState('');
 
   return (
     <Screen>
       <SectionTitle title="Sign in" subtitle="Authenticate with the existing backend API." />
       <View style={styles.form}>
-        <TextInput value={email} onChangeText={setEmail} placeholder="Email" placeholderTextColor={colors.muted} style={styles.input} />
+        <TextInput value={societyCode} onChangeText={(value) => setSocietyCode(value.trim().toUpperCase())} placeholder="Society code" placeholderTextColor={colors.muted} style={styles.input} autoCapitalize="characters" />
+        <TextInput value={email} onChangeText={setEmail} placeholder="Email" placeholderTextColor={colors.muted} style={styles.input} autoCapitalize="none" keyboardType="email-address" />
         <TextInput value={password} onChangeText={setPassword} placeholder="Password" placeholderTextColor={colors.muted} secureTextEntry style={styles.input} />
-        <Pressable onPress={() => signIn(email, password)} style={styles.button}>
+        <Pressable onPress={() => signIn(email, password, societyCode)} style={styles.button}>
           <Text style={styles.buttonText}>Continue</Text>
         </Pressable>
       </View>

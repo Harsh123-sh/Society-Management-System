@@ -207,6 +207,52 @@
       "description": "The platform unifies operations, communication, finance, and AI in one premium experience."
     }
   },
+  "auth": {
+    "welcomeBack": "Welcome back",
+    "signInSubtitle": "Sign in to continue to your society workspace.",
+    "registerTitle": "Create account",
+    "registerSubtitleOfficer": "Register as Chairman or Secretary for super admin approval.",
+    "registerSubtitleResident": "Register as a resident with society code, wing, and flat number.",
+    "registerSubtitleStaff": "Register as staff or security.",
+    "emailVerificationRequired": "Email verification required",
+    "verifyEmailNow": "Verify Email Now",
+    "emailVerifiedSuccess": "Email verified successfully. Please login.",
+    "fieldRequired": "All fields are required.",
+    "invalidEmail": "Please enter a valid email address.",
+    "passwordTooShort": "Password must be at least 8 characters.",
+    "passwordMismatch": "Passwords do not match.",
+    "societyCodeRequired": "Society code is required.",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "name": "Name",
+    "roleSelection": "I am registering as a",
+    "flatNumber": "Flat number",
+    "wing": "Wing",
+    "societyCode": "Society code",
+    "loginSuccessful": "Login successful",
+    "loginFailed": "Login failed",
+    "registerSuccess": "Registered successfully. Verify OTP next.",
+    "verifyEmailPrompt": "Please verify your email before login."
+  },
+  "theme": {
+    "system": "System",
+    "light": "Light",
+    "dark": "Dark",
+    "auto": "Auto",
+    "accentColor": "Accent color",
+    "backgroundImage": "Background image",
+    "themeMode": "Theme mode",
+    "preview": "Live preview"
+  },
+  "form": {
+    "required": "This field is required.",
+    "invalidEmail": "Please enter a valid email address.",
+    "passwordTooShort": "Password must contain at least 8 characters.",
+    "passwordMismatch": "Password confirmation does not match.",
+    "invalidFlat": "Flat number is invalid.",
+    "allFieldsRequired": "All fields are required."
+  },
   "dashboard": {
     "title": "{{role}} Dashboard"
   },
