@@ -249,7 +249,7 @@ async function listThreadsForUser(userId) {
        SELECT cm.id
        FROM chat_messages cm
        WHERE cm.thread_id = t.id
-         cm.deleted_for_all = FALSE
+        AND cm.deleted_for_all = FALSE
          AND (
            cm.deleted_for_sender = FALSE
            OR cm.sender_id <> ?
