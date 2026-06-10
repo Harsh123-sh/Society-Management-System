@@ -166,6 +166,26 @@ await pool.query(`ALTER TABLE notifications ADD COLUMN IF NOT EXISTS deep_link T
 await pool.query(`ALTER TABLE notifications ADD COLUMN IF NOT EXISTS related_type VARCHAR(100);`);
 await pool.query(`ALTER TABLE notifications ADD COLUMN IF NOT EXISTS related_id INTEGER;`);
 
+
+
+
+
+
+
+await pool.query(`
+  ALTER TABLE bill_payments
+  ADD COLUMN IF NOT EXISTS gateway_provider VARCHAR(100);
+`);
+
+await pool.query(`
+  ALTER TABLE bill_payments
+  ADD COLUMN IF NOT EXISTS gateway_payment_id VARCHAR(255);
+`);
+
+
+
+
+
 await pool.query(`
   CREATE TABLE IF NOT EXISTS chat_threads (
     id SERIAL PRIMARY KEY,
