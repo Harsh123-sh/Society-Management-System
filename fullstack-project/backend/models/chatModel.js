@@ -249,13 +249,13 @@ async function listThreadsForUser(userId) {
        SELECT cm.id
        FROM chat_messages cm
        WHERE cm.thread_id = t.id
-         AND cm.deleted_for_all = 0
+         cm.deleted_for_all = FALSE
          AND (
-           cm.deleted_for_sender = 0
+           cm.deleted_for_sender = FALSE
            OR cm.sender_id <> ?
          )
          AND (
-           cm.deleted_for_receiver = 0
+           cm.deleted_for_receiver = FALSE
            OR cm.sender_id = ?
          )
        ORDER BY cm.created_at DESC, cm.id DESC

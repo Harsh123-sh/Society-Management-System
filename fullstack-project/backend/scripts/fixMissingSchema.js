@@ -182,7 +182,10 @@ await pool.query(`
   ADD COLUMN IF NOT EXISTS gateway_payment_id VARCHAR(255);
 `);
 
-
+await pool.query(`
+  ALTER TABLE complaints
+  ADD COLUMN IF NOT EXISTS assigned_to INTEGER;
+`);
 
 
 

@@ -70,7 +70,8 @@ async function getMonthlyComplaintsAndBills(lastMonths = 6, societyId) {
   const { rows: complaintRows } = await db.query(
     `SELECT TO_CHAR(created_at, 'YYYY-MM') AS month_key, COUNT(*) AS total
      FROM complaints
-     WHERE created_at >= NOW() - make_interval(months => $1) ${societyFilter}
+     WHERE created_at >= NOW() - make_interval(months => $1)
+     AND society_id = $2
      GROUP BY month_key
      ORDER BY month_key ASC`,
     complaintParams
