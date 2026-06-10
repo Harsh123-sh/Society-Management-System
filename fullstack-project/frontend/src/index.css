@@ -212,6 +212,7 @@ html[data-theme="dark"] {
     linear-gradient(180deg, #020617 0%, #0f172a 50%, #020617 100%);
   background-size: cover;
   background-position: center;
+  background-attachment: fixed;
 }
 
 body {
@@ -223,6 +224,18 @@ body {
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   transition: background-color 250ms ease, color 250ms ease, border-color 250ms ease, box-shadow 250ms ease, background-image 400ms ease;
+  position: relative;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background: var(--app-background-overlay, transparent);
+  backdrop-filter: blur(var(--app-background-blur, 0px));
+  z-index: -1;
+  transition: background 250ms ease, backdrop-filter 250ms ease;
 }
 
 #root {

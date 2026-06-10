@@ -13,7 +13,24 @@ const paletteOptions = [
 ];
 
 function ThemeAdminPage() {
-  const { catalog, setThemeMode, setDensity, setLayoutMode, setFontFamily, setBranding, saveThemeToBackend, generateThemePack, selectedSociety } = useThemeEngine();
+  const {
+    catalog,
+    setThemeMode,
+    setDensity,
+    setLayoutMode,
+    setFontFamily,
+    setAccentColor,
+    setPrimaryColor,
+    setSecondaryColor,
+    setBackgroundImage,
+    setBackgroundBlur,
+    setBackgroundOpacity,
+    setBranding,
+    resetTheme,
+    saveThemeToBackend,
+    generateThemePack,
+    selectedSociety,
+  } = useThemeEngine();
   const [societies, setSocieties] = useState([]);
   const [selectedSocietyId, setSelectedSocietyId] = useState('');
   const [saving, setSaving] = useState(false);
@@ -25,6 +42,9 @@ function ThemeAdminPage() {
     primaryColor: '#0f766e',
     secondaryColor: '#2563eb',
     accentColor: '#14b8a6',
+    backgroundImage: '',
+    backgroundBlur: 0,
+    backgroundOpacity: 0.14,
     fontFamily: 'Manrope',
     theme: {
       mode: 'dark',
@@ -100,6 +120,9 @@ function ThemeAdminPage() {
         primaryColor: themeDraft.primaryColor,
         secondaryColor: themeDraft.secondaryColor,
         accentColor: themeDraft.accentColor,
+        backgroundImage: themeDraft.backgroundImage,
+        backgroundBlur: themeDraft.backgroundBlur,
+        backgroundOpacity: themeDraft.backgroundOpacity,
         fontFamily: themeDraft.fontFamily,
         themeJson: themeDraft.theme,
       });
@@ -218,19 +241,101 @@ function ThemeAdminPage() {
               </label>
               <label className="space-y-2">
                 <span className="text-sm font-medium text-slate-700">Primary color</span>
-                <input type="color" value={themeDraft.primaryColor} onChange={(event) => setThemeDraft((current) => ({ ...current, primaryColor: event.target.value }))} className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50 px-2 py-1" />
+                <input
+                  type="color"
+                  value={themeDraft.primaryColor}
+                  onChange={(event) => {
+                    const value = event.target.value;
+                    setThemeDraft((current) => ({ ...current, primaryColor: value }));
+                    setPrimaryColor(value);
+                  }}
+                  className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50 px-2 py-1"
+                />
               </label>
               <label className="space-y-2">
                 <span className="text-sm font-medium text-slate-700">Secondary color</span>
-                <input type="color" value={themeDraft.secondaryColor} onChange={(event) => setThemeDraft((current) => ({ ...current, secondaryColor: event.target.value }))} className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50 px-2 py-1" />
+                <input
+                  type="color"
+                  value={themeDraft.secondaryColor}
+                  onChange={(event) => {
+                    const value = event.target.value;
+                    setThemeDraft((current) => ({ ...current, secondaryColor: value }));
+                    setSecondaryColor(value);
+                  }}
+                  className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50 px-2 py-1"
+                />
               </label>
               <label className="space-y-2">
                 <span className="text-sm font-medium text-slate-700">Accent color</span>
-                <input type="color" value={themeDraft.accentColor} onChange={(event) => setThemeDraft((current) => ({ ...current, accentColor: event.target.value }))} className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50 px-2 py-1" />
+                <input
+                  type="color"
+                  value={themeDraft.accentColor}
+                  onChange={(event) => {
+                    const value = event.target.value;
+                    setThemeDraft((current) => ({ ...current, accentColor: value }));
+                    setAccentColor(value);
+                  }}
+                  className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50 px-2 py-1"
+                />
+              </label>
+              <label className="space-y-2 md:col-span-2">
+                <span className="text-sm font-medium text-slate-700">Background image URL</span>
+                <input
+                  type="text"
+                  value={themeDraft.backgroundImage}
+                  onChange={(event) => {
+                    const value = event.target.value;
+                    setThemeDraft((current) => ({ ...current, backgroundImage: value }));
+                    setBackgroundImage(value);
+                  }}
+                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none"
+                  placeholder="https://cdn.example.com/background.jpg"
+                />
+              </label>
+              <label className="space-y-2">
+                <span className="text-sm font-medium text-slate-700">Background blur</span>
+                <input
+                  type="range"
+                  min="0"
+                  max="48"
+                  value={themeDraft.backgroundBlur}
+                  onChange={(event) => {
+                    const value = Number(event.target.value);
+                    setThemeDraft((current) => ({ ...current, backgroundBlur: value }));
+                    setBackgroundBlur(value);
+                  }}
+                  className="w-full"
+                />
+                <div className="text-sm text-slate-500">{themeDraft.backgroundBlur}px</div>
+              </label>
+              <label className="space-y-2">
+                <span className="text-sm font-medium text-slate-700">Background opacity</span>
+                <input
+                  type="range"
+                  min="0"
+                  max="0.8"
+                  step="0.02"
+                  value={themeDraft.backgroundOpacity}
+                  onChange={(event) => {
+                    const value = Number(event.target.value);
+                    setThemeDraft((current) => ({ ...current, backgroundOpacity: value }));
+                    setBackgroundOpacity(value);
+                  }}
+                  className="w-full"
+                />
+                <div className="text-sm text-slate-500">{themeDraft.backgroundOpacity}</div>
               </label>
               <label className="space-y-2">
                 <span className="text-sm font-medium text-slate-700">Font family</span>
-                <select value={themeDraft.fontFamily} onChange={(event) => setThemeDraft((current) => ({ ...current, fontFamily: event.target.value }))} className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none">
+                <select
+                  value={themeDraft.fontFamily}
+                  onChange={(event) => {
+                    const value = event.target.value;
+                    setThemeDraft((current) => ({ ...current, fontFamily: value }));
+                    setFontFamily(value);
+                  }}
+                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none"
+                >
                   {fontOptions.map((font) => <option key={font} value={font}>{font}</option>)}
                 </select>
               </label>
@@ -242,21 +347,45 @@ function ThemeAdminPage() {
             <div className="mt-5 grid gap-4 md:grid-cols-3">
               <label className="space-y-2">
                 <span className="text-sm font-medium text-slate-700">Mode</span>
-                <select value={themeDraft.theme.mode} onChange={(event) => setThemeDraft((current) => ({ ...current, theme: { ...current.theme, mode: event.target.value } }))} className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none">
+                <select
+                  value={themeDraft.theme.mode}
+                  onChange={(event) => {
+                    const value = event.target.value;
+                    setThemeDraft((current) => ({ ...current, theme: { ...current.theme, mode: value } }));
+                    setThemeMode(value);
+                  }}
+                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none"
+                >
                   <option value="dark">Dark</option>
                   <option value="light">Light</option>
                 </select>
               </label>
               <label className="space-y-2">
                 <span className="text-sm font-medium text-slate-700">Density</span>
-                <select value={themeDraft.theme.density} onChange={(event) => setThemeDraft((current) => ({ ...current, theme: { ...current.theme, density: event.target.value } }))} className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none">
+                <select
+                  value={themeDraft.theme.density}
+                  onChange={(event) => {
+                    const value = event.target.value;
+                    setThemeDraft((current) => ({ ...current, theme: { ...current.theme, density: value } }));
+                    setDensity(value);
+                  }}
+                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none"
+                >
                   <option value="comfortable">Comfortable</option>
                   <option value="compact">Compact</option>
                 </select>
               </label>
               <label className="space-y-2">
                 <span className="text-sm font-medium text-slate-700">Layout</span>
-                <select value={themeDraft.theme.layout} onChange={(event) => setThemeDraft((current) => ({ ...current, theme: { ...current.theme, layout: event.target.value } }))} className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none">
+                <select
+                  value={themeDraft.theme.layout}
+                  onChange={(event) => {
+                    const value = event.target.value;
+                    setThemeDraft((current) => ({ ...current, theme: { ...current.theme, layout: value } }));
+                    setLayoutMode(value);
+                  }}
+                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none"
+                >
                   <option value="glass">Glass</option>
                   <option value="clean">Clean</option>
                   <option value="compact">Compact</option>
@@ -271,14 +400,27 @@ function ThemeAdminPage() {
             <h2 className="text-lg font-semibold text-slate-950">Live preview</h2>
             <p className="text-sm text-slate-500">Preview the selected society tokens before saving.</p>
 
-            <div className="mt-5 rounded-3xl p-5 text-[var(--text-main)]" style={{ background: `linear-gradient(135deg, ${themeDraft.primaryColor}, ${themeDraft.secondaryColor})` }}>
-              <p className="text-xs uppercase tracking-[0.24em] text-[var(--text-secondary)]">{currentSociety?.name || 'Society preview'}</p>
-              <h3 className="mt-3 text-2xl font-semibold">{themeDraft.theme.mode === 'dark' ? 'Dark' : 'Light'} theme</h3>
-              <p className="mt-2 text-sm text-[var(--text-secondary)]">Dynamic colors, logo, font, and layout controls applied live.</p>
-              <div className="mt-4 flex flex-wrap gap-2">
-                <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-semibold">{themeDraft.fontFamily}</span>
-                <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-semibold">{themeDraft.theme.layout}</span>
-                <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-semibold">{themeDraft.theme.density}</span>
+            <div
+              className="mt-5 overflow-hidden rounded-3xl p-5 text-[var(--text-main)]"
+              style={{
+                backgroundImage: themeDraft.backgroundImage
+                  ? `linear-gradient(rgba(15,23,42,0.55), rgba(15,23,42,0.55)), url('${themeDraft.backgroundImage}')`
+                  : `linear-gradient(135deg, ${themeDraft.primaryColor}, ${themeDraft.secondaryColor})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.05)',
+                backdropFilter: themeDraft.backgroundBlur ? `blur(${themeDraft.backgroundBlur}px)` : 'none',
+              }}
+            >
+              <div className="rounded-3xl bg-slate-950/10 p-5 backdrop-blur-sm">
+                <p className="text-xs uppercase tracking-[0.24em] text-[var(--text-secondary)]">{currentSociety?.name || 'Society preview'}</p>
+                <h3 className="mt-3 text-2xl font-semibold">{themeDraft.theme.mode === 'dark' ? 'Dark' : 'Light'} theme</h3>
+                <p className="mt-2 text-sm text-[var(--text-secondary)]">Dynamic colors, logo, font, and layout controls applied live.</p>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-semibold">{themeDraft.fontFamily}</span>
+                  <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-semibold">{themeDraft.theme.layout}</span>
+                  <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-semibold">{themeDraft.theme.density}</span>
+                </div>
               </div>
             </div>
           </div>
@@ -292,6 +434,32 @@ function ThemeAdminPage() {
               </button>
               <button type="button" onClick={handleSave} disabled={saving || loading} className="rounded-2xl border border-teal-200 bg-teal-50 px-4 py-3 text-sm font-semibold text-teal-900 disabled:opacity-50">
                 Save theme to society
+              </button>
+              <button type="button" onClick={() => {
+                resetTheme();
+                setThemeDraft((current) => ({
+                  ...current,
+                  logoUrl: '',
+                  faviconUrl: '',
+                  primaryColor: '#0f766e',
+                  secondaryColor: '#2563eb',
+                  accentColor: '#14b8a6',
+                  backgroundImage: '',
+                  backgroundBlur: 0,
+                  backgroundOpacity: 0.14,
+                  fontFamily: 'Manrope',
+                  theme: {
+                    mode: 'dark',
+                    density: 'comfortable',
+                    layout: 'glass',
+                    navigationStyle: 'floating',
+                    radius: '24px',
+                    heroGradient: ['#0f766e', '#2563eb'],
+                    background: '#020617',
+                  },
+                }));
+              }} disabled={saving || loading} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 disabled:opacity-50">
+                Reset theme
               </button>
             </div>
             {message ? <p className="mt-4 text-sm text-slate-600">{message}</p> : null}

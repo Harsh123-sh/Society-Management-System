@@ -181,6 +181,27 @@ export function ThemeProvider({ children }) {
     setFontFamily(fontFamily) {
       setPreferences((current) => ({ ...current, fontFamily }));
     },
+    setAccentColor(accentColor) {
+      setPreferences((current) => ({ ...current, accentColor }));
+    },
+    setPrimaryColor(primaryColor) {
+      setPreferences((current) => ({ ...current, primaryColor }));
+    },
+    setSecondaryColor(secondaryColor) {
+      setPreferences((current) => ({ ...current, secondaryColor }));
+    },
+    setBackgroundImage(backgroundImage) {
+      setPreferences((current) => ({ ...current, backgroundImage }));
+    },
+    setBackgroundBlur(backgroundBlur) {
+      setPreferences((current) => ({ ...current, backgroundBlur }));
+    },
+    setBackgroundOpacity(backgroundOpacity) {
+      setPreferences((current) => ({ ...current, backgroundOpacity }));
+    },
+    resetTheme() {
+      setPreferences(normalizeThemeState(DEFAULT_THEME_STATE));
+    },
     setBranding(partialBranding) {
       setPreferences((current) => ({
         ...current,

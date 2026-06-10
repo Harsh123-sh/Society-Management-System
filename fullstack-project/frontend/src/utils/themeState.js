@@ -12,6 +12,8 @@ const DEFAULT_THEME_STATE = {
   secondaryColor: '#2563eb',
   accentColor: '79 70 229',
   backgroundImage: '',
+  backgroundBlur: 0,
+  backgroundOpacity: 0.14,
   themeJson: {
     mode: 'auto',
     layout: 'glass',
@@ -146,6 +148,12 @@ function normalizeThemeState(partialState = {}) {
   const density = partialState.density || DEFAULT_THEME_STATE.density;
   const layoutMode = partialState.layoutMode || partialState.layout || DEFAULT_THEME_STATE.layoutMode;
   const accentColor = partialState.accentColor || partialState.accent || DEFAULT_THEME_STATE.accentColor;
+  const backgroundBlur = Number.isFinite(Number(partialState.backgroundBlur))
+    ? Number(partialState.backgroundBlur)
+    : DEFAULT_THEME_STATE.backgroundBlur;
+  const backgroundOpacity = Number.isFinite(Number(partialState.backgroundOpacity))
+    ? Math.min(Math.max(Number(partialState.backgroundOpacity), 0), 0.9)
+    : DEFAULT_THEME_STATE.backgroundOpacity;
 
   return {
     ...DEFAULT_THEME_STATE,
@@ -155,6 +163,8 @@ function normalizeThemeState(partialState = {}) {
     layoutMode,
     accentColor: hexToRgbString(accentColor),
     backgroundImage: partialState.backgroundImage || DEFAULT_THEME_STATE.backgroundImage,
+    backgroundBlur,
+    backgroundOpacity,
     primaryColor: partialState.primaryColor || DEFAULT_THEME_STATE.primaryColor,
     secondaryColor: partialState.secondaryColor || DEFAULT_THEME_STATE.secondaryColor,
     themeJson: {
@@ -260,6 +270,12 @@ function applyThemeState(partialState) {
   root.style.setProperty('--hero-start', nextState.primaryColor);
   root.style.setProperty('--hero-end', nextState.secondaryColor);
   root.style.setProperty('--app-background-image', nextState.backgroundImage ? `url('${nextState.backgroundImage}')` : 'none');
+  root.style.setProperty('--app-background-blur', `${nextState.backgroundBlur}px`);
+  root.style.setProperty('--app-background-opacity', `${nextState.backgroundOpacity}`);
+  root.style.setProperty(
+    '--app-background-overlay',
+    nextState.backgroundImage ? `rgba(15, 23, 42, ${nextState.backgroundOpacity})` : 'transparent'
+  );
   root.style.setProperty('--app-foreground-contrast', getContrastColor(nextState.accentColor));
   root.style.colorScheme = effectiveThemeMode;
 
