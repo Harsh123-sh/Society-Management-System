@@ -799,7 +799,7 @@ async function createVisitorAnalyticsSnapshot({ societyId } = {}) {
   const summaryRows = await safeRows(
     db.query(
       `SELECT
-        COUNT(*) AS total_visits,
+        COUNT(*) AS total_visits, 
         SUM(CASE WHEN DATE(entry_time) = CURRENT_DATE THEN 1 ELSE 0 END) AS today_visits,
         SUM(CASE WHEN status = 'in_premises' THEN 1 ELSE 0 END) AS active_visits,
         SUM(CASE WHEN blacklist_flag = true THEN 1 ELSE 0 END) AS blacklist_hits,

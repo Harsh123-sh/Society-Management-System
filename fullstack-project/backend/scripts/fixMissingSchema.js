@@ -187,7 +187,23 @@ await pool.query(`
   ADD COLUMN IF NOT EXISTS assigned_to INTEGER;
 `);
 
+await pool.query(`
+  ALTER TABLE visitor_blacklist_entries
+  ADD COLUMN IF NOT EXISTS face_signature TEXT;
+`);
 
+await pool.query(`
+  ALTER TABLE visitor_emergency_alerts
+  ADD COLUMN IF NOT EXISTS society_id INTEGER;
+`);
+
+await pool.query(`
+  ALTER TABLE visitor_emergency_alerts
+  ADD CONSTRAINT fk_visitor_emergency_alerts_society
+  FOREIGN KEY (society_id)
+  REFERENCES societies(id)
+  ON DELETE CASCADE;
+`);                         
 
 await pool.query(`
   CREATE TABLE IF NOT EXISTS chat_threads (
