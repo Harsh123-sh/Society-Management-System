@@ -125,6 +125,10 @@ function resolveSocietyBranding(society) {
   };
 }
 
+function formatSocietyDisplayName(name) {
+  return String(name || "Society").replace(/\bGrren\b/gi, "Green");
+}
+
 function formatCurrency(value) {
   return new Intl.NumberFormat("en-IN", {
     style: "currency",
@@ -452,6 +456,7 @@ function HomePage() {
 
   const renderedSocieties = publicSocieties;
   const activeSociety = renderedSocieties.find((society) => String(society.id) === String(effectiveSocietyId)) || renderedSocieties[0] || { id: "", name: "Society", status: "active" };
+  const activeSocietyDisplayName = formatSocietyDisplayName(activeSociety.name);
   const activeSocietyPreset = resolveSocietyBranding(activeSociety);
   const activeSocietyLabel = activeSociety.subscription_plan || activeSociety.status || activeSocietyPreset.label;
   const activeSocietySummary = activeSocietyPreset.summary;
@@ -484,12 +489,12 @@ function HomePage() {
   ];
 
   useEffect(() => {
-    document.title = `${activeSociety.name} | AI Society Management SaaS`;
+    document.title = `${activeSocietyDisplayName} | AI Society Management SaaS`;
 
     return () => {
       document.title = "Society Management System";
     };
-  }, [activeSociety.name]);
+  }, [activeSocietyDisplayName]);
 
   return (
     <main
@@ -539,7 +544,7 @@ function HomePage() {
                     onClick={() => setSelectedSocietyId(String(society.id))}
                   >
                     <span className="society-chip__dot" style={{ background: theme.heroEnd }} />
-                    <span>{society.name}</span>
+                    <span>{formatSocietyDisplayName(society.name)}</span>
                   </button>
                 );
               })
@@ -621,7 +626,7 @@ function HomePage() {
           <div className="hero-visual__header">
             <div>
               <p className="brand-eyebrow">{t("hero.liveLens")}</p>
-              <h3>{activeSociety.name}</h3>
+              <h3>{activeSocietyDisplayName}</h3>
             </div>
             <span className="status-chip">{activeSocietyLabel}</span>
           </div>
@@ -718,7 +723,7 @@ function HomePage() {
           <div className="mini-rail">
             <div>
               <span className="mini-rail__label">{t("hero.brandPack")}</span>
-              <strong>{activeSociety.name}</strong>
+              <strong>{activeSocietyDisplayName}</strong>
               <p>{activeSocietySummary}</p>
             </div>
             <div>
