@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import * as faceapi from "face-api.js";
 import Webcam from "react-webcam";
 
 function CameraCapture({ onCapture, onClose }) {
@@ -7,6 +6,7 @@ function CameraCapture({ onCapture, onClose }) {
   const canvasRef = useRef(null);
   const [cameraReady, setCameraReady] = useState(false);
   const [modelsLoaded, setModelsLoaded] = useState(false);
+  const [faceApi, setFaceApi] = useState(null);
   const [error, setError] = useState("");
   const [captureMessage, setCaptureMessage] = useState("");
   const [faceState, setFaceState] = useState({
@@ -22,6 +22,7 @@ function CameraCapture({ onCapture, onClose }) {
 
     async function loadModels() {
       try {
+        const faceapi = await import("face-api.js");
         await Promise.all([
           faceapi.nets.tinyFaceDetector.loadFromUri(
             "https://justadudewhohacks.github.io/face-api.js/models"
@@ -32,6 +33,7 @@ function CameraCapture({ onCapture, onClose }) {
         ]);
 
         if (isMounted) {
+          setFaceApi(faceapi);
           setModelsLoaded(true);
         }
       } catch (modelError) {
@@ -49,7 +51,7 @@ function CameraCapture({ onCapture, onClose }) {
   }, []);
 
   useEffect(() => {
-    if (!cameraReady || !modelsLoaded || !webcamRef.current || !canvasRef.current) {
+    if (!cameraReady || !modelsLoaded || !faceApi || !webcamRef.current || !canvasRef.current) {
       return;
     }
 
@@ -64,9 +66,9 @@ function CameraCapture({ onCapture, onClose }) {
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
 
-      const detections = await faceapi.detectSingleFace(
+      const detections = await faceApi.detectSingleFace(
         video,
-        new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.5 })
+        new faceApi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.5 })
       );
 
       const context = canvas.getContext("2d");
@@ -101,7 +103,7 @@ function CameraCapture({ onCapture, onClose }) {
     }, 250);
 
     return () => clearInterval(intervalId);
-  }, [cameraReady, modelsLoaded]);
+  }, [cameraReady, faceApi, modelsLoaded]);
 
   const handleCapture = () => {
     try {
@@ -145,7 +147,7 @@ function CameraCapture({ onCapture, onClose }) {
         <h3 className="mb-4 text-lg font-semibold text-slate-900">Capture Visitor Photo</h3>
 
         {error ? (
-          <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+          <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700" role="alert">
             {error}
           </div>
         ) : null}
@@ -187,6 +189,7 @@ function CameraCapture({ onCapture, onClose }) {
             type="button"
             onClick={handleCapture}
             disabled={!cameraReady || !modelsLoaded || !faceState.isDetected || !faceState.isValid}
+            aria-disabled={!cameraReady || !modelsLoaded || !faceState.isDetected || !faceState.isValid}
             className="flex-1 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-[var(--text-main)] hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-300"
           >
             Capture Photo

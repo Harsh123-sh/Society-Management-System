@@ -114,12 +114,12 @@ function PremiumStatCard({ label, value, trend, unit = "", accentColor = "cyan" 
       className={`group relative rounded-3xl border ${colors.borderClass} bg-[rgb(var(--app-surface-rgb))] p-6 shadow-sm transition-all duration-300 hover:-translate-y-2 hover:shadow-xl`}
       style={{ boxShadow: colors.shadow }}
     >
-      <div className="absolute inset-0 rounded-3xl bg-gradient-to-br opacity-0 transition-opacity duration-300 group-hover:opacity-10" style={{ backgroundImage: `linear-gradient(to bottom right, ${colors.glowColor}, transparent)` }} />
+      <div className="chairman-page absolute inset-0 rounded-3xl bg-gradient-to-br opacity-0 transition-opacity duration-300 group-hover:opacity-10" style={{ backgroundImage: `linear-gradient(to bottom right, ${colors.glowColor}, transparent)` }} />
       
-      <div className="relative flex items-start justify-between">
-        <div className="flex-1">
+      <div className="chairman-page relative flex items-start justify-between">
+        <div className="chairman-page flex-1">
           <p className="text-sm font-medium tracking-wide text-[rgb(var(--app-text-muted-rgb))]">{label}</p>
-          <div className="mt-4 flex items-baseline gap-2">
+          <div className="chairman-page mt-4 flex items-baseline gap-2">
             <p className="text-4xl font-bold text-[rgb(var(--app-text-rgb))]">{value}</p>
             {unit && <span className="text-xs font-semibold text-[rgb(var(--app-primary-rgb))]">{unit}</span>}
           </div>
@@ -390,14 +390,14 @@ function AdminOverviewPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(79,70,229,0.08),_transparent_28%),linear-gradient(180deg,_rgb(var(--app-canvas-rgb))_0%,_rgb(var(--app-canvas-rgb))_100%)]">
-      <div className="space-y-8 p-6 md:p-8">
+    <div className="chairman-page min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(79,70,229,0.08),_transparent_28%),linear-gradient(180deg,_rgb(var(--app-canvas-rgb))_0%,_rgb(var(--app-canvas-rgb))_100%)]">
+      <div className="chairman-page space-y-8 p-6 md:p-8">
         {/* Alert */}
         <AlertMessage type={alert.type} message={alert.message} />
 
         <section className="group relative overflow-hidden rounded-[28px] border border-[rgb(var(--app-border-rgb))] bg-[rgb(var(--app-surface-rgb))] shadow-[0_18px_60px_rgba(15,23,42,0.08)]">
-          <div className="absolute inset-0 bg-gradient-to-r from-[rgb(var(--app-primary-rgb))] via-transparent to-emerald-400 opacity-0 transition-opacity duration-500 group-hover:opacity-10" />
-          <div className="relative grid gap-6 px-8 py-8 lg:grid-cols-[1.2fr_0.8fr]">
+          <div className="chairman-page absolute inset-0 bg-gradient-to-r from-[rgb(var(--app-primary-rgb))] via-transparent to-emerald-400 opacity-0 transition-opacity duration-500 group-hover:opacity-10" />
+          <div className="chairman-page relative grid gap-6 px-8 py-8 lg:grid-cols-[1.2fr_0.8fr]">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[rgb(var(--app-text-muted-rgb))]">Chairman workspace</p>
               <h1 className="mt-3 text-4xl font-bold tracking-tight text-[rgb(var(--app-text-rgb))] md:text-5xl">
@@ -406,7 +406,7 @@ function AdminOverviewPage() {
               <p className="mt-3 max-w-2xl text-sm leading-6 text-[rgb(var(--app-text-muted-rgb))]">
                 {roleLabel} of {societyName}. All dashboard data below is scoped to this society only.
               </p>
-              <div className="mt-5 flex flex-wrap gap-3 text-sm text-[rgb(var(--app-text-rgb))]">
+              <div className="chairman-page mt-5 flex flex-wrap gap-3 text-sm text-[rgb(var(--app-text-rgb))]">
                 <span className="rounded-full border border-[rgb(var(--app-border-rgb))] bg-[rgb(var(--app-surface-muted-rgb))] px-4 py-2 font-semibold">
                   {roleLabel}
                 </span>
@@ -416,13 +416,13 @@ function AdminOverviewPage() {
               </div>
             </div>
 
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
-              <div className="rounded-3xl border border-[rgb(var(--app-border-rgb))] bg-[rgb(var(--app-surface-muted-rgb))] p-4">
+            <div className="chairman-page grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
+              <div className="chairman-page rounded-3xl border border-[rgb(var(--app-border-rgb))] bg-[rgb(var(--app-surface-muted-rgb))] p-4">
                 <p className="text-xs uppercase tracking-[0.24em] text-[rgb(var(--app-text-muted-rgb))]">Society</p>
                 <p className="mt-2 text-lg font-semibold text-[rgb(var(--app-text-rgb))]">{societyName}</p>
                 <p className="text-sm text-[rgb(var(--app-text-muted-rgb))]">{society?.address || societyLocation || "Society details synced from Super Admin"}</p>
               </div>
-              <div className="rounded-3xl border border-[rgb(var(--app-border-rgb))] bg-[rgb(var(--app-surface-muted-rgb))] p-4">
+              <div className="chairman-page rounded-3xl border border-[rgb(var(--app-border-rgb))] bg-[rgb(var(--app-surface-muted-rgb))] p-4">
                 <p className="text-xs uppercase tracking-[0.24em] text-[rgb(var(--app-text-muted-rgb))]">Role</p>
                 <p className="mt-2 text-lg font-semibold text-[rgb(var(--app-text-rgb))]">{roleLabel}</p>
                 <p className="text-sm text-[rgb(var(--app-text-muted-rgb))]">{currentUser?.email || "Account linked to this society"}</p>
@@ -432,18 +432,18 @@ function AdminOverviewPage() {
         </section>
 
         {/* Hero Section */}
-        <div className="group relative overflow-hidden rounded-[28px] border border-[rgb(var(--app-border-rgb))] bg-[rgb(var(--app-surface-rgb))] shadow-[0_18px_60px_rgba(15,23,42,0.08)]">
-          <div className="absolute inset-0 bg-gradient-to-r from-[rgb(var(--app-primary-rgb))] via-transparent to-emerald-400 opacity-0 transition-opacity duration-500 group-hover:opacity-10" />
+        <div className="chairman-page group relative overflow-hidden rounded-[28px] border border-[rgb(var(--app-border-rgb))] bg-[rgb(var(--app-surface-rgb))] shadow-[0_18px_60px_rgba(15,23,42,0.08)]">
+          <div className="chairman-page absolute inset-0 bg-gradient-to-r from-[rgb(var(--app-primary-rgb))] via-transparent to-emerald-400 opacity-0 transition-opacity duration-500 group-hover:opacity-10" />
           
-          <div className="relative px-8 py-12 md:py-16">
-            <div className="max-w-3xl">
+          <div className="chairman-page relative px-8 py-12 md:py-16">
+            <div className="chairman-page max-w-3xl">
               <h1 className="animate-fade-in bg-gradient-to-r from-[rgb(var(--app-primary-rgb))] via-[rgb(var(--app-text-rgb))] to-emerald-500 bg-clip-text text-4xl font-bold text-transparent md:text-5xl">
                 AI Powered Society Command Center
               </h1>
               <p className="mt-4 max-w-2xl text-lg text-[rgb(var(--app-text-muted-rgb))]">
                 Real-time visibility into all society operations. Manage flats, residents, billing, complaints, and security in one unified premium dashboard.
               </p>
-              <div className="mt-6 flex gap-4">
+              <div className="chairman-page mt-6 flex gap-4">
                 <button className="rounded-xl bg-gradient-to-r from-[rgb(var(--app-primary-rgb))] to-emerald-500 px-8 py-3 font-bold text-[var(--text-main)] transition-all duration-300 hover:scale-105 hover:opacity-95 active:scale-95">
                   Get Started
                 </button>
@@ -455,12 +455,12 @@ function AdminOverviewPage() {
           </div>
 
           {/* Animated background elements */}
-          <div className="absolute -mr-48 -mt-48 h-96 w-96 rounded-full bg-[rgb(var(--app-primary-rgb))] opacity-5 blur-3xl right-0 top-0" />
-          <div className="absolute -ml-48 -mb-48 h-96 w-96 rounded-full bg-emerald-500 opacity-5 blur-3xl bottom-0 left-0" />
+          <div className="chairman-page absolute -mr-48 -mt-48 h-96 w-96 rounded-full bg-[rgb(var(--app-primary-rgb))] opacity-5 blur-3xl right-0 top-0" />
+          <div className="chairman-page absolute -ml-48 -mb-48 h-96 w-96 rounded-full bg-emerald-500 opacity-5 blur-3xl bottom-0 left-0" />
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <div className="chairman-page grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
           <PremiumStatCard
             label="Total Flats"
             value={overview.totalFlats}
@@ -488,53 +488,53 @@ function AdminOverviewPage() {
         </div>
 
         {/* Occupancy Status Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="rounded-3xl border border-emerald-200 bg-[rgb(var(--app-surface-rgb))] p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
-            <div className="flex items-center justify-between">
+        <div className="chairman-page grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="chairman-page rounded-3xl border border-emerald-200 bg-[rgb(var(--app-surface-rgb))] p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+            <div className="chairman-page flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-[rgb(var(--app-text-muted-rgb))]">Occupied Flats</p>
                 <p className="mt-2 text-3xl font-bold text-emerald-600">{overview.occupiedFlats}</p>
               </div>
-              <div className="text-5xl opacity-20">🏠</div>
+              <div className="chairman-page text-5xl opacity-20">🏠</div>
             </div>
-            <div className="mt-4 h-1 rounded-full bg-gradient-to-r from-emerald-500 to-transparent" />
+            <div className="chairman-page mt-4 h-1 rounded-full bg-gradient-to-r from-emerald-500 to-transparent" />
           </div>
 
-          <div className="rounded-3xl border border-sky-200 bg-[rgb(var(--app-surface-rgb))] p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
-            <div className="flex items-center justify-between">
+          <div className="chairman-page rounded-3xl border border-sky-200 bg-[rgb(var(--app-surface-rgb))] p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+            <div className="chairman-page flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-[rgb(var(--app-text-muted-rgb))]">Vacant Flats</p>
                 <p className="mt-2 text-3xl font-bold text-[rgb(var(--app-primary-rgb))]">{overview.vacantFlats}</p>
               </div>
-              <div className="text-5xl opacity-20">🔓</div>
+              <div className="chairman-page text-5xl opacity-20">🔓</div>
             </div>
-            <div className="mt-4 h-1 rounded-full bg-gradient-to-r from-[rgb(var(--app-primary-rgb))] to-transparent" />
+            <div className="chairman-page mt-4 h-1 rounded-full bg-gradient-to-r from-[rgb(var(--app-primary-rgb))] to-transparent" />
           </div>
 
-          <div className="rounded-3xl border border-amber-200 bg-[rgb(var(--app-surface-rgb))] p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
-            <div className="flex items-center justify-between">
+          <div className="chairman-page rounded-3xl border border-amber-200 bg-[rgb(var(--app-surface-rgb))] p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+            <div className="chairman-page flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-[rgb(var(--app-text-muted-rgb))]">Under Maintenance</p>
                 <p className="mt-2 text-3xl font-bold text-amber-600">{overview.underMaintenanceFlats}</p>
               </div>
-              <div className="text-5xl opacity-20">🔧</div>
+              <div className="chairman-page text-5xl opacity-20">🔧</div>
             </div>
-            <div className="mt-4 h-1 rounded-full bg-gradient-to-r from-amber-500 to-transparent" />
+            <div className="chairman-page mt-4 h-1 rounded-full bg-gradient-to-r from-amber-500 to-transparent" />
           </div>
         </div>
 
         {/* Charts Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="chairman-page grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Occupancy Pie Chart */}
-          <div className="rounded-3xl border border-[rgb(var(--app-border-rgb))] bg-[rgb(var(--app-surface-rgb))] p-8 shadow-sm">
+          <div className="chairman-page rounded-3xl border border-[rgb(var(--app-border-rgb))] bg-[rgb(var(--app-surface-rgb))] p-8 shadow-sm">
             <h3 className="mb-6 flex items-center gap-2 text-lg font-bold text-[rgb(var(--app-text-rgb))]">
               <span className="h-2 w-2 rounded-full bg-gradient-to-r from-[rgb(var(--app-primary-rgb))] to-emerald-500" />
               Occupancy Rate
             </h3>
-            <div className="h-72 -mx-4">
+            <div className="chairman-page h-72 -mx-4">
               {loading ? (
-                <div className="flex h-full items-center justify-center">
-                  <div className="animate-pulse text-text-secondary">Loading chart...</div>
+                <div className="chairman-page flex h-full items-center justify-center">
+                  <div className="chairman-page animate-pulse text-text-secondary">Loading chart...</div>
                 </div>
               ) : (
                 <ResponsiveContainer width="100%" height="100%">
@@ -560,15 +560,15 @@ function AdminOverviewPage() {
           </div>
 
           {/* Monthly Collection Chart */}
-          <div className="rounded-3xl border border-[rgb(var(--app-border-rgb))] bg-[rgb(var(--app-surface-rgb))] p-8 shadow-sm">
+          <div className="chairman-page rounded-3xl border border-[rgb(var(--app-border-rgb))] bg-[rgb(var(--app-surface-rgb))] p-8 shadow-sm">
             <h3 className="mb-6 flex items-center gap-2 text-lg font-bold text-[rgb(var(--app-text-rgb))]">
               <span className="h-2 w-2 rounded-full bg-gradient-to-r from-emerald-500 to-[rgb(var(--app-primary-rgb))]" />
               Monthly Collection
             </h3>
-            <div className="h-72 -mx-4">
+            <div className="chairman-page h-72 -mx-4">
               {loading ? (
-                <div className="flex h-full items-center justify-center">
-                  <div className="animate-pulse text-text-secondary">Loading chart...</div>
+                <div className="chairman-page flex h-full items-center justify-center">
+                  <div className="chairman-page animate-pulse text-text-secondary">Loading chart...</div>
                 </div>
               ) : (
                 <ResponsiveContainer width="100%" height="100%">
@@ -588,17 +588,17 @@ function AdminOverviewPage() {
         </div>
 
         {/* Complaint Trends & Recent Activity */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="chairman-page grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Complaint Trends Chart */}
-          <div className="lg:col-span-2 rounded-3xl border border-[rgb(var(--app-border-rgb))] bg-[rgb(var(--app-surface-rgb))] p-8 shadow-sm">
+          <div className="chairman-page lg:col-span-2 rounded-3xl border border-[rgb(var(--app-border-rgb))] bg-[rgb(var(--app-surface-rgb))] p-8 shadow-sm">
             <h3 className="mb-6 flex items-center gap-2 text-lg font-bold text-[rgb(var(--app-text-rgb))]">
               <span className="h-2 w-2 rounded-full bg-gradient-to-r from-[rgb(var(--app-primary-rgb))] to-emerald-500" />
               Complaint Trends
             </h3>
-            <div className="h-64 -mx-4">
+            <div className="chairman-page h-64 -mx-4">
               {loading ? (
-                <div className="flex h-full items-center justify-center">
-                  <div className="animate-pulse text-text-secondary">Loading chart...</div>
+                <div className="chairman-page flex h-full items-center justify-center">
+                  <div className="chairman-page animate-pulse text-text-secondary">Loading chart...</div>
                 </div>
               ) : (
                 <ResponsiveContainer width="100%" height="100%">
@@ -622,7 +622,7 @@ function AdminOverviewPage() {
           </div>
 
           {/* Recent Activities */}
-          <div className="rounded-3xl border border-[rgb(var(--app-border-rgb))] bg-[rgb(var(--app-surface-rgb))] p-8 shadow-sm">
+          <div className="chairman-page rounded-3xl border border-[rgb(var(--app-border-rgb))] bg-[rgb(var(--app-surface-rgb))] p-8 shadow-sm">
             <h3 className="mb-6 flex items-center gap-2 text-lg font-bold text-[rgb(var(--app-text-rgb))]">
               <span className="h-2 w-2 rounded-full bg-gradient-to-r from-emerald-500 to-[rgb(var(--app-primary-rgb))]" />
               Recent Activity
@@ -631,25 +631,25 @@ function AdminOverviewPage() {
           </div>
 
           {/* AI Command Center */}
-          <div className="rounded-3xl border border-[rgb(var(--app-border-rgb))] bg-[rgb(var(--app-surface-rgb))] p-8 shadow-sm">
+          <div className="chairman-page rounded-3xl border border-[rgb(var(--app-border-rgb))] bg-[rgb(var(--app-surface-rgb))] p-8 shadow-sm">
             <AiCommandCenter />
           </div>
         </div>
 
         {/* Quick Stats Summary */}
-        <div className="rounded-3xl border border-[rgb(var(--app-border-rgb))] bg-[rgb(var(--app-surface-rgb))] p-8 shadow-sm">
+        <div className="chairman-page rounded-3xl border border-[rgb(var(--app-border-rgb))] bg-[rgb(var(--app-surface-rgb))] p-8 shadow-sm">
           <h3 className="mb-6 flex items-center gap-2 text-lg font-bold text-[rgb(var(--app-text-rgb))]">
             <span className="h-2 w-2 rounded-full bg-gradient-to-r from-emerald-500 to-[rgb(var(--app-primary-rgb))]" />
             Society Overview Summary
           </h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="rounded-2xl border border-[rgb(var(--app-border-rgb))] bg-[rgb(var(--app-surface-muted-rgb))] p-4 text-center">
+          <div className="chairman-page grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="chairman-page rounded-2xl border border-[rgb(var(--app-border-rgb))] bg-[rgb(var(--app-surface-muted-rgb))] p-4 text-center">
               <p className="text-sm text-[rgb(var(--app-text-muted-rgb))]">Occupancy Rate</p>
               <p className="mt-2 text-2xl font-bold text-[rgb(var(--app-primary-rgb))]">
                 {overview.totalFlats > 0 ? Math.round((overview.occupiedFlats / overview.totalFlats) * 100) : 0}%
               </p>
             </div>
-            <div className="rounded-2xl border border-[rgb(var(--app-border-rgb))] bg-[rgb(var(--app-surface-muted-rgb))] p-4 text-center">
+            <div className="chairman-page rounded-2xl border border-[rgb(var(--app-border-rgb))] bg-[rgb(var(--app-surface-muted-rgb))] p-4 text-center">
               <p className="text-sm text-[rgb(var(--app-text-muted-rgb))]">Collection Rate</p>
               <p className="mt-2 text-2xl font-bold text-emerald-600">
                 {bills.length > 0
@@ -661,7 +661,7 @@ function AdminOverviewPage() {
                   : 0}%
               </p>
             </div>
-            <div className="rounded-2xl border border-[rgb(var(--app-border-rgb))] bg-[rgb(var(--app-surface-muted-rgb))] p-4 text-center">
+            <div className="chairman-page rounded-2xl border border-[rgb(var(--app-border-rgb))] bg-[rgb(var(--app-surface-muted-rgb))] p-4 text-center">
               <p className="text-sm text-[rgb(var(--app-text-muted-rgb))]">Complaint Resolution</p>
               <p className="mt-2 text-2xl font-bold text-amber-600">
                 {complaints.length > 0
@@ -678,7 +678,7 @@ function AdminOverviewPage() {
                   : 0}%
               </p>
             </div>
-            <div className="rounded-2xl border border-[rgb(var(--app-border-rgb))] bg-[rgb(var(--app-surface-muted-rgb))] p-4 text-center">
+            <div className="chairman-page rounded-2xl border border-[rgb(var(--app-border-rgb))] bg-[rgb(var(--app-surface-muted-rgb))] p-4 text-center">
               <p className="text-sm text-[rgb(var(--app-text-muted-rgb))]">Visitors Today</p>
               <p className="mt-2 text-2xl font-bold text-[rgb(var(--app-primary-rgb))]">{visitors.length}</p>
             </div>

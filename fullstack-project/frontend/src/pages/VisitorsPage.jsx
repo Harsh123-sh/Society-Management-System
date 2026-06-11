@@ -138,7 +138,7 @@ function VisitorsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="chairman-page space-y-6">
       <div>
         <h2 className="text-xl font-bold text-slate-900">Visitor Entry System</h2>
         <p className="text-sm text-slate-600">
@@ -152,7 +152,7 @@ function VisitorsPage() {
         <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
           <h3 className="text-base font-semibold text-slate-900">Add Visitor Entry</h3>
           <form className="mt-4 space-y-4" onSubmit={handleCreateEntry}>
-            <div className="grid gap-3 md:grid-cols-2">
+            <div className="chairman-page grid gap-3 md:grid-cols-2">
               <input
                 type="text"
                 className="rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none ring-blue-500 focus:ring"
@@ -204,8 +204,8 @@ function VisitorsPage() {
 
             {/* Photo Preview Section */}
             {photoPreview ? (
-              <div className="space-y-2">
-                <div className="relative inline-block">
+              <div className="chairman-page space-y-2">
+                <div className="chairman-page relative inline-block">
                   <img
                     src={photoPreview}
                     alt="Visitor preview"
@@ -227,7 +227,7 @@ function VisitorsPage() {
             ) : null}
 
             {/* Buttons */}
-            <div className="flex gap-2">
+            <div className="chairman-page flex gap-2">
               <button
                 type="button"
                 onClick={() => setShowCamera(true)}
@@ -259,7 +259,7 @@ function VisitorsPage() {
       <section className="space-y-3">
         <h3 className="text-base font-semibold text-slate-900">Visitor Logs</h3>
 
-        <div className="w-52">
+        <div className="chairman-page w-52">
           <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500">
             Wing filter
           </label>
@@ -280,20 +280,20 @@ function VisitorsPage() {
         </div>
 
         {loading ? (
-          <div className="rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-600 shadow-sm">
+          <div className="chairman-page rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-600 shadow-sm">
             Loading visitor logs...
           </div>
         ) : logs.length ? (
-          <div className="space-y-3">
+          <div className="chairman-page space-y-3">
             {logs.map((log) => (
               <article
                 key={log.id}
                 className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
               >
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                <div className="chairman-page flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                   {/* Photo Column */}
                   {log.photo_url ? (
-                    <div className="flex-shrink-0">
+                    <div className="chairman-page flex-shrink-0">
                       <img
                         src={log.photo_url}
                         alt={log.visitor_name}
@@ -303,7 +303,7 @@ function VisitorsPage() {
                   ) : null}
 
                   {/* Info Column */}
-                  <div className="flex-1">
+                  <div className="chairman-page flex-1">
                     <h4 className="text-base font-semibold text-slate-900">
                       {log.visitor_name}
                     </h4>
@@ -326,7 +326,7 @@ function VisitorsPage() {
                   </div>
 
                   {/* Action Column */}
-                  <div className="flex items-center gap-2">
+                  <div className="chairman-page flex items-center gap-2">
                     <span
                       className={`rounded-full px-3 py-1 text-xs font-semibold ${
                         log.status === "exited"
@@ -352,7 +352,7 @@ function VisitorsPage() {
             ))}
           </div>
         ) : (
-          <div className="rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-600 shadow-sm">
+          <div className="chairman-page rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-600 shadow-sm">
             No visitor entries found.
           </div>
         )}

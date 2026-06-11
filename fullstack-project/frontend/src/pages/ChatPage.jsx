@@ -744,11 +744,11 @@ function ChatPage() {
   }
 
   return (
-    <div className="min-h-[calc(100vh-2rem)] rounded-[2rem] border border-white/10 theme-surface text-slate-100 shadow-2xl shadow-slate-950/40 backdrop-blur-xl">
-      <div className="grid min-h-[calc(100vh-2rem)] lg:grid-cols-[340px_1fr]">
+    <div className="chairman-page min-h-[calc(100vh-2rem)] rounded-[2rem] border border-white/10 theme-surface text-slate-100 shadow-2xl shadow-slate-950/40 backdrop-blur-xl">
+      <div className="chairman-page grid min-h-[calc(100vh-2rem)] lg:grid-cols-[340px_1fr]">
         <aside className="flex flex-col border-r border-white/10 theme-surface">
-          <div className="border-b border-white/10 p-4">
-            <div className="flex items-center justify-between gap-3">
+          <div className="chairman-page border-b border-white/10 p-4">
+            <div className="chairman-page flex items-center justify-between gap-3">
               <div>
                 <p className="text-xs uppercase tracking-[0.3em] text-cyan-300/80">Realtime chat</p>
                 <h2 className="mt-1 text-2xl font-semibold text-[var(--text-main)]">Society Messenger</h2>
@@ -762,14 +762,14 @@ function ChatPage() {
               </button>
             </div>
 
-            <div className="mt-3 flex items-center gap-2 text-xs text-slate-400">
+            <div className="chairman-page mt-3 flex items-center gap-2 text-xs text-slate-400">
               <span className={`h-2.5 w-2.5 rounded-full ${onlineUserIds.includes(currentUserId) ? "bg-emerald-400" : "bg-slate-500"}`} />
               <span>{onlineUserIds.length} users online</span>
               <span className="rounded-full border border-white/10 px-2 py-1">{currentUser?.role || "member"}</span>
             </div>
           </div>
 
-          <div className="border-b border-white/10 p-4">
+          <div className="chairman-page border-b border-white/10 p-4">
             <form className="space-y-2" onSubmit={handleMemberSearch}>
               <input
                 type="text"
@@ -778,7 +778,7 @@ function ChatPage() {
                 value={searchTerm}
                 onChange={(event) => setSearchTerm(event.target.value)}
               />
-              <div className="flex gap-2">
+              <div className="chairman-page flex gap-2">
                 <button type="submit" className="flex-1 rounded-2xl bg-white px-4 py-3 text-xs font-semibold text-slate-950">
                   Search people
                 </button>
@@ -788,7 +788,7 @@ function ChatPage() {
               </div>
             </form>
 
-            <div className="mt-4 flex flex-wrap gap-2">
+            <div className="chairman-page mt-4 flex flex-wrap gap-2">
               {[
                 ["all", "All"],
                 ["direct", "Direct"],
@@ -811,8 +811,8 @@ function ChatPage() {
 
           {showThreadCreator ? (
             <form className="border-b border-white/10 p-4" onSubmit={handleCreateThread}>
-              <div className="grid gap-3">
-                <div className="grid grid-cols-2 gap-2">
+              <div className="chairman-page grid gap-3">
+                <div className="chairman-page grid grid-cols-2 gap-2">
                   <button
                     type="button"
                     onClick={() => setNewThreadType("group")}
@@ -841,7 +841,7 @@ function ChatPage() {
                   rows={3}
                   className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-[var(--text-main)] outline-none placeholder:text-slate-500"
                 />
-                <div className="max-h-32 space-y-2 overflow-auto rounded-2xl border border-white/10 p-2">
+                <div className="chairman-page max-h-32 space-y-2 overflow-auto rounded-2xl border border-white/10 p-2">
                   {members.map((member) => {
                     const checked = selectedMemberIds.includes(member.id);
                     return (
@@ -869,9 +869,9 @@ function ChatPage() {
             </form>
           ) : null}
 
-          <div className="flex-1 overflow-y-auto p-2">
+          <div className="chairman-page flex-1 overflow-y-auto p-2">
             {loading ? (
-              <div className="rounded-3xl border border-white/10 bg-white/5 p-6 text-sm text-slate-400">Loading chats...</div>
+              <div className="chairman-page rounded-3xl border border-white/10 bg-white/5 p-6 text-sm text-slate-400">Loading chats...</div>
             ) : visibleThreads.length ? (
               visibleThreads.map((thread) => {
                 const latest = thread.latest_message;
@@ -888,9 +888,9 @@ function ChatPage() {
                       isActive ? "border-cyan-400/60 bg-cyan-400/10" : "border-white/10 bg-white/5 hover:bg-white/7"
                     }`}
                   >
-                    <div className="flex items-start justify-between gap-3">
+                    <div className="chairman-page flex items-start justify-between gap-3">
                       <div>
-                        <div className="flex items-center gap-2">
+                        <div className="chairman-page flex items-center gap-2">
                           <h3 className="font-semibold text-[var(--text-main)]">{title}</h3>
                           <span className="rounded-full border border-white/10 px-2 py-0.5 text-[10px] uppercase tracking-[0.25em] text-slate-400">
                             {thread.thread_type}
@@ -900,7 +900,7 @@ function ChatPage() {
                       </div>
                       {unread ? <span className="rounded-full bg-cyan-400 px-2 py-1 text-[11px] font-semibold text-slate-950">{unread}</span> : null}
                     </div>
-                    <div className="mt-2 flex items-center justify-between text-[11px] text-slate-500">
+                    <div className="chairman-page mt-2 flex items-center justify-between text-[11px] text-slate-500">
                       <span>{formatTime(thread.last_message_at || latest?.created_at)}</span>
                       <span>{latest?.sender_name || ""}</span>
                     </div>
@@ -908,16 +908,16 @@ function ChatPage() {
                 );
               })
             ) : (
-              <div className="mx-2 rounded-3xl border border-white/10 bg-white/5 p-6 text-sm text-slate-400">No threads found.</div>
+              <div className="chairman-page mx-2 rounded-3xl border border-white/10 bg-white/5 p-6 text-sm text-slate-400">No threads found.</div>
             )}
 
             {searchResults.length ? (
-              <div className="mx-2 mt-4 rounded-3xl border border-white/10 bg-white/5 p-4">
+              <div className="chairman-page mx-2 mt-4 rounded-3xl border border-white/10 bg-white/5 p-4">
                 <h4 className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-400">Search results</h4>
-                <div className="mt-3 space-y-2">
+                <div className="chairman-page mt-3 space-y-2">
                   {searchResults.map((result) => (
                     <div key={result.id} className="rounded-2xl border border-white/10 theme-surface p-3 text-xs text-slate-300">
-                      <div className="flex items-center justify-between gap-2">
+                      <div className="chairman-page flex items-center justify-between gap-2">
                         <span className="font-semibold text-[var(--text-main)]">{result.sender_name}</span>
                         <span>{formatTime(result.created_at)}</span>
                       </div>
@@ -935,7 +935,7 @@ function ChatPage() {
             <>
               <header className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 theme-surface px-5 py-4 backdrop-blur-xl">
                 <div>
-                  <div className="flex items-center gap-2">
+                  <div className="chairman-page flex items-center gap-2">
                     <h2 className="text-lg font-semibold text-[var(--text-main)]">
                       {activeThreadMeta.title || activeThreadMeta.peer_name || "Chat"}
                     </h2>
@@ -948,7 +948,7 @@ function ChatPage() {
                   </p>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-2">
+                <div className="chairman-page flex flex-wrap items-center gap-2">
                   <button
                     type="button"
                     onClick={startAudioCall}
@@ -988,12 +988,12 @@ function ChatPage() {
               </header>
 
               {incomingCall ? (
-                <div className="mx-4 mt-4 rounded-2xl border border-emerald-300/30 bg-emerald-400/10 p-3 text-sm text-emerald-100">
-                  <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="chairman-page mx-4 mt-4 rounded-2xl border border-emerald-300/30 bg-emerald-400/10 p-3 text-sm text-emerald-100">
+                  <div className="chairman-page flex flex-wrap items-center justify-between gap-3">
                     <p>
                       Incoming {incomingCall.callType || "audio"} call from <span className="font-semibold">{incomingCall.fromName || "Resident"}</span>
                     </p>
-                    <div className="flex items-center gap-2">
+                    <div className="chairman-page flex items-center gap-2">
                       <button type="button" onClick={acceptIncomingCall} className="rounded-full bg-emerald-400 px-3 py-1.5 text-xs font-semibold text-slate-950">
                         Accept
                       </button>
@@ -1005,10 +1005,10 @@ function ChatPage() {
                 </div>
               ) : null}
 
-              <div className="flex-1 overflow-y-auto px-4 py-4" ref={messageScrollRef}>
+              <div className="chairman-page flex-1 overflow-y-auto px-4 py-4" ref={messageScrollRef}>
                 {pinnedMessage ? (
-                  <div className="mb-4 rounded-3xl border border-cyan-400/20 bg-cyan-400/10 p-4 text-sm text-cyan-50">
-                    <div className="flex items-center justify-between gap-3">
+                  <div className="chairman-page mb-4 rounded-3xl border border-cyan-400/20 bg-cyan-400/10 p-4 text-sm text-cyan-50">
+                    <div className="chairman-page flex items-center justify-between gap-3">
                       <span className="text-xs uppercase tracking-[0.24em] text-cyan-200">Pinned message</span>
                       <button type="button" onClick={() => handlePin(pinnedMessage.id, false)} className="text-xs text-cyan-100 underline">
                         Unpin
@@ -1019,13 +1019,13 @@ function ChatPage() {
                 ) : null}
 
                 {summaryText ? (
-                  <div className="mb-4 rounded-3xl border border-emerald-400/20 bg-emerald-400/10 p-4 text-sm text-emerald-50">
+                  <div className="chairman-page mb-4 rounded-3xl border border-emerald-400/20 bg-emerald-400/10 p-4 text-sm text-emerald-50">
                     <span className="text-xs uppercase tracking-[0.24em] text-emerald-200">AI summary</span>
                     <p className="mt-2">{summaryText}</p>
                   </div>
                 ) : null}
 
-                <div className="space-y-3">
+                <div className="chairman-page space-y-3">
                   {activeThreadMessages.length ? (
                     activeThreadMessages.map((message) => {
                       const isMine = message.sender_id === currentUserId;
@@ -1035,13 +1035,13 @@ function ChatPage() {
                       return (
                         <article key={message.id} className={`flex ${isMine ? "justify-end" : "justify-start"}`}>
                           <div className={`group max-w-[min(720px,92%)] rounded-[2rem] px-4 py-3 shadow-lg ${isMine ? "bg-cyan-500 text-slate-950" : "bg-white/8 text-slate-100 backdrop-blur-xl"}`}>
-                            <div className="mb-2 flex items-center justify-between gap-3 text-[11px] opacity-80">
+                            <div className="chairman-page mb-2 flex items-center justify-between gap-3 text-[11px] opacity-80">
                               <span>{message.sender_name || "Unknown"}</span>
                               <span>{formatDate(message.created_at)} {formatTime(message.created_at)}</span>
                             </div>
 
                             {message.reply_message ? (
-                              <div className="mb-2 rounded-2xl border border-white/10 theme-modal-backdrop p-3 text-xs opacity-90">
+                              <div className="chairman-page mb-2 rounded-2xl border border-white/10 theme-modal-backdrop p-3 text-xs opacity-90">
                                 <p className="font-semibold">Replying to</p>
                                 <p>{message.reply_message}</p>
                               </div>
@@ -1053,7 +1053,7 @@ function ChatPage() {
                               <>
                                 {message.message ? <p className="whitespace-pre-wrap text-[15px] leading-7">{message.message}</p> : null}
                                 {mediaUrl ? (
-                                  <div className="mt-3 overflow-hidden rounded-2xl border border-white/10 theme-modal-backdrop">
+                                  <div className="chairman-page mt-3 overflow-hidden rounded-2xl border border-white/10 theme-modal-backdrop">
                                     {message.message_type === "image" || String(message.mime_type || "").startsWith("image/") ? (
                                       <img src={mediaUrl} alt={message.media_name || "attachment"} className="max-h-80 w-full object-cover" />
                                     ) : message.message_type === "video" ? (
@@ -1071,7 +1071,7 @@ function ChatPage() {
                             )}
 
                             {reactions.length ? (
-                              <div className="mt-2 flex flex-wrap gap-1">
+                              <div className="chairman-page mt-2 flex flex-wrap gap-1">
                                 {reactions.map((reaction, index) => (
                                   <span key={`${reaction.reaction}-${index}`} className="rounded-full theme-modal-backdrop px-2 py-1 text-[11px]">
                                     {reaction.reaction}
@@ -1080,12 +1080,12 @@ function ChatPage() {
                               </div>
                             ) : null}
 
-                            <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px] opacity-80">
+                            <div className="chairman-page mt-3 flex flex-wrap items-center gap-2 text-[11px] opacity-80">
                               <span>{buildPreview(message)}</span>
                               {renderMessageStatus(message)}
                             </div>
 
-                            <div className="mt-3 flex flex-wrap gap-2 opacity-0 transition group-hover:opacity-100">
+                            <div className="chairman-page mt-3 flex flex-wrap gap-2 opacity-0 transition group-hover:opacity-100">
                               {REACTION_SET.map((emoji) => (
                                 <button key={emoji} type="button" onClick={() => handleReact(message.id, emoji)} className="rounded-full border border-white/10 theme-modal-backdrop px-2 py-1 text-xs">
                                   {emoji}
@@ -1108,7 +1108,7 @@ function ChatPage() {
                       );
                     })
                   ) : (
-                    <div className="rounded-3xl border border-white/10 bg-white/5 p-8 text-sm text-slate-300">
+                    <div className="chairman-page rounded-3xl border border-white/10 bg-white/5 p-8 text-sm text-slate-300">
                       <p className="font-medium text-[var(--text-main)]">No messages yet.</p>
                       <p className="mt-2">Send a note, share a file, record a voice message, or start with AI smart reply.</p>
                     </div>
@@ -1119,7 +1119,7 @@ function ChatPage() {
               <footer className="border-t border-white/10 theme-surface p-4 backdrop-blur-xl">
                 <audio ref={remoteAudioRef} autoPlay className="hidden" />
                 {attachment ? (
-                  <div className="mb-3 flex items-center justify-between gap-3 rounded-3xl border border-white/10 bg-white/5 p-3 text-sm text-slate-300">
+                  <div className="chairman-page mb-3 flex items-center justify-between gap-3 rounded-3xl border border-white/10 bg-white/5 p-3 text-sm text-slate-300">
                     <div>
                       <p className="font-semibold text-[var(--text-main)]">{attachment.name}</p>
                       <p>{attachment.mimeType || "attachment"}</p>
@@ -1131,7 +1131,7 @@ function ChatPage() {
                 ) : null}
 
                 <form onSubmit={handleSendMessage} className="flex flex-col gap-3 lg:flex-row lg:items-end">
-                  <div className="flex-1 rounded-[2rem] border border-white/10 bg-white/5 p-3 shadow-xl shadow-[var(--shadow)]">
+                  <div className="chairman-page flex-1 rounded-[2rem] border border-white/10 bg-white/5 p-3 shadow-xl shadow-[var(--shadow)]">
                     <textarea
                       value={draft}
                       onChange={(event) => {
@@ -1145,7 +1145,7 @@ function ChatPage() {
                       placeholder="Type a message, add a file, paste an image, or ask AI to rewrite it..."
                       className="w-full resize-none bg-transparent text-sm text-[var(--text-main)] outline-none placeholder:text-slate-500"
                     />
-                    <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-white/10 pt-3 text-xs text-slate-300">
+                    <div className="chairman-page mt-3 flex flex-wrap items-center gap-2 border-t border-white/10 pt-3 text-xs text-slate-300">
                       <button type="button" onClick={() => fileInputRef.current?.click()} className="rounded-full border border-white/10 theme-modal-backdrop px-3 py-1.5">
                         Attach file
                       </button>
@@ -1161,7 +1161,7 @@ function ChatPage() {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2">
+                  <div className="chairman-page flex items-center gap-2">
                     <input ref={fileInputRef} type="file" className="hidden" onChange={handleFileChange} />
                     <button type="submit" disabled={sending || (!draft.trim() && !attachment)} className="rounded-[1.5rem] bg-cyan-400 px-6 py-4 text-sm font-semibold text-slate-950 transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50">
                       {sending ? "Sending..." : "Send"}
@@ -1171,8 +1171,8 @@ function ChatPage() {
               </footer>
             </>
           ) : (
-            <div className="flex flex-1 items-center justify-center p-8 text-center">
-              <div className="max-w-md rounded-[2rem] border border-white/10 bg-white/5 p-8 text-slate-300">
+            <div className="chairman-page flex flex-1 items-center justify-center p-8 text-center">
+              <div className="chairman-page max-w-md rounded-[2rem] border border-white/10 bg-white/5 p-8 text-slate-300">
                 <h3 className="text-xl font-semibold text-[var(--text-main)]">Select a thread</h3>
                 <p className="mt-2 text-sm">Open a direct message, create a group, or start a society channel to begin realtime communication.</p>
               </div>

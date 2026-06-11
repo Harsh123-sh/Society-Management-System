@@ -9,7 +9,7 @@ function OwnerAnalyticsPage() {
   }), []);
 
   return (
-    <div className="space-y-6">
+    <div className="resident-page resident-owner-page space-y-6">
       <section className="rounded-2xl bg-gradient-to-r from-[var(--page-bg)] via-[var(--surface-soft)] to-emerald-700 p-6 text-[var(--text-main)] shadow-lg">
         <h2 className="text-2xl font-bold">Income Tracking</h2>
         <p className="mt-1 text-sm text-slate-200">Rent received, monthly income summary, and profit trends for your property.</p>

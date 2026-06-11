@@ -37,7 +37,7 @@ const initialForm = {
 
 function Section({ title, subtitle, children }) {
   return (
-    <section className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] p-5 shadow-sm">
+    <section className="security-operation-panel rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] p-5 shadow-sm">
       <div>
         <h2 className="text-xl font-bold text-[var(--text-primary)]">{title}</h2>
         {subtitle ? <p className="mt-1 text-sm text-[var(--text-secondary)]">{subtitle}</p> : null}
@@ -320,11 +320,11 @@ function VisitorEntryPage() {
   }
 
   if (loading) {
-    return <div className="text-sm text-[var(--text-secondary)]">Loading visitor guard flow...</div>;
+    return <div className="security-page security-visitor-entry-page text-sm text-[var(--text-secondary)]">Loading visitor guard flow...</div>;
   }
 
   return (
-    <div className="space-y-6 text-[var(--text-primary)]">
+    <div className="security-page security-visitor-entry-page space-y-6 text-[var(--text-primary)]">
       <section className="rounded-3xl bg-[var(--hero-bg)] p-6 text-[var(--text-main)] shadow-lg">
         <p className="text-xs font-semibold uppercase tracking-[0.3em] text-emerald-200">Mobile Guard App Flow</p>
         <h1 className="mt-2 text-3xl font-bold">Visitor Operations</h1>
@@ -335,7 +335,7 @@ function VisitorEntryPage() {
 
       <AlertMessage type={alert.type} message={alert.message} />
 
-      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <section className="security-quick-stats grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <div className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] p-4 shadow-sm">
           <p className="text-xs text-[var(--text-secondary)]">Pending approvals</p>
           <p className="mt-2 text-2xl font-bold text-[var(--text-primary)]">{preapprovals.length}</p>
@@ -354,7 +354,7 @@ function VisitorEntryPage() {
         </div>
       </section>
 
-      <section className="grid gap-4 xl:grid-cols-2">
+      <section className="security-gate-flow grid gap-4 xl:grid-cols-2">
         <Section title="1. Pre-approval and Gate Access" subtitle="Select a pre-approved visitor, issue QR, send OTP, verify identity, then capture the face.">
           <div className="grid gap-3 md:grid-cols-2">
             <select

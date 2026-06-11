@@ -20,7 +20,7 @@ function StaffHomePage() {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="staff-page staff-home-page space-y-6">
       <section className="surface-card app-surface rounded-[28px] p-6">
         <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[rgb(var(--app-text-muted-rgb))]">Staff Dashboard</p>
         <h2 className="mt-2 text-3xl font-bold text-[rgb(var(--app-text-rgb))]">Daily work queue</h2>
@@ -29,7 +29,7 @@ function StaffHomePage() {
         </p>
       </section>
 
-      <div className="grid gap-4 md:grid-cols-3">
+      <section className="staff-metric-grid grid gap-4 md:grid-cols-3">
         <div className="surface-card app-surface p-4">
           <p className="text-sm text-[rgb(var(--app-text-muted-rgb))]">Assigned Tasks</p>
           <p className="text-2xl font-bold text-[rgb(var(--app-text-rgb))]">{stats.assignedTasks}</p>
@@ -42,7 +42,7 @@ function StaffHomePage() {
           <p className="text-sm text-[rgb(var(--app-text-muted-rgb))]">Completed Work</p>
           <p className="text-2xl font-bold text-[rgb(var(--app-text-rgb))]">{stats.completedWork}</p>
         </div>
-      </div>
+      </section>
 
       <section className="grid gap-4 lg:grid-cols-2">
         <article className="surface-card app-surface p-4">

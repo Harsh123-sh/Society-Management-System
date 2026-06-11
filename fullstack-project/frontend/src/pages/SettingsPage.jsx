@@ -92,20 +92,20 @@ function SettingsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="chairman-page space-y-6">
       <section className="overflow-hidden rounded-3xl bg-gradient-to-r from-[var(--page-bg)] via-[var(--surface-soft)] to-teal-800 p-6 text-[var(--text-main)] shadow-[0_24px_60px_-30px_rgba(15,23,42,0.55)] sm:p-8">
-        <div className="flex flex-wrap items-center gap-3 text-xs font-semibold uppercase tracking-[0.22em] text-[var(--text-secondary)]">
+        <div className="chairman-page flex flex-wrap items-center gap-3 text-xs font-semibold uppercase tracking-[0.22em] text-[var(--text-secondary)]">
           <span>Society Control Center</span>
           <span className="rounded-full border border-white/15 px-3 py-1 text-[10px] tracking-[0.18em]">Production-ready UI</span>
         </div>
-        <div className="mt-5 grid gap-5 lg:grid-cols-[1.4fr_0.9fr] lg:items-end">
+        <div className="chairman-page mt-5 grid gap-5 lg:grid-cols-[1.4fr_0.9fr] lg:items-end">
           <div>
             <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">Operations and appearance settings</h2>
             <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-200 sm:text-base">
               Configure the society profile, billing defaults, notifications, and AI workflows from one structured control panel.
             </p>
           </div>
-          <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
+          <div className="chairman-page grid gap-3 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
             {stats.map((item) => (
               <div key={item.label} className="rounded-2xl border border-white/10 bg-white/10 p-4 backdrop-blur">
                 <p className="text-[11px] uppercase tracking-[0.2em] text-[var(--text-secondary)]">{item.label}</p>
@@ -116,10 +116,10 @@ function SettingsPage() {
         </div>
       </section>
 
-      <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
+      <div className="chairman-page grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
         <section className="space-y-6">
-          <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-            <div className="flex items-center justify-between gap-4">
+          <div className="chairman-page rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+            <div className="chairman-page flex items-center justify-between gap-4">
               <div>
                 <h3 className="text-lg font-semibold text-slate-950">Society profile</h3>
                 <p className="text-sm text-slate-500">Core details visible throughout the platform.</p>
@@ -129,7 +129,7 @@ function SettingsPage() {
               </span>
             </div>
 
-            <div className="mt-5 grid gap-4 md:grid-cols-2">
+            <div className="chairman-page mt-5 grid gap-4 md:grid-cols-2">
               <label className="space-y-2">
                 <span className="text-sm font-medium text-slate-700">Society name</span>
                 <input
@@ -169,13 +169,13 @@ function SettingsPage() {
             </div>
           </div>
 
-          <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+          <div className="chairman-page rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
             <div>
               <h3 className="text-lg font-semibold text-slate-950">Billing defaults</h3>
               <p className="text-sm text-slate-500">Control recurring charges and penalty rules.</p>
             </div>
 
-            <div className="mt-5 grid gap-4 md:grid-cols-3">
+            <div className="chairman-page mt-5 grid gap-4 md:grid-cols-3">
               {[
                 { key: "maintenanceCharges", label: "Maintenance (₹/month)" },
                 { key: "waterCharges", label: "Water charge (₹/month)" },
@@ -197,13 +197,13 @@ function SettingsPage() {
             </div>
           </div>
 
-          <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+          <div className="chairman-page rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
             <div>
               <h3 className="text-lg font-semibold text-slate-950">Notifications</h3>
               <p className="text-sm text-slate-500">Prefer a cleaner, more reliable communication stack.</p>
             </div>
 
-            <div className="mt-5 grid gap-3 md:grid-cols-3">
+            <div className="chairman-page mt-5 grid gap-3 md:grid-cols-3">
               {[
                 { key: "emailNotifications", label: "Email alerts" },
                 { key: "smsNotifications", label: "SMS alerts" },
@@ -224,14 +224,14 @@ function SettingsPage() {
         </section>
 
         <aside className="space-y-6">
-          <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+          <div className="chairman-page rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
             <h3 className="text-lg font-semibold text-slate-950">Appearance</h3>
             <p className="text-sm text-slate-500">Adjust the live shell theme from here.</p>
 
-            <div className="mt-5 space-y-4">
+            <div className="chairman-page mt-5 space-y-4">
               <div>
                 <span className="text-sm font-medium text-slate-700">Accent color</span>
-                <div className="mt-3 grid grid-cols-2 gap-3">
+                <div className="chairman-page mt-3 grid grid-cols-2 gap-3">
                   {accentOptions.map((option) => (
                     <button
                       key={option.value}
@@ -253,7 +253,7 @@ function SettingsPage() {
                 </div>
               </div>
 
-              <div className="grid gap-3 sm:grid-cols-2">
+              <div className="chairman-page grid gap-3 sm:grid-cols-2">
                 <label className="space-y-2">
                   <span className="text-sm font-medium text-slate-700">Theme</span>
                   <select
@@ -280,11 +280,11 @@ function SettingsPage() {
             </div>
           </div>
 
-          <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+          <div className="chairman-page rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
             <h3 className="text-lg font-semibold text-slate-950">AI operations</h3>
             <p className="text-sm text-slate-500">Helpful automation without cluttering the workflow.</p>
 
-            <div className="mt-4 space-y-3">
+            <div className="chairman-page mt-4 space-y-3">
               {[
                 { key: "autoDraftNotices", label: "Draft notices from prompts" },
                 { key: "complaintSummaries", label: "Summarize complaint trends" },
@@ -304,7 +304,7 @@ function SettingsPage() {
             </div>
           </div>
 
-          <div className="rounded-3xl border border-dashed border-slate-300 bg-slate-50 p-5 text-sm text-slate-600">
+          <div className="chairman-page rounded-3xl border border-dashed border-slate-300 bg-slate-50 p-5 text-sm text-slate-600">
             These preferences are saved locally in the browser for now and instantly applied to the dashboard shell.
           </div>
         </aside>

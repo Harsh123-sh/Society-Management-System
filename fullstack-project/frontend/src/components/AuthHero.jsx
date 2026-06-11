@@ -1,47 +1,62 @@
 import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
 
 export default function AuthHero() {
   return (
-    <div className="relative flex h-full flex-col justify-between gap-8">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-3xl text-lg font-bold shadow-lg backdrop-blur" style={{ backgroundColor: "var(--surface)", color: "var(--text)", border: "1px solid var(--border)" }}>
+    <div className="auth-hero">
+      <motion.div
+        className="auth-hero__nav"
+        initial={{ opacity: 0, y: -16 }}
+        animate={{ opacity: 1, y: 0 }}
+      >
+        <div className="auth-hero__brand">
+          <div className="auth-hero__mark">
             SP
           </div>
           <div>
-            <Link to="/login" className="text-lg font-semibold tracking-tight" style={{ color: "var(--text)" }}>
+            <Link to="/login">
               Society Pro
             </Link>
-            <p className="text-xs" style={{ color: "var(--text-muted)" }}>Enterprise AI for communities</p>
+            <p>Enterprise AI for communities</p>
           </div>
         </div>
-        <div className="hidden sm:block">
-          <div className="rounded-3xl border px-4 py-3 text-xs uppercase tracking-[0.28em] shadow-[0_20px_65px_-40px_rgba(0,0,0,0.2)]" style={{ backgroundColor: "var(--surface)", borderColor: "var(--border)", color: "var(--text-muted)" }}>
-            unified auth
-          </div>
+        <div className="auth-hero__pill">
+          unified auth
         </div>
-      </div>
+      </motion.div>
 
-      <div className="space-y-5">
-        <div className="inline-flex rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] ring-1 ring-transparent" style={{ backgroundColor: "rgba(20,184,166,0.12)", borderColor: "rgba(20,184,166,0.2)", color: "var(--text)" }}>
+      <motion.div
+        className="auth-hero__copy"
+        initial={{ opacity: 0, y: 24 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.12 }}
+      >
+        <div className="auth-hero__eyebrow">
           AI-powered onboarding
         </div>
-        <h1 className="max-w-lg text-4xl font-semibold tracking-tight sm:text-5xl" style={{ color: "var(--text)" }}>
+        <h1>
           Modern authentication for every society.
         </h1>
-        <p className="max-w-lg text-sm leading-6 sm:text-base" style={{ color: "var(--text-muted)" }}>
-          Preserve brand continuity with glassmorphism, bold gradients, and a cohesive SaaS auth experience.
+        <p>
+          A polished, role-aware entry experience for committee members, residents, staff, security, and platform admins.
         </p>
-      </div>
+      </motion.div>
 
-      <div className="grid gap-3 sm:grid-cols-2">
-        <div className="rounded-3xl border p-4 text-sm backdrop-blur" style={{ backgroundColor: "var(--surface)", borderColor: "var(--border)", color: "var(--text)" }}>
-          Society-aware signup flow
+      <motion.div
+        className="auth-hero__metrics"
+        initial={{ opacity: 0, y: 24 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.22 }}
+      >
+        <div>
+          <strong>256-bit</strong>
+          <span>Encrypted sessions</span>
         </div>
-        <div className="rounded-3xl border p-4 text-sm backdrop-blur" style={{ backgroundColor: "var(--surface)", borderColor: "var(--border)", color: "var(--text)" }}>
-          Consistent login, OTP, reset UX
+        <div>
+          <strong>6 roles</strong>
+          <span>One auth surface</span>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }

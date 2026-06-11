@@ -271,20 +271,20 @@ function FlatsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="chairman-page space-y-6">
       <section className="overflow-hidden rounded-3xl bg-gradient-to-r from-[var(--page-bg)] via-[var(--surface-soft)] to-teal-800 p-6 text-[var(--text-main)] shadow-[0_24px_60px_-30px_rgba(15,23,42,0.55)] sm:p-8">
-        <div className="flex flex-wrap items-center gap-3 text-xs font-semibold uppercase tracking-[0.22em] text-[var(--text-secondary)]">
+        <div className="chairman-page flex flex-wrap items-center gap-3 text-xs font-semibold uppercase tracking-[0.22em] text-[var(--text-secondary)]">
           <span>Flat Operations</span>
           <span className="rounded-full border border-white/15 px-3 py-1 text-[10px] tracking-[0.18em]">Tower-first management</span>
         </div>
-        <div className="mt-5 grid gap-4 lg:grid-cols-[1.4fr_0.9fr]">
+        <div className="chairman-page mt-5 grid gap-4 lg:grid-cols-[1.4fr_0.9fr]">
           <div>
             <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">Enterprise flat management</h2>
             <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-200 sm:text-base">
               Create towers, auto-generate hundreds of flats, assign residents, and manage occupancy without manual repetitive entry.
             </p>
           </div>
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          <div className="chairman-page grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
             {[
               ["Total Flats", stats.totalFlats],
               ["Occupied", stats.occupiedFlats],
@@ -306,12 +306,12 @@ function FlatsPage() {
 
       {canManageFlats && (
         <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-          <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="chairman-page flex flex-wrap items-start justify-between gap-4">
             <div>
               <h3 className="text-lg font-semibold text-slate-950">Create tower</h3>
               <p className="text-sm text-slate-500">Define tower geometry once. Flats are generated automatically.</p>
             </div>
-            <div className="flex flex-wrap gap-2">
+            <div className="chairman-page flex flex-wrap gap-2">
               <button onClick={exportCsv} className="rounded-2xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700">Export CSV</button>
               <label className="rounded-2xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 cursor-pointer">
                 Import CSV
@@ -338,41 +338,41 @@ function FlatsPage() {
         <section className="grid gap-4 xl:grid-cols-4">
           {towers.map((tower) => (
             <article key={tower.id} className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-              <div className="flex items-start justify-between gap-3">
+              <div className="chairman-page flex items-start justify-between gap-3">
                 <div>
                   <h4 className="text-lg font-semibold text-slate-950">{tower.tower_name}</h4>
                   <p className="text-sm text-slate-500">Code {tower.tower_code}</p>
                 </div>
                 <button onClick={() => handleGenerateFlats(tower.id)} className="rounded-2xl theme-page px-3 py-2 text-xs font-semibold text-[var(--text-main)]">Generate Flats</button>
               </div>
-              <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
-                <div className="rounded-2xl bg-slate-50 p-3"><p className="text-slate-500">Floors</p><p className="text-lg font-semibold">{tower.total_floors}</p></div>
-                <div className="rounded-2xl bg-slate-50 p-3"><p className="text-slate-500">Per Floor</p><p className="text-lg font-semibold">{tower.flats_per_floor}</p></div>
-                <div className="rounded-2xl bg-slate-50 p-3"><p className="text-slate-500">Flats</p><p className="text-lg font-semibold">{tower.total_flats || 0}</p></div>
-                <div className="rounded-2xl bg-slate-50 p-3"><p className="text-slate-500">Vacant</p><p className="text-lg font-semibold">{tower.vacant_flats || 0}</p></div>
+              <div className="chairman-page mt-4 grid grid-cols-2 gap-3 text-sm">
+                <div className="chairman-page rounded-2xl bg-slate-50 p-3"><p className="text-slate-500">Floors</p><p className="text-lg font-semibold">{tower.total_floors}</p></div>
+                <div className="chairman-page rounded-2xl bg-slate-50 p-3"><p className="text-slate-500">Per Floor</p><p className="text-lg font-semibold">{tower.flats_per_floor}</p></div>
+                <div className="chairman-page rounded-2xl bg-slate-50 p-3"><p className="text-slate-500">Flats</p><p className="text-lg font-semibold">{tower.total_flats || 0}</p></div>
+                <div className="chairman-page rounded-2xl bg-slate-50 p-3"><p className="text-slate-500">Vacant</p><p className="text-lg font-semibold">{tower.vacant_flats || 0}</p></div>
               </div>
             </article>
           ))}
           {!towers.length && (
-            <div className="rounded-3xl border border-dashed border-slate-300 bg-white p-6 text-sm text-slate-500 xl:col-span-4">No towers configured yet.</div>
+            <div className="chairman-page rounded-3xl border border-dashed border-slate-300 bg-white p-6 text-sm text-slate-500 xl:col-span-4">No towers configured yet.</div>
           )}
         </section>
       )}
 
       {canManageFlats && (
         <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-          <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="chairman-page flex flex-wrap items-center justify-between gap-3">
             <div>
               <h3 className="text-lg font-semibold text-slate-950">Bulk actions</h3>
               <p className="text-sm text-slate-500">Select multiple flats to archive or delete.</p>
             </div>
-            <div className="flex flex-wrap gap-2">
+            <div className="chairman-page flex flex-wrap gap-2">
               <button disabled={!selectedIds.length} onClick={handleBulkArchive} className="rounded-2xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 disabled:opacity-50">Bulk Archive</button>
               <button disabled={!selectedIds.length} onClick={handleBulkDelete} className="rounded-2xl bg-rose-600 px-4 py-2 text-sm font-semibold text-[var(--text-main)] disabled:opacity-50">Bulk Delete</button>
             </div>
           </div>
 
-          <div className="mt-4 grid gap-3 md:grid-cols-3">
+          <div className="chairman-page mt-4 grid gap-3 md:grid-cols-3">
             <input className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-teal-500 focus:ring-4 focus:ring-teal-100" placeholder="Quick search" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
             <select className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-teal-500 focus:ring-4 focus:ring-teal-100" value={towerFilter} onChange={(e) => setTowerFilter(e.target.value)}>
               {towerOptions.map((option) => (<option key={option} value={option}>{option === "ALL" ? "All Towers" : towers.find((t) => String(t.id) === option)?.tower_name || option}</option>))}
@@ -386,26 +386,26 @@ function FlatsPage() {
       )}
 
       <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-        <div className="flex items-center justify-between gap-3">
+        <div className="chairman-page flex items-center justify-between gap-3">
           <div>
             <h3 className="text-lg font-semibold text-slate-950">Flat register</h3>
             <p className="text-sm text-slate-500">Tower, floor, type, status, owner, tenant, parking, and actions.</p>
           </div>
-          <div className="flex gap-2 text-sm">
+          <div className="chairman-page flex gap-2 text-sm">
             <button type="button" onClick={() => setActiveTab("grid")} className={`rounded-2xl px-4 py-2 font-semibold ${activeTab === "grid" ? "theme-page text-[var(--text-main)]" : "border border-slate-200 text-slate-700"}`}>Grid</button>
             <button type="button" onClick={() => setActiveTab("table")} className={`rounded-2xl px-4 py-2 font-semibold ${activeTab === "table" ? "theme-page text-[var(--text-main)]" : "border border-slate-200 text-slate-700"}`}>Table</button>
           </div>
         </div>
 
         {loading ? (
-          <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">Loading flats...</div>
+          <div className="chairman-page mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">Loading flats...</div>
         ) : !filteredFlats.length ? (
-          <div className="mt-4 rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-600">No flats found for the selected filters.</div>
+          <div className="chairman-page mt-4 rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-600">No flats found for the selected filters.</div>
         ) : activeTab === "grid" ? (
-          <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          <div className="chairman-page mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {filteredFlats.map((flat) => (
               <article key={flat.id} className="rounded-3xl border border-slate-200 bg-slate-50 p-4">
-                <div className="flex items-start justify-between gap-3">
+                <div className="chairman-page flex items-start justify-between gap-3">
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">{flat.tower_name || flat.building_name || "Tower"}</p>
                     <h4 className="mt-1 text-xl font-bold text-slate-950">{flat.flat_number}</h4>
@@ -413,17 +413,17 @@ function FlatsPage() {
                   </div>
                   <input type="checkbox" checked={selectedIds.includes(flat.id)} onChange={(e) => setSelectedIds((prev) => e.target.checked ? [...prev, flat.id] : prev.filter((id) => id !== flat.id))} />
                 </div>
-                <div className="mt-4 flex flex-wrap gap-2 text-xs font-semibold">
+                <div className="chairman-page mt-4 flex flex-wrap gap-2 text-xs font-semibold">
                   <span className="rounded-full bg-white px-3 py-1 text-slate-700">{OCCUPANCY_LABELS[flat.occupancy_status] || flat.occupancy_status || flat.status}</span>
                   <span className="rounded-full bg-white px-3 py-1 text-slate-700">{flat.flat_type || "Unspecified"}</span>
                   <span className="rounded-full bg-white px-3 py-1 text-slate-700">Parking {flat.parking_slot_number || "-"}</span>
                 </div>
-                <div className="mt-4 space-y-2 text-sm text-slate-700">
+                <div className="chairman-page mt-4 space-y-2 text-sm text-slate-700">
                   <p><span className="font-semibold">Owner/Tenant:</span> {flat.resident_name || "Unassigned"}</p>
                   <p><span className="font-semibold">Resident Status:</span> {flat.occupancy_resident_type || flat.occupancy_status || "vacant"}</p>
                   <p><span className="font-semibold">Move In:</span> {flat.move_in_date || "-"}</p>
                 </div>
-                <div className="mt-4 flex flex-wrap gap-2">
+                <div className="chairman-page mt-4 flex flex-wrap gap-2">
                   <button onClick={() => setSelectedFlat(flat)} className="rounded-2xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold">View Details</button>
                   <button onClick={() => handleEditFlat(flat)} className="rounded-2xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold">Edit</button>
                   <button onClick={() => handleArchiveFlat(flat.id)} className="rounded-2xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-700">Archive</button>
@@ -433,7 +433,7 @@ function FlatsPage() {
             ))}
           </div>
         ) : (
-          <div className="mt-4 overflow-x-auto">
+          <div className="chairman-page mt-4 overflow-x-auto">
             <table className="min-w-full text-left text-sm">
               <thead>
                 <tr className="border-b border-slate-200 text-slate-600">
@@ -460,7 +460,7 @@ function FlatsPage() {
                     <td className="px-3 py-3 text-slate-700">{flat.resident_name || "Unassigned"}</td>
                     <td className="px-3 py-3 text-slate-700">{flat.parking_slot_number || "-"}</td>
                     <td className="px-3 py-3">
-                      <div className="flex flex-wrap gap-2">
+                      <div className="chairman-page flex flex-wrap gap-2">
                         <button onClick={() => setSelectedFlat(flat)} className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold">View</button>
                         <button onClick={() => handleEditFlat(flat)} className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold">Edit</button>
                         <button onClick={() => handleArchiveFlat(flat.id)} className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-700">Archive</button>
@@ -498,18 +498,18 @@ function FlatsPage() {
 
       {selectedFlat && (
         <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-          <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="chairman-page flex flex-wrap items-start justify-between gap-3">
             <div>
               <h3 className="text-lg font-semibold text-slate-950">Flat details</h3>
               <p className="text-sm text-slate-500">{selectedFlat.flat_number} in {selectedFlat.tower_name || selectedFlat.building_name || selectedFlat.wing || "Tower"}</p>
             </div>
             <button onClick={() => setSelectedFlat(null)} className="rounded-2xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700">Close</button>
           </div>
-          <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4 text-sm">
-            <div className="rounded-2xl bg-slate-50 p-4"><p className="text-slate-500">Status</p><p className="mt-1 font-semibold">{OCCUPANCY_LABELS[selectedFlat.occupancy_status] || selectedFlat.status}</p></div>
-            <div className="rounded-2xl bg-slate-50 p-4"><p className="text-slate-500">Resident</p><p className="mt-1 font-semibold">{selectedFlat.resident_name || "Unassigned"}</p></div>
-            <div className="rounded-2xl bg-slate-50 p-4"><p className="text-slate-500">Parking</p><p className="mt-1 font-semibold">{selectedFlat.parking_slot_number || "Not linked"}</p></div>
-            <div className="rounded-2xl bg-slate-50 p-4"><p className="text-slate-500">Move In</p><p className="mt-1 font-semibold">{selectedFlat.move_in_date || "-"}</p></div>
+          <div className="chairman-page mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4 text-sm">
+            <div className="chairman-page rounded-2xl bg-slate-50 p-4"><p className="text-slate-500">Status</p><p className="mt-1 font-semibold">{OCCUPANCY_LABELS[selectedFlat.occupancy_status] || selectedFlat.status}</p></div>
+            <div className="chairman-page rounded-2xl bg-slate-50 p-4"><p className="text-slate-500">Resident</p><p className="mt-1 font-semibold">{selectedFlat.resident_name || "Unassigned"}</p></div>
+            <div className="chairman-page rounded-2xl bg-slate-50 p-4"><p className="text-slate-500">Parking</p><p className="mt-1 font-semibold">{selectedFlat.parking_slot_number || "Not linked"}</p></div>
+            <div className="chairman-page rounded-2xl bg-slate-50 p-4"><p className="text-slate-500">Move In</p><p className="mt-1 font-semibold">{selectedFlat.move_in_date || "-"}</p></div>
           </div>
         </section>
       )}

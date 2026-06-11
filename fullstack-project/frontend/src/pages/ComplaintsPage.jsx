@@ -135,7 +135,7 @@ function ComplaintsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="chairman-page space-y-6">
       <div>
         <h2 className="text-xl font-bold text-slate-900">Complaint Management</h2>
         <p className="text-sm text-slate-600">
@@ -149,7 +149,7 @@ function ComplaintsPage() {
         className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
         onSubmit={handleFilterSubmit}
       >
-        <div className="grid gap-3 md:grid-cols-[1fr_180px_auto_auto]">
+        <div className="chairman-page grid gap-3 md:grid-cols-[1fr_180px_auto_auto]">
           <input
             type="text"
             className="rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none ring-blue-500 focus:ring"
@@ -218,17 +218,17 @@ function ComplaintsPage() {
         <h3 className="text-base font-semibold text-slate-900">Complaint List</h3>
 
         {loading ? (
-          <div className="rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-600 shadow-sm">
+          <div className="chairman-page rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-600 shadow-sm">
             Loading complaints...
           </div>
         ) : complaints.length ? (
-          <div className="space-y-4">
+          <div className="chairman-page space-y-4">
             {complaints.map((complaint) => (
               <article
                 key={complaint.id}
                 className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
               >
-                <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
+                <div className="chairman-page flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
                   <div>
                     <h4 className="text-base font-semibold text-slate-900">{complaint.title}</h4>
                     <p className="mt-1 text-sm text-slate-600">{complaint.description}</p>
@@ -237,7 +237,7 @@ function ComplaintsPage() {
                     </p>
                   </div>
 
-                  <div className="flex items-center gap-2">
+                  <div className="chairman-page flex items-center gap-2">
                     <span
                       className={`rounded-full px-3 py-1 text-xs font-semibold ${
                         complaint.status === "resolved"
@@ -263,7 +263,7 @@ function ComplaintsPage() {
                   </div>
                 </div>
 
-                <div className="mt-3 rounded-lg bg-slate-50 p-3">
+                <div className="chairman-page mt-3 rounded-lg bg-slate-50 p-3">
                   <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                     Comments
                   </p>
@@ -283,7 +283,7 @@ function ComplaintsPage() {
                     <p className="mt-2 text-sm text-slate-500">No comments yet.</p>
                   )}
 
-                  <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+                  <div className="chairman-page mt-3 flex flex-col gap-2 sm:flex-row">
                     <input
                       type="text"
                       className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none ring-blue-500 focus:ring"
@@ -309,7 +309,7 @@ function ComplaintsPage() {
             ))}
           </div>
         ) : (
-          <div className="rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-600 shadow-sm">
+          <div className="chairman-page rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-600 shadow-sm">
             No complaints found.
           </div>
         )}

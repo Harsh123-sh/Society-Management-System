@@ -172,17 +172,17 @@ function ThemeAdminPage() {
   const currentSociety = societies.find((item) => String(item.id) === String(selectedSocietyId));
 
   return (
-    <div className="space-y-6">
+    <div className="chairman-page space-y-6">
       <section className="rounded-3xl bg-gradient-to-r from-[var(--page-bg)] via-[var(--surface-soft)] to-teal-800 p-6 text-[var(--text-main)] shadow-[0_24px_60px_-30px_rgba(15,23,42,0.55)] sm:p-8">
         <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--text-secondary)]">Theme admin panel</p>
-        <div className="mt-4 grid gap-4 lg:grid-cols-[1.2fr_0.8fr] lg:items-end">
+        <div className="chairman-page mt-4 grid gap-4 lg:grid-cols-[1.2fr_0.8fr] lg:items-end">
           <div>
             <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Multi-society theme engine</h1>
             <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-200 sm:text-base">
               Control colors, logos, fonts, layouts, density, and AI-generated branding packs from a single admin surface.
             </p>
           </div>
-          <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
+          <div className="chairman-page grid gap-3 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
             {stats.map((item) => (
               <div key={item.label} className="rounded-2xl border border-white/10 bg-white/10 p-4 backdrop-blur">
                 <p className="text-[11px] uppercase tracking-[0.2em] text-[var(--text-secondary)]">{item.label}</p>
@@ -193,10 +193,10 @@ function ThemeAdminPage() {
         </div>
       </section>
 
-      <div className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
+      <div className="chairman-page grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
         <section className="space-y-6">
-          <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-            <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="chairman-page rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+            <div className="chairman-page flex flex-wrap items-center justify-between gap-3">
               <div>
                 <h2 className="text-lg font-semibold text-slate-950">Society selection</h2>
                 <p className="text-sm text-slate-500">Apply a theme pack to a specific society.</p>
@@ -213,13 +213,13 @@ function ThemeAdminPage() {
             </div>
           </div>
 
-          <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+          <div className="chairman-page rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
             <div>
               <h2 className="text-lg font-semibold text-slate-950">Branding</h2>
               <p className="text-sm text-slate-500">Colors, logo, fonts, and theme mood.</p>
             </div>
 
-            <div className="mt-5 grid gap-4 md:grid-cols-2">
+            <div className="chairman-page mt-5 grid gap-4 md:grid-cols-2">
               <label className="space-y-2 md:col-span-2">
                 <span className="text-sm font-medium text-slate-700">Logo URL</span>
                 <input
@@ -306,7 +306,7 @@ function ThemeAdminPage() {
                   }}
                   className="w-full"
                 />
-                <div className="text-sm text-slate-500">{themeDraft.backgroundBlur}px</div>
+                <div className="chairman-page text-sm text-slate-500">{themeDraft.backgroundBlur}px</div>
               </label>
               <label className="space-y-2">
                 <span className="text-sm font-medium text-slate-700">Background opacity</span>
@@ -323,7 +323,7 @@ function ThemeAdminPage() {
                   }}
                   className="w-full"
                 />
-                <div className="text-sm text-slate-500">{themeDraft.backgroundOpacity}</div>
+                <div className="chairman-page text-sm text-slate-500">{themeDraft.backgroundOpacity}</div>
               </label>
               <label className="space-y-2">
                 <span className="text-sm font-medium text-slate-700">Font family</span>
@@ -342,9 +342,9 @@ function ThemeAdminPage() {
             </div>
           </div>
 
-          <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+          <div className="chairman-page rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
             <h2 className="text-lg font-semibold text-slate-950">Layout and mode</h2>
-            <div className="mt-5 grid gap-4 md:grid-cols-3">
+            <div className="chairman-page mt-5 grid gap-4 md:grid-cols-3">
               <label className="space-y-2">
                 <span className="text-sm font-medium text-slate-700">Mode</span>
                 <select
@@ -396,7 +396,7 @@ function ThemeAdminPage() {
         </section>
 
         <aside className="space-y-6">
-          <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+          <div className="chairman-page rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
             <h2 className="text-lg font-semibold text-slate-950">Live preview</h2>
             <p className="text-sm text-slate-500">Preview the selected society tokens before saving.</p>
 
@@ -412,11 +412,11 @@ function ThemeAdminPage() {
                 backdropFilter: themeDraft.backgroundBlur ? `blur(${themeDraft.backgroundBlur}px)` : 'none',
               }}
             >
-              <div className="rounded-3xl bg-slate-950/10 p-5 backdrop-blur-sm">
+              <div className="chairman-page rounded-3xl bg-slate-950/10 p-5 backdrop-blur-sm">
                 <p className="text-xs uppercase tracking-[0.24em] text-[var(--text-secondary)]">{currentSociety?.name || 'Society preview'}</p>
                 <h3 className="mt-3 text-2xl font-semibold">{themeDraft.theme.mode === 'dark' ? 'Dark' : 'Light'} theme</h3>
                 <p className="mt-2 text-sm text-[var(--text-secondary)]">Dynamic colors, logo, font, and layout controls applied live.</p>
-                <div className="mt-4 flex flex-wrap gap-2">
+                <div className="chairman-page mt-4 flex flex-wrap gap-2">
                   <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-semibold">{themeDraft.fontFamily}</span>
                   <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-semibold">{themeDraft.theme.layout}</span>
                   <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-semibold">{themeDraft.theme.density}</span>
@@ -425,10 +425,10 @@ function ThemeAdminPage() {
             </div>
           </div>
 
-          <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+          <div className="chairman-page rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
             <h2 className="text-lg font-semibold text-slate-950">Theme actions</h2>
             <p className="text-sm text-slate-500">Persist to society branding or generate a new AI theme pack.</p>
-            <div className="mt-5 flex flex-col gap-3">
+            <div className="chairman-page mt-5 flex flex-col gap-3">
               <button type="button" onClick={handleGenerate} disabled={saving || loading} className="rounded-2xl theme-page px-4 py-3 text-sm font-semibold text-[var(--text-main)] disabled:opacity-50">
                 AI generate theme
               </button>

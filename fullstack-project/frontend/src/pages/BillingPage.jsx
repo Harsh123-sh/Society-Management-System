@@ -277,7 +277,7 @@ function BillingPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="chairman-page space-y-6">
       <section className="overflow-hidden rounded-3xl bg-gradient-to-r from-[var(--page-bg)] via-[var(--surface-soft)] to-cyan-900 p-6 text-[var(--text-main)] shadow-[0_24px_60px_-30px_rgba(15,23,42,0.55)] sm:p-8">
         <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--text-secondary)]">Billing and payments</p>
         <h2 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">Invoice and payment center</h2>
@@ -289,34 +289,34 @@ function BillingPage() {
       <AlertMessage type={alert.type} message={alert.message} />
 
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-6">
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="chairman-page rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
           <p className="text-xs uppercase tracking-wide text-slate-500">Total bills</p>
           <p className="mt-2 text-2xl font-bold text-slate-900">{kpiTotals.totalbills || billingStats.total}</p>
         </div>
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="chairman-page rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
           <p className="text-xs uppercase tracking-wide text-slate-500">Paid</p>
           <p className="mt-2 text-2xl font-bold text-emerald-700">{kpiTotals.paidbills || billingStats.paid}</p>
         </div>
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="chairman-page rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
           <p className="text-xs uppercase tracking-wide text-slate-500">Unpaid</p>
           <p className="mt-2 text-2xl font-bold text-cyan-700">{kpiTotals.unpaidbills || billingStats.unpaid}</p>
         </div>
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="chairman-page rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
           <p className="text-xs uppercase tracking-wide text-slate-500">Overdue</p>
           <p className="mt-2 text-2xl font-bold text-rose-700">{kpiTotals.overduecount || billingStats.overdue}</p>
         </div>
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="chairman-page rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
           <p className="text-xs uppercase tracking-wide text-slate-500">Collection</p>
           <p className="mt-2 text-2xl font-bold text-indigo-700">INR {Number(kpiTotals.totalcollected || billingStats.collected).toFixed(2)}</p>
         </div>
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="chairman-page rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
           <p className="text-xs uppercase tracking-wide text-slate-500">Outstanding</p>
           <p className="mt-2 text-2xl font-bold text-amber-700">INR {Number(kpiTotals.totaloutstanding || outstandingAmount).toFixed(2)}</p>
         </div>
       </section>
 
       <section className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
-        <div className="grid gap-3 lg:grid-cols-[1fr_150px_150px_120px_120px_150px_auto_auto_auto_auto]">
+        <div className="chairman-page grid gap-3 lg:grid-cols-[1fr_150px_150px_120px_120px_150px_auto_auto_auto_auto]">
           <input
             type="text"
             className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none"
@@ -354,16 +354,16 @@ function BillingPage() {
 
       {canCreateBill ? (
         <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-          <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="chairman-page flex flex-wrap items-center justify-between gap-3">
             <h3 className="text-lg font-semibold text-slate-950">Generate bill / invoice</h3>
-            <div className="flex gap-2">
+            <div className="chairman-page flex gap-2">
               <button type="button" onClick={handleRunLateFee} className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-800">Run late fee</button>
               <button type="button" onClick={handleRunReminders} className="rounded-xl border border-cyan-200 bg-cyan-50 px-3 py-2 text-xs font-semibold text-cyan-800">Send reminders</button>
             </div>
           </div>
 
           <form className="mt-4 space-y-4" onSubmit={handleCreateBill}>
-            <div className="grid gap-3 md:grid-cols-4">
+            <div className="chairman-page grid gap-3 md:grid-cols-4">
               <input required type="text" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none" placeholder="Bill name" value={form.name} onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))} />
               <input required type="number" min="1" step="0.01" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none" placeholder="Amount" value={form.amount} onChange={(event) => setForm((prev) => ({ ...prev, amount: event.target.value }))} />
               <select className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none" value={form.billType} onChange={(event) => setForm((prev) => ({ ...prev, billType: event.target.value }))}>
@@ -374,14 +374,14 @@ function BillingPage() {
               </select>
             </div>
 
-            <div className="grid gap-3 md:grid-cols-4">
+            <div className="chairman-page grid gap-3 md:grid-cols-4">
               <input required type="date" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none" value={form.dueDate} onChange={(event) => setForm((prev) => ({ ...prev, dueDate: event.target.value }))} />
               <input type="date" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none" value={form.billingMonth} onChange={(event) => setForm((prev) => ({ ...prev, billingMonth: event.target.value }))} />
               <input type="number" min="0" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none" placeholder="Grace days" value={form.gracePeriodDays} onChange={(event) => setForm((prev) => ({ ...prev, gracePeriodDays: event.target.value }))} />
               <input type="text" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none" placeholder="Description" value={form.description} onChange={(event) => setForm((prev) => ({ ...prev, description: event.target.value }))} />
             </div>
 
-            <div className="grid gap-3 md:grid-cols-4">
+            <div className="chairman-page grid gap-3 md:grid-cols-4">
               <input type="number" min="0" step="0.01" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none" placeholder="Late fee fixed" value={form.lateFeeFixedAmount} onChange={(event) => setForm((prev) => ({ ...prev, lateFeeFixedAmount: event.target.value }))} />
               <input type="number" min="0" step="0.01" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none" placeholder="Late fee %" value={form.lateFeePercentage} onChange={(event) => setForm((prev) => ({ ...prev, lateFeePercentage: event.target.value }))} />
               <select className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none" value={form.targetType} onChange={(event) => setForm((prev) => ({ ...prev, targetType: event.target.value, flatIds: [] }))}>
@@ -395,12 +395,12 @@ function BillingPage() {
               ) : form.targetType === "floor" ? (
                 <input type="text" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none" placeholder="Floor" value={form.floor} onChange={(event) => setForm((prev) => ({ ...prev, floor: event.target.value }))} />
               ) : (
-                <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">{form.targetType === "society" ? "All active flats" : `${form.flatIds.length} flats selected`}</div>
+                <div className="chairman-page rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">{form.targetType === "society" ? "All active flats" : `${form.flatIds.length} flats selected`}</div>
               )}
             </div>
 
             {form.targetType === "custom" ? (
-              <div className="grid max-h-48 gap-2 overflow-auto rounded-2xl border border-slate-200 bg-slate-50 p-3 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="chairman-page grid max-h-48 gap-2 overflow-auto rounded-2xl border border-slate-200 bg-slate-50 p-3 sm:grid-cols-2 lg:grid-cols-3">
                 {residents.map((resident) => (
                   <label key={resident.id} className="flex items-center gap-2 rounded-xl bg-white px-3 py-2 text-sm text-slate-700">
                     <input
@@ -428,12 +428,12 @@ function BillingPage() {
 
       <section className="space-y-3">
         <h3 className="text-lg font-semibold text-slate-950">Resident payment portal</h3>
-        <div className="grid gap-4 xl:grid-cols-2">
+        <div className="chairman-page grid gap-4 xl:grid-cols-2">
           {(canViewAllBills ? historyBills : portal.bills || historyBills).map((bill) => {
             const balance = Number(bill.total_amount || 0) - Number(bill.paid_amount || 0);
             return (
               <article key={bill.id} className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-                <div className="flex items-start justify-between gap-3">
+                <div className="chairman-page flex items-start justify-between gap-3">
                   <div>
                     <h4 className="text-base font-semibold text-slate-950">{bill.title}</h4>
                     <p className="text-sm text-slate-600">{bill.invoice_number || `BILL-${bill.id}`} • {bill.bill_type} • Due {String(bill.due_date).slice(0, 10)}</p>
@@ -441,13 +441,13 @@ function BillingPage() {
                   <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">{bill.status}</span>
                 </div>
 
-                <div className="mt-3 grid gap-2 text-sm text-slate-700 sm:grid-cols-3">
+                <div className="chairman-page mt-3 grid gap-2 text-sm text-slate-700 sm:grid-cols-3">
                   <div>Total: INR {Number(bill.total_amount).toFixed(2)}</div>
                   <div>Paid: INR {Number(bill.paid_amount || 0).toFixed(2)}</div>
                   <div>Balance: INR {Math.max(0, balance).toFixed(2)}</div>
                 </div>
 
-                <div className="mt-4 flex flex-wrap gap-2">
+                <div className="chairman-page mt-4 flex flex-wrap gap-2">
                   <button type="button" onClick={() => handleOpenInvoice(bill.id)} className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700">View invoice</button>
                   {!canViewAllBills && balance > 0 ? (
                     <button type="button" disabled={activePaymentBillId === bill.id} onClick={() => handlePayWithUpi(bill)} className="rounded-xl bg-emerald-600 px-3 py-2 text-xs font-semibold text-[var(--text-main)] disabled:opacity-60">
@@ -466,11 +466,11 @@ function BillingPage() {
 
       {invoicePreview ? (
         <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-          <div className="flex items-center justify-between gap-3">
+          <div className="chairman-page flex items-center justify-between gap-3">
             <h3 className="text-lg font-semibold text-slate-950">Invoice preview</h3>
             <button type="button" onClick={() => setInvoicePreview(null)} className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700">Close</button>
           </div>
-          <div className="mt-3 text-sm text-slate-700">
+          <div className="chairman-page mt-3 text-sm text-slate-700">
             <p><strong>{invoicePreview.invoiceNumber}</strong> • {String(invoicePreview.invoiceDate).slice(0, 10)}</p>
             <p>Resident: {invoicePreview.resident?.name} ({invoicePreview.resident?.email})</p>
             <p>Type: {invoicePreview.bill?.type}</p>
@@ -480,7 +480,7 @@ function BillingPage() {
       ) : null}
 
       {!loading && !historyBills.length ? (
-        <div className="rounded-3xl border border-slate-200 bg-white p-6 text-sm text-slate-600 shadow-sm">No billing history found.</div>
+        <div className="chairman-page rounded-3xl border border-slate-200 bg-white p-6 text-sm text-slate-600 shadow-sm">No billing history found.</div>
       ) : null}
     </div>
   );

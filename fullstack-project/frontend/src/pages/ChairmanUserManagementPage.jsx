@@ -187,7 +187,7 @@ function Avatar({ user }) {
   }
 
   return (
-    <div className="grid h-11 w-11 place-items-center rounded-2xl bg-[linear-gradient(135deg,rgba(var(--app-primary-rgb),0.95),rgba(var(--app-accent-rgb),0.8))] text-sm font-bold text-[var(--text-main)] shadow-lg">
+    <div className="chairman-page grid h-11 w-11 place-items-center rounded-2xl bg-[linear-gradient(135deg,rgba(var(--app-primary-rgb),0.95),rgba(var(--app-accent-rgb),0.8))] text-sm font-bold text-[var(--text-main)] shadow-lg">
       {initials}
     </div>
   );
@@ -215,7 +215,7 @@ function DrawerField({ label, children }) {
   return (
     <div>
       <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[rgb(var(--app-text-muted-rgb))]">{label}</p>
-      <div className="mt-1 text-sm text-[rgb(var(--app-text-rgb))]">{children}</div>
+      <div className="chairman-page mt-1 text-sm text-[rgb(var(--app-text-rgb))]">{children}</div>
     </div>
   );
 }
@@ -402,10 +402,10 @@ function ChairmanUserManagementPage() {
   const totalPages = meta.totalPages || Math.max(Math.ceil((meta.total || 0) / PAGE_SIZE), 1);
 
   return (
-    <div className="space-y-6 text-[rgb(var(--app-text-rgb))]">
+    <div className="chairman-page space-y-6 text-[rgb(var(--app-text-rgb))]">
       <section className="overflow-hidden rounded-[28px] border border-[rgb(var(--app-border-rgb))] bg-[linear-gradient(135deg,rgba(var(--app-surface-rgb),0.98),rgba(var(--app-surface-muted-rgb),0.94))] p-6 shadow-[0_24px_70px_-28px_rgba(15,23,42,0.35)] backdrop-blur-xl sm:p-8">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="space-y-2">
+        <div className="chairman-page flex flex-wrap items-center justify-between gap-4">
+          <div className="chairman-page space-y-2">
             <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-[rgb(var(--app-text-muted-rgb))]">Society user management</p>
             <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">
               {role === "secretary" ? "Secretary" : "Chairman"} User Directory
@@ -414,7 +414,7 @@ function ChairmanUserManagementPage() {
               Manage residents, owners, tenants, staff, and security from your own society only. Pending approvals can be approved or rejected from the same view.
             </p>
           </div>
-          <div className="grid min-w-[280px] gap-3 rounded-3xl border border-[rgb(var(--app-border-rgb))] bg-[rgb(var(--app-surface-rgb))] p-4 shadow-lg sm:grid-cols-3">
+          <div className="chairman-page grid min-w-[280px] gap-3 rounded-3xl border border-[rgb(var(--app-border-rgb))] bg-[rgb(var(--app-surface-rgb))] p-4 shadow-lg sm:grid-cols-3">
             <div>
               <p className="text-[10px] uppercase tracking-[0.22em] text-[rgb(var(--app-text-muted-rgb))]">Society</p>
               <p className="mt-1 text-sm font-semibold">{society.name}</p>
@@ -430,7 +430,7 @@ function ChairmanUserManagementPage() {
           </div>
         </div>
 
-        <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="chairman-page mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           {summaryCards.map((card) => (
             <article key={card.key} className="rounded-3xl border border-[rgb(var(--app-border-rgb))] bg-[rgb(var(--app-surface-rgb))] p-4 shadow-sm">
               <div className={`inline-flex rounded-full bg-gradient-to-r ${card.tone} px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-[var(--text-main)]`}>
@@ -445,8 +445,8 @@ function ChairmanUserManagementPage() {
       <AlertMessage type={alert.type} message={alert.message} />
 
       <section className="rounded-[28px] border border-[rgb(var(--app-border-rgb))] bg-[rgb(var(--app-surface-rgb))] p-5 shadow-[0_20px_60px_-32px_rgba(15,23,42,0.26)] sm:p-6">
-        <div className="grid gap-4 lg:grid-cols-6">
-          <div className="lg:col-span-2">
+        <div className="chairman-page grid gap-4 lg:grid-cols-6">
+          <div className="chairman-page lg:col-span-2">
             <label className="text-xs font-semibold uppercase tracking-[0.24em] text-[rgb(var(--app-text-muted-rgb))]">Search</label>
             <input
               value={searchTerm}
@@ -542,7 +542,7 @@ function ChairmanUserManagementPage() {
             />
           </div>
 
-          <div className="flex items-end gap-3 lg:col-span-2">
+          <div className="chairman-page flex items-end gap-3 lg:col-span-2">
             <button
               type="button"
               onClick={resetFilters}
@@ -550,7 +550,7 @@ function ChairmanUserManagementPage() {
             >
               Reset filters
             </button>
-            <div className="rounded-2xl border border-[rgb(var(--app-border-rgb))] px-4 py-3 text-sm text-[rgb(var(--app-text-muted-rgb))]">
+            <div className="chairman-page rounded-2xl border border-[rgb(var(--app-border-rgb))] px-4 py-3 text-sm text-[rgb(var(--app-text-muted-rgb))]">
               Page {meta.page || page} of {totalPages}
             </div>
           </div>
@@ -558,7 +558,7 @@ function ChairmanUserManagementPage() {
       </section>
 
       <section className="overflow-hidden rounded-[28px] border border-[rgb(var(--app-border-rgb))] bg-[rgb(var(--app-surface-rgb))] shadow-[0_20px_60px_-32px_rgba(15,23,42,0.22)]">
-        <div className="overflow-x-auto">
+        <div className="chairman-page overflow-x-auto">
           <table className="min-w-full w-full border-collapse text-left text-sm">
             <thead className="sticky top-0 z-10 bg-[rgb(var(--app-surface-muted-rgb))] text-[10px] font-bold uppercase tracking-[0.24em] text-[rgb(var(--app-text-muted-rgb))]">
               <tr>
@@ -585,7 +585,7 @@ function ChairmanUserManagementPage() {
                 Array.from({ length: 5 }).map((_, index) => (
                   <tr key={`sk-${index}`} className="border-t border-[rgb(var(--app-border-rgb))]">
                     <td colSpan={16} className="px-4 py-5">
-                      <div className="h-5 animate-pulse rounded-full bg-[rgb(var(--app-surface-muted-rgb))]" />
+                      <div className="chairman-page h-5 animate-pulse rounded-full bg-[rgb(var(--app-surface-muted-rgb))]" />
                     </td>
                   </tr>
                 ))
@@ -605,16 +605,16 @@ function ChairmanUserManagementPage() {
                       <td className="px-4 py-4 align-top"><Avatar user={user} /></td>
                       <td className="px-4 py-4 align-top font-semibold">#{user.id}</td>
                       <td className="px-4 py-4 align-top">
-                        <div className="font-semibold">{user.name || "-"}</div>
-                        <div className="mt-1 max-w-[260px] truncate text-xs text-[rgb(var(--app-text-muted-rgb))]">{user.phone || "No mobile number"}</div>
+                        <div className="chairman-page font-semibold">{user.name || "-"}</div>
+                        <div className="chairman-page mt-1 max-w-[260px] truncate text-xs text-[rgb(var(--app-text-muted-rgb))]">{user.phone || "No mobile number"}</div>
                       </td>
                       <td className="px-4 py-4 align-top">{user.phone || "-"}</td>
                       <td className="px-4 py-4 align-top max-w-[220px] truncate">{user.email || "-"}</td>
                       <td className="px-4 py-4 align-top"><RolePill role={user.role} residentType={residentType} /></td>
                       <td className="px-4 py-4 align-top">{user.role === "resident" ? (residentType ? residentType[0].toUpperCase() + residentType.slice(1) : "-") : "-"}</td>
                       <td className="px-4 py-4 align-top max-w-[220px]">
-                        <div className="font-medium">{user.society_name || society.name || "-"}</div>
-                        <div className="mt-1 text-xs text-[rgb(var(--app-text-muted-rgb))]">{user.society_code || society.code || "-"}</div>
+                        <div className="chairman-page font-medium">{user.society_name || society.name || "-"}</div>
+                        <div className="chairman-page mt-1 text-xs text-[rgb(var(--app-text-muted-rgb))]">{user.society_code || society.code || "-"}</div>
                       </td>
                       <td className="px-4 py-4 align-top">{user.flat_wing || user.wing_name || user.wing_code || "-"}</td>
                       <td className="px-4 py-4 align-top">{user.flat_floor || "-"}</td>
@@ -623,13 +623,13 @@ function ChairmanUserManagementPage() {
                       <td className="px-4 py-4 align-top">{formatDateTime(user.last_login)}</td>
                       <td className="px-4 py-4 align-top"><StatusPill status={kycStatus} /></td>
                       <td className="px-4 py-4 align-top">
-                        <div className="space-y-2">
+                        <div className="chairman-page space-y-2">
                           <StatusPill status={currentStatus} />
-                          <div className="text-xs text-[rgb(var(--app-text-muted-rgb))]">{isPending ? "Waiting for approval" : isActive ? "Live and active" : isRejected ? "Rejected by chairman" : "Suspended"}</div>
+                          <div className="chairman-page text-xs text-[rgb(var(--app-text-muted-rgb))]">{isPending ? "Waiting for approval" : isActive ? "Live and active" : isRejected ? "Rejected by chairman" : "Suspended"}</div>
                         </div>
                       </td>
                       <td className="px-4 py-4 align-top">
-                        <div className="flex flex-wrap gap-2">
+                        <div className="chairman-page flex flex-wrap gap-2">
                           <IconButton title="View Profile" tone="primary" onClick={() => openProfile(user, "view")}>
                             <ActionIcon type="view" />
                           </IconButton>
@@ -660,7 +660,7 @@ function ChairmanUserManagementPage() {
                             <ActionIcon type="delete" />
                           </IconButton>
                         </div>
-                        <div className="mt-2 text-xs text-[rgb(var(--app-text-muted-rgb))]">Flat: {flatSummary}</div>
+                        <div className="chairman-page mt-2 text-xs text-[rgb(var(--app-text-muted-rgb))]">Flat: {flatSummary}</div>
                       </td>
                     </tr>
                   );
@@ -677,11 +677,11 @@ function ChairmanUserManagementPage() {
         </div>
       </section>
 
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-[24px] border border-[rgb(var(--app-border-rgb))] bg-[rgb(var(--app-surface-rgb))] px-4 py-4 shadow-sm">
-        <div className="text-sm text-[rgb(var(--app-text-muted-rgb))]">
+      <div className="chairman-page flex flex-wrap items-center justify-between gap-3 rounded-[24px] border border-[rgb(var(--app-border-rgb))] bg-[rgb(var(--app-surface-rgb))] px-4 py-4 shadow-sm">
+        <div className="chairman-page text-sm text-[rgb(var(--app-text-muted-rgb))]">
           Showing {visibleUsers.length} of {meta.total || visibleUsers.length} users
         </div>
-        <div className="flex items-center gap-2">
+        <div className="chairman-page flex items-center gap-2">
           <button
             type="button"
             disabled={page <= 1}
@@ -690,7 +690,7 @@ function ChairmanUserManagementPage() {
           >
             Previous
           </button>
-          <div className="rounded-xl border border-[rgb(var(--app-border-rgb))] px-4 py-2 text-sm font-semibold">
+          <div className="chairman-page rounded-xl border border-[rgb(var(--app-border-rgb))] px-4 py-2 text-sm font-semibold">
             Page {page} / {totalPages}
           </div>
           <button
@@ -705,10 +705,10 @@ function ChairmanUserManagementPage() {
       </div>
 
       {selectedUser ? (
-        <div className="fixed inset-0 z-50 flex">
+        <div className="chairman-page fixed inset-0 z-50 flex">
           <button type="button" aria-label="Close profile drawer" onClick={closeDrawer} className="absolute inset-0 theme-surface backdrop-blur-sm" />
           <aside className="relative ml-auto flex h-full w-full max-w-2xl flex-col overflow-y-auto border-l border-[rgb(var(--app-border-rgb))] bg-[rgb(var(--app-surface-rgb))] shadow-[0_24px_80px_rgba(15,23,42,0.45)]">
-            <div className="flex items-center justify-between border-b border-[rgb(var(--app-border-rgb))] px-6 py-5">
+            <div className="chairman-page flex items-center justify-between border-b border-[rgb(var(--app-border-rgb))] px-6 py-5">
               <div>
                 <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[rgb(var(--app-text-muted-rgb))]">{drawerMode === "edit" ? "Edit profile" : "Profile details"}</p>
                 <h3 className="mt-1 text-2xl font-semibold">{selectedUser.name || "User Profile"}</h3>
@@ -718,11 +718,11 @@ function ChairmanUserManagementPage() {
               </button>
             </div>
 
-            <div className="grid gap-6 px-6 py-6">
-              <div className="flex items-start gap-4 rounded-[24px] border border-[rgb(var(--app-border-rgb))] bg-[rgb(var(--app-surface-muted-rgb))] p-4">
+            <div className="chairman-page grid gap-6 px-6 py-6">
+              <div className="chairman-page flex items-start gap-4 rounded-[24px] border border-[rgb(var(--app-border-rgb))] bg-[rgb(var(--app-surface-muted-rgb))] p-4">
                 <Avatar user={selectedUser} />
-                <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-center gap-2">
+                <div className="chairman-page min-w-0 flex-1">
+                  <div className="chairman-page flex flex-wrap items-center gap-2">
                     <h4 className="text-lg font-semibold">{selectedUser.name || "-"}</h4>
                     <RolePill role={selectedUser.role} residentType={selectedUser.resident_type} />
                     <StatusPill status={selectedUser.status} />
@@ -733,7 +733,7 @@ function ChairmanUserManagementPage() {
 
               {drawerMode === "edit" ? (
                 <form onSubmit={handleEditSave} className="space-y-4 rounded-[24px] border border-[rgb(var(--app-border-rgb))] p-5">
-                  <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="chairman-page grid gap-4 sm:grid-cols-2">
                     <label className="space-y-2">
                       <span className="text-xs font-semibold uppercase tracking-[0.22em] text-[rgb(var(--app-text-muted-rgb))]">Full Name</span>
                       <input value={editForm.name} onChange={(event) => setEditForm((current) => ({ ...current, name: event.target.value }))} className="w-full rounded-2xl border border-[rgb(var(--app-border-rgb))] bg-[rgb(var(--app-surface-muted-rgb))] px-4 py-3 text-sm outline-none" />
@@ -755,7 +755,7 @@ function ChairmanUserManagementPage() {
                       <textarea rows="5" value={editForm.family_members} onChange={(event) => setEditForm((current) => ({ ...current, family_members: event.target.value }))} className="w-full rounded-2xl border border-[rgb(var(--app-border-rgb))] bg-[rgb(var(--app-surface-muted-rgb))] px-4 py-3 text-sm outline-none" placeholder='[{"name":"Spouse","relation":"Wife"}]' />
                     </label>
                   </div>
-                  <div className="flex flex-wrap gap-3">
+                  <div className="chairman-page flex flex-wrap gap-3">
                     <button type="submit" disabled={saving} className="rounded-2xl bg-[rgb(var(--app-primary-rgb))] px-4 py-3 text-sm font-semibold text-[var(--text-main)] disabled:opacity-60">
                       {saving ? "Saving..." : "Save changes"}
                     </button>
@@ -766,7 +766,7 @@ function ChairmanUserManagementPage() {
                 </form>
               ) : null}
 
-              <div className="grid gap-4 rounded-[24px] border border-[rgb(var(--app-border-rgb))] p-5 sm:grid-cols-2">
+              <div className="chairman-page grid gap-4 rounded-[24px] border border-[rgb(var(--app-border-rgb))] p-5 sm:grid-cols-2">
                 <DrawerField label="Photo">{selectedUser.profile_photo_url ? <a href={selectedUser.profile_photo_url} target="_blank" rel="noreferrer" className="break-all text-cyan-600 underline">Open photo</a> : "-"}</DrawerField>
                 <DrawerField label="Name">{selectedUser.name || "-"}</DrawerField>
                 <DrawerField label="Mobile">{selectedUser.phone || "-"}</DrawerField>
@@ -782,7 +782,7 @@ function ChairmanUserManagementPage() {
                 <DrawerField label="Last Login">{formatDateTime(selectedUser.last_login)}</DrawerField>
               </div>
 
-              <div className="flex flex-wrap gap-3">
+              <div className="chairman-page flex flex-wrap gap-3">
                 <button type="button" onClick={() => openProfile(selectedUser, "edit")} className="rounded-2xl border border-[rgb(var(--app-border-rgb))] px-4 py-3 text-sm font-semibold">
                   Edit User
                 </button>

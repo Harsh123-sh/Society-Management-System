@@ -17,7 +17,7 @@ function StaffAIInsightsPage() {
   }, [tasks]);
 
   return (
-    <div className="space-y-6">
+    <div className="staff-page staff-ai-page space-y-6">
       <section className="rounded-2xl bg-gradient-to-r from-[var(--page-bg)] via-[var(--surface-soft)] to-emerald-700 p-6 text-[var(--text-main)] shadow-lg">
         <h2 className="text-2xl font-bold">AI Features</h2>
         <p className="mt-1 text-sm text-slate-200">Smart assignment, priority detection, summaries, image diagnosis, and assistant prompts.</p>

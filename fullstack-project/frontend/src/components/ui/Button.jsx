@@ -34,6 +34,7 @@ export function Button({
       type={type}
       onClick={onClick}
       disabled={disabled || loading}
+      aria-busy={loading || undefined}
       className={`inline-flex items-center gap-2 rounded-2xl font-semibold transition ${variants[variant]} ${sizes[size]} ${
         fullWidth ? "w-full justify-center" : ""
       } ${disabled || loading ? "cursor-not-allowed opacity-50" : ""} ${className}`}

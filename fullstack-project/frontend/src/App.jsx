@@ -1,130 +1,63 @@
-import { useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { Link, Navigate, Route, Routes, useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import "./App.css";
 import "./styles/theme-overrides.css";
 import LanguageSelector from "./components/LanguageSelector";
 import { useTranslation } from "./contexts/LanguageContext";
-import LoginPage from "./pages/LoginPage";
-import RegisterPage from "./pages/RegisterPage";
-import VerifyOtpPage from "./pages/VerifyOtpPage";
-import OtpVerificationPage from "./pages/OtpVerificationPage";
-import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ProtectedRoute from "./components/ProtectedRoute";
-import DashboardLayout from "./components/DashboardLayout";
-import AdminOverviewPage from "./pages/AdminOverviewPage";
-import DashboardPage from "./pages/DashboardPage";
-import AnalyticsDashboard from "./pages/AnalyticsDashboard";
-import SecretaryHomePage from "./pages/SecretaryHomePage";
-import StaffHomePage from "./pages/StaffHomePage";
-import StaffTasksPage from "./pages/StaffTasksPage";
-import StaffComplaintsPage from "./pages/StaffComplaintsPage";
-import StaffAttendancePage from "./pages/StaffAttendancePage";
-import StaffWorkTrackingPage from "./pages/StaffWorkTrackingPage";
-import StaffNotificationsPage from "./pages/StaffNotificationsPage";
-import StaffDocumentsPage from "./pages/StaffDocumentsPage";
-import StaffAIInsightsPage from "./pages/StaffAIInsightsPage";
-import ResidentDashboardRouterPage from "./pages/ResidentDashboardRouterPage";
-import OwnerTenantPage from "./pages/OwnerTenantPage";
-import OwnerAnalyticsPage from "./pages/OwnerAnalyticsPage";
-import OwnerSettingsPage from "./pages/OwnerSettingsPage";
-import TenantVisitorsPage from "./pages/TenantVisitorsPage";
-import TenantProfilePage from "./pages/TenantProfilePage";
-import BillingPage from "./pages/BillingPage";
-import ComplaintsPage from "./pages/ComplaintsPage";
-import NoticesPage from "./pages/NoticesPage";
-import ArchiveCenterPage from "./pages/ArchiveCenterPage";
-import ChatPage from "./pages/ChatPage";
-import AiAssistantPage from "./pages/AiAssistantPage";
-import VisitorsPage from "./pages/VisitorsPage";
-import FlatsPage from "./pages/FlatsPage";
-import DocumentsPage from "./pages/DocumentsPage";
-import ParkingPage from "./pages/ParkingPage";
-import StaffManagementPage from "./pages/StaffManagementPage";
-import SettingsPage from "./pages/SettingsPage";
-import ThemeAdminPage from "./pages/ThemeAdminPage";
 import AccessDeniedPage from "./pages/AccessDeniedPage";
-import ChairmanUserManagementPage from "./pages/ChairmanUserManagementPage";
-import SuperAdminLoginPage from "./pages/SuperAdminLoginPage";
-import SuperAdminForgotPasswordPage from "./pages/SuperAdminForgotPasswordPage";
-import SuperAdminVerifyOtpPage from "./pages/SuperAdminVerifyOtpPage";
-import SuperAdminResetPasswordPage from "./pages/SuperAdminResetPasswordPage";
-import SuperAdminDashboardPage from "./pages/SuperAdminDashboardPage";
-import SuperAdminSocietyDetailsPage from "./pages/SuperAdminSocietyDetailsPage";
 import SuperAdminProtectedRoute from "./components/SuperAdminProtectedRoute";
-import NotFoundPage from "./pages/NotFoundPage";
-import SecurityRouter from "./security/SecurityRouter";
 import { societyPresets as societyThemes } from "./theme/societyPresets";
 import { useThemeEngine } from "./contexts/ThemeContext";
 import { fetchPublicSocieties, fetchSocietyLivePreview } from "./services/authApi";
 
-const heroStats = [
-  { value: "24/7", label: "AI automation and alerts" },
-  { value: "12x", label: "Faster complaint routing" },
-  { value: "99.95%", label: "Realtime uptime target" },
-  { value: "6", label: "Role-specific dashboards" },
-];
+const lazyPage = (loader) => lazy(loader);
 
-const capabilities = [
-  {
-    title: "Multi-society tenancy",
-    description: "One SaaS core, isolated society branding, permissions, data, and workflows.",
-  },
-  {
-    title: "AI assistant",
-    description: "Society-aware chat that drafts notices, answers queries, and routes tasks.",
-  },
-  {
-    title: "WhatsApp-style chat",
-    description: "Fast resident-to-admin messaging with attachments, typing, and delivery states.",
-  },
-  {
-    title: "Visitor management",
-    description: "Gate approvals, QR passes, OCR identity capture, and live entry logs.",
-  },
-  {
-    title: "Billing & payments",
-    description: "Invoices, dues, reminders, receipts, and payment reconciliation across societies.",
-  },
-  {
-    title: "Complaint intelligence",
-    description: "Priority scoring, SLA tracking, auto-assignments, and escalation policies.",
-  },
-  {
-    title: "Realtime notifications",
-    description: "Socket-driven updates for visitors, notices, bills, chats, and approvals.",
-  },
-  {
-    title: "Mobile-first access",
-    description: "Android and iOS-ready experiences for residents, staff, and managers.",
-  },
-];
-
-const roleCards = [
-  {
-    title: "Super admin SaaS panel",
-    points: ["Society provisioning", "Subscription plans", "Global analytics", "Brand governance"],
-  },
-  {
-    title: "Society admin dashboard",
-    points: ["Member control", "Bills and collections", "Notice broadcasting", "Staff oversight"],
-  },
-  {
-    title: "Secretary console",
-    points: ["Approvals", "Events", "Documents", "Meeting records"],
-  },
-  {
-    title: "Staff workspace",
-    points: ["Task queue", "Attendance", "Work logs", "Escalations"],
-  },
-  {
-    title: "Resident portal",
-    points: ["Chat", "Payments", "Complaints", "Family management"],
-  },
-  {
-    title: "Security station",
-    points: ["Visitor approvals", "Gate logs", "Alert broadcast", "Incident reports"],
-  },
-];
+const LoginPage = lazyPage(() => import("./pages/LoginPage"));
+const RegisterPage = lazyPage(() => import("./pages/RegisterPage"));
+const VerifyOtpPage = lazyPage(() => import("./pages/VerifyOtpPage"));
+const ForgotPasswordPage = lazyPage(() => import("./pages/ForgotPasswordPage"));
+const DashboardLayout = lazyPage(() => import("./components/DashboardLayout"));
+const AdminOverviewPage = lazyPage(() => import("./pages/AdminOverviewPage"));
+const AnalyticsDashboard = lazyPage(() => import("./pages/AnalyticsDashboard"));
+const SecretaryHomePage = lazyPage(() => import("./pages/SecretaryHomePage"));
+const StaffHomePage = lazyPage(() => import("./pages/StaffHomePage"));
+const StaffTasksPage = lazyPage(() => import("./pages/StaffTasksPage"));
+const StaffComplaintsPage = lazyPage(() => import("./pages/StaffComplaintsPage"));
+const StaffAttendancePage = lazyPage(() => import("./pages/StaffAttendancePage"));
+const StaffWorkTrackingPage = lazyPage(() => import("./pages/StaffWorkTrackingPage"));
+const StaffNotificationsPage = lazyPage(() => import("./pages/StaffNotificationsPage"));
+const StaffDocumentsPage = lazyPage(() => import("./pages/StaffDocumentsPage"));
+const StaffAIInsightsPage = lazyPage(() => import("./pages/StaffAIInsightsPage"));
+const ResidentDashboardRouterPage = lazyPage(() => import("./pages/ResidentDashboardRouterPage"));
+const OwnerTenantPage = lazyPage(() => import("./pages/OwnerTenantPage"));
+const OwnerAnalyticsPage = lazyPage(() => import("./pages/OwnerAnalyticsPage"));
+const OwnerSettingsPage = lazyPage(() => import("./pages/OwnerSettingsPage"));
+const TenantVisitorsPage = lazyPage(() => import("./pages/TenantVisitorsPage"));
+const TenantProfilePage = lazyPage(() => import("./pages/TenantProfilePage"));
+const BillingPage = lazyPage(() => import("./pages/BillingPage"));
+const ComplaintsPage = lazyPage(() => import("./pages/ComplaintsPage"));
+const NoticesPage = lazyPage(() => import("./pages/NoticesPage"));
+const ArchiveCenterPage = lazyPage(() => import("./pages/ArchiveCenterPage"));
+const ChatPage = lazyPage(() => import("./pages/ChatPage"));
+const AiAssistantPage = lazyPage(() => import("./pages/AiAssistantPage"));
+const VisitorsPage = lazyPage(() => import("./pages/VisitorsPage"));
+const FlatsPage = lazyPage(() => import("./pages/FlatsPage"));
+const DocumentsPage = lazyPage(() => import("./pages/DocumentsPage"));
+const ParkingPage = lazyPage(() => import("./pages/ParkingPage"));
+const StaffManagementPage = lazyPage(() => import("./pages/StaffManagementPage"));
+const SettingsPage = lazyPage(() => import("./pages/SettingsPage"));
+const ThemeAdminPage = lazyPage(() => import("./pages/ThemeAdminPage"));
+const ChairmanUserManagementPage = lazyPage(() => import("./pages/ChairmanUserManagementPage"));
+const SuperAdminLoginPage = lazyPage(() => import("./pages/SuperAdminLoginPage"));
+const SuperAdminForgotPasswordPage = lazyPage(() => import("./pages/SuperAdminForgotPasswordPage"));
+const SuperAdminVerifyOtpPage = lazyPage(() => import("./pages/SuperAdminVerifyOtpPage"));
+const SuperAdminResetPasswordPage = lazyPage(() => import("./pages/SuperAdminResetPasswordPage"));
+const SuperAdminDashboardPage = lazyPage(() => import("./pages/SuperAdminDashboardPage"));
+const SuperAdminSocietyDetailsPage = lazyPage(() => import("./pages/SuperAdminSocietyDetailsPage"));
+const NotFoundPage = lazyPage(() => import("./pages/NotFoundPage"));
+const SecurityRouter = lazyPage(() => import("./security/SecurityRouter"));
 
 function findPresetForSociety(society) {
   const normalized = String(society?.id || society?.code || society?.name || "").toLowerCase();
@@ -262,11 +195,21 @@ function SectionHeader({ eyebrow, title, description, align = "left" }) {
   );
 }
 
+function RouteFallback() {
+  return (
+    <div className="route-fallback" role="status" aria-live="polite" aria-label="Loading page">
+      <div className="route-fallback__card">
+        <span>Loading</span>
+      </div>
+    </div>
+  );
+}
+
 function App() {
-  const { t } = useTranslation();
   // Theme is initialized by the ThemeProvider and appearance loader.
 
   return (
+    <Suspense fallback={<RouteFallback />}>
     <Routes>
       <Route path="/" element={<HomePage />} />
       <Route path="/select-role" element={<Navigate to="/" replace />} />
@@ -407,6 +350,7 @@ function App() {
 
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
+    </Suspense>
   );
 }
 
@@ -414,7 +358,6 @@ function HomePage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { preferences, setThemeMode, setSelectedSocietyId } = useThemeEngine();
-  const [activeArchitecture, setActiveArchitecture] = useState("frontend");
   const [publicSocieties, setPublicSocieties] = useState([]);
   const [publicLoading, setPublicLoading] = useState(true);
   const [publicError, setPublicError] = useState("");
@@ -422,22 +365,10 @@ function HomePage() {
   const [previewLoading, setPreviewLoading] = useState(false);
   const [previewError, setPreviewError] = useState("");
 
-  const heroStats = t("heroStats", []);
-  const capabilities = t("capabilities", []);
-  const roleCards = t("roleCards", []);
-  const architectureTabs = t("architectureTabs", []);
-  const aiWorkflow = t("aiWorkflow", []);
-  const mobileList = t("mobile.list", []);
-  const footerItems = [
-    t("footer.item1"),
-    t("footer.item2"),
-    t("footer.item3"),
-    t("footer.item4"),
-  ];
-
-  const activeArchitectureItem =
-    architectureTabs.find((item) => item.id === activeArchitecture) ?? architectureTabs[0];
-
+  const heroStats = useMemo(() => t("heroStats", []), [t]);
+  const capabilities = useMemo(() => t("capabilities", []), [t]);
+  const roleCards = useMemo(() => t("roleCards", []), [t]);
+  const heroFeatures = useMemo(() => t("heroFeatures", []), [t]);
   const loadPublicSocieties = async () => {
     setPublicLoading(true);
     setPublicError("");
@@ -528,6 +459,29 @@ function HomePage() {
     ? `${livePreview.totalFlats} flats • ${livePreview.occupiedFlats} occupied`
     : activeSocietyPreset.stat;
   const liveData = livePreview || null;
+  const landingStats = [
+    { value: liveData?.totalResidents?.toLocaleString() || "12x", label: "Faster complaint routing" },
+    { value: liveData?.todayVisitors || "24/7", label: "Live visitor and gate visibility" },
+    { value: liveData?.totalCollections ? formatCurrency(liveData.totalCollections) : "99.95%", label: "Realtime uptime target" },
+    { value: liveData?.aiTaskCount || "6", label: "Role-specific workspaces" },
+  ];
+  const testimonials = [
+    {
+      quote: "The dashboard finally feels like a calm control room instead of a spreadsheet maze.",
+      name: "Priya Mehta",
+      role: "Society Chairman",
+    },
+    {
+      quote: "Visitor approvals, notices, and billing updates are all visible before residents start calling.",
+      name: "Rahul Shah",
+      role: "Secretary",
+    },
+    {
+      quote: "Security gets a clean workflow, residents get speed, and staff gets accountability.",
+      name: "Ananya Rao",
+      role: "Operations Lead",
+    },
+  ];
 
   useEffect(() => {
     document.title = `${activeSociety.name} | AI Society Management SaaS`;
@@ -547,16 +501,28 @@ function HomePage() {
         "--app-font-sans": activeSocietyPreset.fontFamily,
       }}
     >
-      <header className="topbar glass-panel">
-        <div className="topbar-brand brand-lockup">
+      <motion.header
+        className="topbar landing-nav glass-panel"
+        initial={{ y: -22, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.7, ease: "easeOut" }}
+      >
+        <Link className="topbar-brand brand-lockup landing-brand" to="/">
           <div className="brand-mark">A</div>
           <div>
             <p className="brand-eyebrow">{t("brand.eyebrow")}</p>
             <h1>{t("brand.title")}</h1>
           </div>
-        </div>
+        </Link>
 
-        <div className="topbar-center">
+        <nav className="landing-nav-links" aria-label="Landing sections">
+          <a href="#features">Features</a>
+          <a href="#statistics">Stats</a>
+          <a href="#testimonials">Stories</a>
+          <a href="#contact">Contact</a>
+        </nav>
+
+        <div className="topbar-center landing-society-picker">
           <div className="society-switcher" aria-label={t("brand.eyebrow") + " selector"}>
             {publicLoading ? (
               <div className="society-chip">{t("common.loadingActiveSocieties")}</div>
@@ -603,10 +569,15 @@ function HomePage() {
             {t("actions.startFreeTrial")}
           </Link>
         </div>
-      </header>
+      </motion.header>
 
-      <section className="hero-grid glass-panel hero-panel">
-        <div className="hero-copy">
+      <motion.section
+        className="hero-grid glass-panel hero-panel landing-hero"
+        initial={{ opacity: 0, y: 34 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.85, delay: 0.08, ease: "easeOut" }}
+      >
+        <div className="hero-copy landing-hero-copy">
           <span className="eyebrow-pill">{t("hero.eyebrow")}</span>
           <h2>{t("hero.title")}</h2>
           <p className="hero-description">{t("hero.description")}</p>
@@ -615,28 +586,38 @@ function HomePage() {
             <Link className="button button--primary button--large" to="/register">
               {t("hero.launchPlatform")}
             </Link>
-            <a className="button button--ghost button--large" href="#architecture">
-              {t("hero.exploreArchitecture")}
+            <a className="button button--ghost button--large" href="#features">
+              Explore product
             </a>
           </div>
 
           <div className="feature-strips">
-            {t("heroFeatures", []).map((feature) => (
+            {heroFeatures.map((feature) => (
               <span key={feature}>{feature}</span>
             ))}
           </div>
 
-          <div className="hero-stats">
+          <div className="hero-stats hero-stats--compact">
             {heroStats.map((stat) => (
-              <article key={stat.label} className="metric-card glass-card">
+              <motion.article
+                key={stat.label}
+                className="metric-card glass-card"
+                whileHover={{ y: -6, scale: 1.02 }}
+                transition={{ type: "spring", stiffness: 260, damping: 20 }}
+              >
                 <strong>{stat.value}</strong>
                 <span>{stat.label}</span>
-              </article>
+              </motion.article>
             ))}
           </div>
         </div>
 
-        <div className="hero-visual glass-card">
+        <motion.div
+          className="hero-visual glass-card landing-device"
+          initial={{ opacity: 0, scale: 0.96, rotate: 1 }}
+          animate={{ opacity: 1, scale: 1, rotate: 0 }}
+          transition={{ duration: 0.8, delay: 0.22, ease: "easeOut" }}
+        >
           <div className="hero-visual__header">
             <div>
               <p className="brand-eyebrow">{t("hero.liveLens")}</p>
@@ -746,194 +727,131 @@ function HomePage() {
               <p>{t("hero.brandSummary")}</p>
             </div>
           </div>
-        </div>
-      </section>
+        </motion.div>
+      </motion.section>
 
-      <section className="content-section">
+      <section className="content-section landing-section" id="features">
         <SectionHeader
           eyebrow={t("sections.capabilities.eyebrow")}
           title={t("sections.capabilities.title")}
           description={t("sections.capabilities.description")}
+          align="center"
         />
 
-        <div className="capability-grid">
+        <div className="capability-grid landing-feature-grid">
           {capabilities.map((capability) => (
-            <article key={capability.title} className="capability-card glass-card">
+            <motion.article
+              key={capability.title}
+              className="capability-card glass-card landing-feature-card"
+              initial={{ opacity: 0, y: 28 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.25 }}
+              whileHover={{ y: -8 }}
+              transition={{ duration: 0.5 }}
+            >
               <h3>{capability.title}</h3>
               <p>{capability.description}</p>
-            </article>
+            </motion.article>
           ))}
         </div>
       </section>
 
-      <section className="content-section">
+      <section className="content-section landing-section" id="statistics">
         <SectionHeader
-          eyebrow="Role-based dashboards"
-          title="Every role gets a clean, focused workspace."
-          description="Super admins, society admins, residents, staff, and security teams operate with tailored views and permissions."
+          eyebrow="Statistics"
+          title="A lighter way to run complex communities."
+          description="Live operations, billing, support, and gate activity are designed to feel instant without feeling noisy."
+          align="center"
         />
 
-        <div className="role-grid">
-          {roleCards.map((role) => (
-            <article key={role.title} className="role-card glass-card">
+        <div className="landing-stat-grid">
+          {landingStats.map((stat, index) => (
+            <motion.article
+              key={stat.label}
+              className="landing-stat-card glass-card"
+              initial={{ opacity: 0, y: 26 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.35 }}
+              transition={{ duration: 0.55, delay: index * 0.06 }}
+            >
+              <strong>{stat.value}</strong>
+              <span>{stat.label}</span>
+            </motion.article>
+          ))}
+        </div>
+      </section>
+
+      <section className="content-section landing-section">
+        <SectionHeader
+          eyebrow="Dashboards"
+          title="Focused workspaces for every role."
+          description="Each role gets only the tools it needs, wrapped in the same premium interface language."
+          align="center"
+        />
+
+        <div className="role-grid landing-role-grid">
+          {roleCards.map((role, index) => (
+            <motion.article
+              key={role.title}
+              className="role-card glass-card landing-role-card"
+              initial={{ opacity: 0, y: 28 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.25 }}
+              transition={{ duration: 0.5, delay: index * 0.05 }}
+            >
+              <span className="landing-card-index">0{index + 1}</span>
               <h3>{role.title}</h3>
               <ul>
                 {role.points.map((point) => (
                   <li key={point}>{point}</li>
                 ))}
               </ul>
-            </article>
+            </motion.article>
           ))}
         </div>
       </section>
 
-      <section className="content-section architecture-section" id="architecture">
+      <section className="content-section landing-section" id="testimonials">
         <SectionHeader
-          eyebrow="Blueprint"
-          title="Architecture, workflows, and deployment mapped in one view."
-          description="This layout reflects the full SaaS product story the prompt calls for, from API structure to mobile apps."
+          eyebrow="Testimonials"
+          title="Built for committees, residents, staff, and gates."
+          description="The experience stays calm, readable, and fast across desktop, tablet, and mobile."
+          align="center"
         />
 
-        <div className="architecture-shell glass-panel">
-          <div className="architecture-tabs" role="tablist" aria-label="Architecture tabs">
-            {architectureTabs.map((tab) => (
-              <button
-                key={tab.id}
-                type="button"
-                role="tab"
-                aria-selected={activeArchitecture === tab.id}
-                className={`architecture-tab ${activeArchitecture === tab.id ? "is-active" : ""}`}
-                onClick={() => setActiveArchitecture(tab.id)}
-              >
-                {tab.title}
-              </button>
-            ))}
-          </div>
-
-          <div className="architecture-detail">
-            <div>
-              <span className="eyebrow-pill eyebrow-pill--compact">{activeArchitectureItem.id}</span>
-              <h3>{activeArchitectureItem.title}</h3>
-              <p>{activeArchitectureItem.summary}</p>
-              <div className="signal-row">
-                {activeArchitectureItem.signals.map((signal) => (
-                  <span key={signal}>{signal}</span>
-                ))}
+        <div className="landing-testimonial-grid">
+          {testimonials.map((item, index) => (
+            <motion.article
+              key={item.name}
+              className="landing-testimonial glass-card"
+              initial={{ opacity: 0, y: 28 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.3 }}
+              transition={{ duration: 0.55, delay: index * 0.08 }}
+            >
+              <p>"{item.quote}"</p>
+              <div>
+                <strong>{item.name}</strong>
+                <span>{item.role}</span>
               </div>
-            </div>
-
-            <div className="architecture-list">
-              {activeArchitectureItem.items.map((item, index) => (
-                <article key={item}>
-                  <span className="architecture-list__index">0{index + 1}</span>
-                  <strong>{item}</strong>
-                </article>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        <div className="workflow-grid">
-          <article className="glass-card workflow-card">
-            <h3>AI workflow</h3>
-            <ol>
-              {aiWorkflow.map((step) => (
-                <li key={step}>{step}</li>
-              ))}
-            </ol>
-          </article>
-
-          <article className="glass-card workflow-card workflow-card--accent">
-            <h3>Realtime architecture</h3>
-            <p>
-              Socket.io channels sync chat, visitor approvals, notice publishing, bill updates,
-              and incident escalation across web and mobile clients.
-            </p>
-            <div className="realtime-stack">
-              <span>Presence</span>
-              <span>Message delivery</span>
-              <span>Admin alerts</span>
-              <span>Offline recovery</span>
-            </div>
-          </article>
-
-          <article className="glass-card workflow-card">
-            <h3>Deployment stack</h3>
-            <p>
-              Cloudinary stores media, Firebase pushes notifications, and Render or AWS runs the
-              API, workers, and dashboard app with autoscaling support.
-            </p>
-            <div className="deployment-stack">
-              <span>Frontend</span>
-              <span>Backend API</span>
-              <span>Database</span>
-              <span>Workers</span>
-            </div>
-          </article>
+            </motion.article>
+          ))}
         </div>
       </section>
 
-      <section className="content-section mobile-section">
-        <SectionHeader
-          eyebrow="Mobile and UX"
-          title="Responsive by default, polished like a premium mobile app."
-          description="The same platform adapts to desktop dashboards, tablets, and resident-facing mobile experiences."
-        />
-
-        <div className="mobile-grid">
-          <div className="phone-frame glass-card">
-            <div className="phone-frame__status">09:41</div>
-            <div className="phone-app">
-              <div className="phone-app__header">
-                <span className="brand-mark brand-mark--small">A</span>
-                <div>
-                  <strong>Society App</strong>
-                  <p>Resident feed</p>
-                </div>
-              </div>
-
-              <div className="phone-feed">
-                <article>
-                  <strong>Gate approval</strong>
-                  <p>Visitor verified, QR pass generated, security notified.</p>
-                </article>
-                <article>
-                  <strong>Maintenance update</strong>
-                  <p>AI created a work order and assigned the nearest staff member.</p>
-                </article>
-                <article>
-                  <strong>Billing reminder</strong>
-                  <p>Smart notifications adapt to language, due date, and payment history.</p>
-                </article>
-              </div>
-            </div>
-          </div>
-
-          <div className="glass-card mobile-copy">
-            <h3>What the product delivers</h3>
-            <ul>
-              <li>Separate society branding, theme packs, and feature toggles.</li>
-              <li>Secure authentication with tenant-scoped access controls.</li>
-              <li>AI analytics, OCR extraction, translation, and automation workflows.</li>
-              <li>Android and iOS-ready architecture with realtime messaging.</li>
-            </ul>
-          </div>
-        </div>
-      </section>
-
-      <section className="cta-band glass-panel">
+      <section className="content-section landing-contact glass-panel" id="contact">
         <div>
-          <span className="section-eyebrow">Ready to ship</span>
-          <h2>Launch the multi-society SaaS platform with a premium front door and enterprise spine.</h2>
+          <span className="section-eyebrow">Contact</span>
+          <h2>Bring your society online with a polished operating layer.</h2>
           <p>
-            Use the login and dashboard routes already in the app to wire real user flows while
-            keeping this new visual system as the public product experience.
+            Start with a branded society workspace, then add billing, visitors, complaints,
+            staff tasks, notices, documents, and AI assistance as your committee needs them.
           </p>
         </div>
 
-        <div className="cta-band__actions">
+        <div className="cta-band__actions landing-contact-actions">
           <Link className="button button--primary button--large" to="/register">
-            Create account
+            Start free trial
           </Link>
           <Link className="button button--ghost button--large" to="/login">
             Open portal
@@ -941,11 +859,20 @@ function HomePage() {
         </div>
       </section>
 
-      <footer className="footer-note">
-        <span>Multi-tenant architecture</span>
-        <span>Realtime-first communication</span>
-        <span>AI-powered operations</span>
-        <span>Mobile-ready dashboards</span>
+      <footer className="landing-footer glass-panel">
+        <div className="brand-lockup">
+          <div className="brand-mark brand-mark--small">A</div>
+          <div>
+            <p className="brand-eyebrow">{t("brand.eyebrow")}</p>
+            <h2>{t("brand.title")}</h2>
+          </div>
+        </div>
+        <div className="footer-note">
+          <span>Multi-tenant SaaS</span>
+          <span>Realtime-first</span>
+          <span>AI-powered</span>
+          <span>Mobile-ready</span>
+        </div>
       </footer>
     </main>
   );

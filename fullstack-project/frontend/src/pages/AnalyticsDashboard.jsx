@@ -115,8 +115,8 @@ function MetricCard({ label, value, detail, tone = "slate" }) {
 
 function ChartPanel({ title, description, children, action }) {
   return (
-    <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-[0_10px_40px_-28px_rgba(15,23,42,0.45)]">
-      <div className="mb-4 flex items-start justify-between gap-3">
+    <div className="chairman-page rounded-3xl border border-slate-200 bg-white p-5 shadow-[0_10px_40px_-28px_rgba(15,23,42,0.45)]">
+      <div className="chairman-page mb-4 flex items-start justify-between gap-3">
         <div>
           <h3 className="text-lg font-semibold text-slate-900">{title}</h3>
           {description ? <p className="mt-1 text-sm text-slate-500">{description}</p> : null}
@@ -346,9 +346,9 @@ function AnalyticsDashboard() {
 
   if (loading && !hasLoadedRef.current) {
     return (
-      <div className="flex min-h-[70vh] items-center justify-center rounded-3xl theme-page px-6 py-16 text-[var(--text-main)]">
-        <div className="max-w-md text-center">
-          <div className="mx-auto h-14 w-14 animate-spin rounded-full border-4 border-white/20 border-t-white" />
+      <div className="chairman-page flex min-h-[70vh] items-center justify-center rounded-3xl theme-page px-6 py-16 text-[var(--text-main)]">
+        <div className="chairman-page max-w-md text-center">
+          <div className="chairman-page mx-auto h-14 w-14 animate-spin rounded-full border-4 border-white/20 border-t-white" />
           <h1 className="mt-6 text-3xl font-semibold">Loading analytics command center</h1>
           <p className="mt-3 text-sm text-slate-300">Pulling visitor, finance, complaints, chat, payments, AI, staff, and security signals.</p>
         </div>
@@ -358,7 +358,7 @@ function AnalyticsDashboard() {
 
   if (error && !hasLoadedRef.current) {
     return (
-      <div className="rounded-3xl border border-rose-200 bg-rose-50 p-6 text-rose-800">
+      <div className="chairman-page rounded-3xl border border-rose-200 bg-rose-50 p-6 text-rose-800">
         <h1 className="text-2xl font-semibold">Analytics dashboard unavailable</h1>
         <p className="mt-2 text-sm">{error}</p>
         <button
@@ -373,9 +373,9 @@ function AnalyticsDashboard() {
   }
 
   return (
-    <div className="space-y-6 rounded-3xl bg-[radial-gradient(circle_at_top,_rgba(14,165,233,0.16),_transparent_36%),radial-gradient(circle_at_right,_rgba(16,185,129,0.14),_transparent_28%),linear-gradient(180deg,_rgba(248,250,252,0.95),_rgba(248,250,252,0.98))] p-1 sm:p-0">
+    <div className="chairman-page space-y-6 rounded-3xl bg-[radial-gradient(circle_at_top,_rgba(14,165,233,0.16),_transparent_36%),radial-gradient(circle_at_right,_rgba(16,185,129,0.14),_transparent_28%),linear-gradient(180deg,_rgba(248,250,252,0.95),_rgba(248,250,252,0.98))] p-1 sm:p-0">
       <section className="overflow-hidden rounded-3xl border border-slate-200 theme-page text-[var(--text-main)] shadow-[0_24px_80px_-36px_rgba(15,23,42,0.85)]">
-        <div className="grid gap-6 px-6 py-6 lg:grid-cols-[1.5fr_0.9fr] lg:px-8 lg:py-8">
+        <div className="chairman-page grid gap-6 px-6 py-6 lg:grid-cols-[1.5fr_0.9fr] lg:px-8 lg:py-8">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.3em] text-sky-300">Analytics command center</p>
             <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">Modern society analytics dashboard</h1>
@@ -383,15 +383,15 @@ function AnalyticsDashboard() {
               Monitor visitor flow, financial health, complaint queues, chat activity, AI usage, payment behavior, staff throughput, and security events from a single live surface.
             </p>
 
-            <div className="mt-5 flex flex-wrap gap-3 text-xs text-slate-200">
+            <div className="chairman-page mt-5 flex flex-wrap gap-3 text-xs text-slate-200">
               <span className="rounded-full border border-white/15 bg-white/5 px-3 py-1.5">Updated: {lastUpdated ? lastUpdated.toLocaleString() : "waiting for first sync"}</span>
               <span className="rounded-full border border-white/15 bg-white/5 px-3 py-1.5">Clock: {clock.toLocaleTimeString()}</span>
               <span className="rounded-full border border-white/15 bg-white/5 px-3 py-1.5">Auto refresh: {autoRefresh ? "on" : "off"}</span>
             </div>
           </div>
 
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur">
-            <div className="grid gap-3 sm:grid-cols-2">
+          <div className="chairman-page rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur">
+            <div className="chairman-page grid gap-3 sm:grid-cols-2">
               {healthTiles.map((tile) => (
                 <MetricCard key={tile.label} {...tile} />
               ))}
@@ -401,8 +401,8 @@ function AnalyticsDashboard() {
       </section>
 
       <section className="rounded-3xl border border-slate-200 bg-white/90 p-4 shadow-sm backdrop-blur sm:p-5">
-        <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-          <div className="flex flex-wrap items-center gap-2">
+        <div className="chairman-page flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+          <div className="chairman-page flex flex-wrap items-center gap-2">
             {RANGE_OPTIONS.map((days) => {
               const active = rangeDays === days;
               return (
@@ -418,7 +418,7 @@ function AnalyticsDashboard() {
             })}
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="chairman-page flex flex-wrap items-center gap-2">
             <button
               type="button"
               onClick={() => setRefreshTick((value) => value + 1)}
@@ -433,7 +433,7 @@ function AnalyticsDashboard() {
             >
               {autoRefresh ? "Auto refresh on" : "Auto refresh off"}
             </button>
-            <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-2 py-1">
+            <div className="chairman-page flex items-center gap-2 rounded-full border border-slate-200 bg-white px-2 py-1">
               <span className="pl-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">Report</span>
               <select
                 value={exportType}
@@ -478,7 +478,7 @@ function AnalyticsDashboard() {
           title="Live system pulse"
           description="These widgets update automatically so the dashboard remains useful during active operations, not just after reports are generated."
         />
-        <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <div className="chairman-page mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           {realtimeWidgets.map((widget) => (
             <MetricCard key={widget.label} {...widget} />
           ))}
@@ -490,14 +490,14 @@ function AnalyticsDashboard() {
           title="Visitor analytics"
           description="Approvals, visitor mix, and peak traffic patterns."
         >
-          <div className="grid gap-4 md:grid-cols-4">
+          <div className="chairman-page grid gap-4 md:grid-cols-4">
             <MetricCard label="Total visitors" value={formatCount(visitor.totalVisitors)} tone="sky" detail="Across the selected date range" />
             <MetricCard label="Approval rate" value={formatPercent(visitor.approvalRate || 0)} tone="emerald" detail={`Peak hour ${getLatestLabel(visitor.peakHours, "hour")}`} />
             <MetricCard label="Visitor types" value={formatCount(safeArray(visitor.visitorTypes).length)} tone="violet" detail="Resident, delivery, guest, and vendor breakdowns" />
             <MetricCard label="Status buckets" value={formatCount(safeArray(visitor.approvalStatus).length)} tone="amber" detail="Approved, pending, and rejected activity" />
           </div>
-          <div className="mt-4 grid gap-4 lg:grid-cols-2">
-            <div className="h-72 rounded-2xl border border-slate-200 bg-slate-50 p-3">
+          <div className="chairman-page mt-4 grid gap-4 lg:grid-cols-2">
+            <div className="chairman-page h-72 rounded-2xl border border-slate-200 bg-slate-50 p-3">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={safeArray(visitor.visitTrend)}>
                   <defs>
@@ -514,7 +514,7 @@ function AnalyticsDashboard() {
                 </AreaChart>
               </ResponsiveContainer>
             </div>
-            <div className="h-72 rounded-2xl border border-slate-200 bg-slate-50 p-3">
+            <div className="chairman-page h-72 rounded-2xl border border-slate-200 bg-slate-50 p-3">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie data={safeArray(visitor.visitorTypes)} dataKey="value" nameKey="name" outerRadius={92} label>
@@ -531,14 +531,14 @@ function AnalyticsDashboard() {
         </ChartPanel>
 
         <ChartPanel title="Financial analytics" description="Revenue, collections, and bill status movement.">
-          <div className="grid gap-4 md:grid-cols-4">
+          <div className="chairman-page grid gap-4 md:grid-cols-4">
             <MetricCard label="Revenue" value={formatCurrency(financial.totalRevenue)} tone="emerald" detail="Paid bills in the selected window" />
             <MetricCard label="Collection rate" value={formatPercent(financial.collectionRate || 0)} tone="sky" detail="Paid versus total billed activity" />
             <MetricCard label="Top defaulter" value={getLatestLabel(financial.topDefaulters, "name")} tone="rose" detail={formatCurrency(safeArray(financial.topDefaulters)[0]?.amount || 0)} />
             <MetricCard label="Bill buckets" value={formatCount(safeArray(financial.billStatus).length)} tone="amber" detail="Status and amount distribution" />
           </div>
-          <div className="mt-4 grid gap-4 lg:grid-cols-2">
-            <div className="h-72 rounded-2xl border border-slate-200 bg-slate-50 p-3">
+          <div className="chairman-page mt-4 grid gap-4 lg:grid-cols-2">
+            <div className="chairman-page h-72 rounded-2xl border border-slate-200 bg-slate-50 p-3">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={safeArray(financial.monthlyRevenue)}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#cbd5e1" />
@@ -550,7 +550,7 @@ function AnalyticsDashboard() {
                 </LineChart>
               </ResponsiveContainer>
             </div>
-            <div className="h-72 rounded-2xl border border-slate-200 bg-slate-50 p-3">
+            <div className="chairman-page h-72 rounded-2xl border border-slate-200 bg-slate-50 p-3">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={safeArray(financial.billStatus)}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#cbd5e1" />
@@ -569,14 +569,14 @@ function AnalyticsDashboard() {
 
       <section className="grid gap-4 xl:grid-cols-2">
         <ChartPanel title="Complaint analytics" description="Ticket volume, resolution velocity, and categories.">
-          <div className="grid gap-4 md:grid-cols-4">
+          <div className="chairman-page grid gap-4 md:grid-cols-4">
             <MetricCard label="Complaints" value={formatCount(complaint.totalComplaints)} tone="amber" detail="Opened in the selected period" />
             <MetricCard label="Resolution rate" value={formatPercent(complaint.resolutionRate || 0)} tone="emerald" detail={`Average ${complaint.avgResolutionDays || 0} days`} />
             <MetricCard label="Top category" value={getLatestLabel(complaint.topCategories, "category")} tone="violet" detail="Highest complaint concentration" />
             <MetricCard label="Status buckets" value={formatCount(safeArray(complaint.complaintStatus).length)} tone="sky" detail="Pending, open, and closed queues" />
           </div>
-          <div className="mt-4 grid gap-4 lg:grid-cols-2">
-            <div className="h-72 rounded-2xl border border-slate-200 bg-slate-50 p-3">
+          <div className="chairman-page mt-4 grid gap-4 lg:grid-cols-2">
+            <div className="chairman-page h-72 rounded-2xl border border-slate-200 bg-slate-50 p-3">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={safeArray(complaint.complaintTrend)}>
                   <defs>
@@ -593,7 +593,7 @@ function AnalyticsDashboard() {
                 </AreaChart>
               </ResponsiveContainer>
             </div>
-            <div className="h-72 rounded-2xl border border-slate-200 bg-slate-50 p-3">
+            <div className="chairman-page h-72 rounded-2xl border border-slate-200 bg-slate-50 p-3">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={safeArray(complaint.topCategories)}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#cbd5e1" />
@@ -608,14 +608,14 @@ function AnalyticsDashboard() {
         </ChartPanel>
 
         <ChartPanel title="Chat analytics" description="Conversation throughput and channel activity.">
-          <div className="grid gap-4 md:grid-cols-4">
+          <div className="chairman-page grid gap-4 md:grid-cols-4">
             <MetricCard label="Messages" value={formatCount(chat.totalMessages)} tone="sky" detail="Messages sent in the selected period" />
             <MetricCard label="Active users" value={formatCount(chat.activeUsers)} tone="emerald" detail="Distinct participants in chat threads" />
             <MetricCard label="Response time" value={`${chat.avgResponseTimeMinutes || 0} min`} tone="violet" detail="Average thread turnaround" />
             <MetricCard label="Channels" value={formatCount(safeArray(chat.topChannels).length)} tone="amber" detail="Most active discussion threads" />
           </div>
-          <div className="mt-4 grid gap-4 lg:grid-cols-2">
-            <div className="h-72 rounded-2xl border border-slate-200 bg-slate-50 p-3">
+          <div className="chairman-page mt-4 grid gap-4 lg:grid-cols-2">
+            <div className="chairman-page h-72 rounded-2xl border border-slate-200 bg-slate-50 p-3">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={safeArray(chat.messageTrend)}>
                   <defs>
@@ -632,7 +632,7 @@ function AnalyticsDashboard() {
                 </AreaChart>
               </ResponsiveContainer>
             </div>
-            <div className="h-72 rounded-2xl border border-slate-200 bg-slate-50 p-3">
+            <div className="chairman-page h-72 rounded-2xl border border-slate-200 bg-slate-50 p-3">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={safeArray(chat.topChannels).slice(0, 6)}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#cbd5e1" />
@@ -649,14 +649,14 @@ function AnalyticsDashboard() {
 
       <section className="grid gap-4 xl:grid-cols-2">
         <ChartPanel title="Payment analytics" description="Payment success, method mix, and cashflow stability.">
-          <div className="grid gap-4 md:grid-cols-4">
+          <div className="chairman-page grid gap-4 md:grid-cols-4">
             <MetricCard label="Payments" value={formatCount(payment.totalPayments)} tone="emerald" detail="Successful payment events" />
             <MetricCard label="Total amount" value={formatCurrency(payment.totalAmount)} tone="sky" detail="Received through all payment methods" />
             <MetricCard label="Success rate" value={formatPercent(payment.successRate || 0)} tone="violet" detail="Successful versus attempted payments" />
             <MetricCard label="Failures" value={formatCount(payment.failedPayments)} tone="rose" detail="Payment attempts that did not clear" />
           </div>
-          <div className="mt-4 grid gap-4 lg:grid-cols-2">
-            <div className="h-72 rounded-2xl border border-slate-200 bg-slate-50 p-3">
+          <div className="chairman-page mt-4 grid gap-4 lg:grid-cols-2">
+            <div className="chairman-page h-72 rounded-2xl border border-slate-200 bg-slate-50 p-3">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={safeArray(payment.paymentTrend)}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#cbd5e1" />
@@ -669,7 +669,7 @@ function AnalyticsDashboard() {
                 </LineChart>
               </ResponsiveContainer>
             </div>
-            <div className="h-72 rounded-2xl border border-slate-200 bg-slate-50 p-3">
+            <div className="chairman-page h-72 rounded-2xl border border-slate-200 bg-slate-50 p-3">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie data={safeArray(payment.paymentMethods)} dataKey="count" nameKey="method" outerRadius={92} label>
@@ -686,13 +686,13 @@ function AnalyticsDashboard() {
         </ChartPanel>
 
         <ChartPanel title="Staff performance" description="Assignment load, completion rates, and response speed.">
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="chairman-page grid gap-4 md:grid-cols-3">
             <MetricCard label="Total staff" value={formatCount(staff.totalStaff)} tone="sky" detail="Active staff members in the selected society" />
             <MetricCard label="Average completion" value={formatPercent(staff.avgCompletionRate || 0)} tone="emerald" detail="Resolved versus assigned work items" />
             <MetricCard label="Top performer" value={getLatestLabel(staff.staffPerformance, "staffName")} tone="violet" detail="Best completion performance in the current window" />
           </div>
-          <div className="mt-4 overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
-            <div className="max-h-80 overflow-auto">
+          <div className="chairman-page mt-4 overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
+            <div className="chairman-page max-h-80 overflow-auto">
               <table className="w-full text-sm">
                 <thead className="sticky top-0 bg-slate-100 text-slate-600">
                   <tr>
@@ -724,14 +724,14 @@ function AnalyticsDashboard() {
 
       <section className="grid gap-4 xl:grid-cols-2">
         <ChartPanel title="Security analytics" description="Incident heat, severity mix, and top hotspots.">
-          <div className="grid gap-4 md:grid-cols-4">
+          <div className="chairman-page grid gap-4 md:grid-cols-4">
             <MetricCard label="Alerts" value={formatCount(security.totalAlerts)} tone="rose" detail="Detected in the current time window" />
             <MetricCard label="Critical issues" value={formatCount((safeArray(security.severityBreakdown).find((item) => item.severity === "critical") || {}).count)} tone="amber" detail="Highest severity incidents" />
             <MetricCard label="Top type" value={getLatestLabel(security.topAlertTypes, "type")} tone="violet" detail="Most common alert classification" />
             <MetricCard label="Hotspot" value={getLatestLabel(security.incidentsByLocation, "location")} tone="sky" detail="Location with the most alerts" />
           </div>
-          <div className="mt-4 grid gap-4 lg:grid-cols-2">
-            <div className="h-72 rounded-2xl border border-slate-200 bg-slate-50 p-3">
+          <div className="chairman-page mt-4 grid gap-4 lg:grid-cols-2">
+            <div className="chairman-page h-72 rounded-2xl border border-slate-200 bg-slate-50 p-3">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={safeArray(security.alertTrend)}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#cbd5e1" />
@@ -742,7 +742,7 @@ function AnalyticsDashboard() {
                 </LineChart>
               </ResponsiveContainer>
             </div>
-            <div className="h-72 rounded-2xl border border-slate-200 bg-slate-50 p-3">
+            <div className="chairman-page h-72 rounded-2xl border border-slate-200 bg-slate-50 p-3">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie data={safeArray(security.severityBreakdown)} dataKey="count" nameKey="severity" outerRadius={92} label>
@@ -759,7 +759,7 @@ function AnalyticsDashboard() {
         </ChartPanel>
 
         <ChartPanel title="AI analytics" description="Generated insight cards, recommendations, and anomaly summaries.">
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="chairman-page grid gap-4 md:grid-cols-2">
             {aiInsightCards.map((card) => (
               <div key={card.label} className={`rounded-2xl border p-4 shadow-sm ${TONE_MAP[card.tone || "slate"].shell}`}>
                 <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">{card.label}</p>
@@ -768,14 +768,14 @@ function AnalyticsDashboard() {
               </div>
             ))}
           </div>
-          <div className="mt-4 grid gap-4 lg:grid-cols-2">
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+          <div className="chairman-page mt-4 grid gap-4 lg:grid-cols-2">
+            <div className="chairman-page rounded-2xl border border-slate-200 bg-slate-50 p-4">
               <p className="text-sm font-semibold text-slate-900">Generated widgets</p>
-              <div className="mt-4 space-y-3">
+              <div className="chairman-page mt-4 space-y-3">
                 {aiWidgets.length ? (
                   aiWidgets.map((widget, index) => (
                     <div key={`${widget.title || "widget"}-${index}`} className="rounded-xl border border-slate-200 bg-white p-3">
-                      <div className="flex items-start justify-between gap-3">
+                      <div className="chairman-page flex items-start justify-between gap-3">
                         <div>
                           <p className="text-sm font-semibold text-slate-900">{widget.title || "Insight"}</p>
                           <p className="mt-1 text-sm text-slate-600">{widget.detail || widget.value || "Automated insight card"}</p>
@@ -785,16 +785,16 @@ function AnalyticsDashboard() {
                     </div>
                   ))
                 ) : (
-                  <div className="rounded-xl border border-dashed border-slate-300 bg-white p-4 text-sm text-slate-500">
+                  <div className="chairman-page rounded-xl border border-dashed border-slate-300 bg-white p-4 text-sm text-slate-500">
                     AI widget generation is still warming up.
                   </div>
                 )}
               </div>
             </div>
 
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+            <div className="chairman-page rounded-2xl border border-slate-200 bg-slate-50 p-4">
               <p className="text-sm font-semibold text-slate-900">AI recommendations</p>
-              <div className="mt-4 space-y-3">
+              <div className="chairman-page mt-4 space-y-3">
                 {aiRecommendations.length ? (
                   aiRecommendations.map((item, index) => (
                     <div key={`${item}-${index}`} className="rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-700">
@@ -802,7 +802,7 @@ function AnalyticsDashboard() {
                     </div>
                   ))
                 ) : (
-                  <div className="rounded-xl border border-dashed border-slate-300 bg-white p-4 text-sm text-slate-500">
+                  <div className="chairman-page rounded-xl border border-dashed border-slate-300 bg-white p-4 text-sm text-slate-500">
                     Recommendations will appear once the AI analytics service returns a response.
                   </div>
                 )}
@@ -818,7 +818,7 @@ function AnalyticsDashboard() {
           title="Download dashboards and snapshots"
           description="Generate JSON or CSV exports for the current range, then archive or share the report with stakeholders."
         />
-        <div className="mt-4 grid gap-4 md:grid-cols-3">
+        <div className="chairman-page mt-4 grid gap-4 md:grid-cols-3">
           <MetricCard label="Selected range" value={`${rangeDays} days`} tone="sky" detail="Used for both API fetches and report exports" />
           <MetricCard label="Report format" value={exportFormat.toUpperCase()} tone="emerald" detail="Choose JSON for systems, CSV for spreadsheets" />
           <MetricCard label="Report type" value={exportType} tone="violet" detail="Export a single domain or the full analytics bundle" />

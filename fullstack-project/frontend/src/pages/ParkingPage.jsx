@@ -70,7 +70,7 @@ function ParkingPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="chairman-page space-y-6">
       <div>
         <h2 className="text-xl font-bold text-slate-900">Parking Management</h2>
         <p className="text-sm text-slate-600">
@@ -153,9 +153,9 @@ function ParkingPage() {
         <h3 className="text-base font-semibold text-slate-900">Slot Register</h3>
 
         {loading ? (
-          <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">Loading parking slots...</div>
+          <div className="chairman-page mt-3 rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">Loading parking slots...</div>
         ) : slots.length ? (
-          <div className="mt-3 overflow-x-auto">
+          <div className="chairman-page mt-3 overflow-x-auto">
             <table className="min-w-full text-left text-sm">
               <thead>
                 <tr className="border-b border-slate-200 text-slate-600">
@@ -190,7 +190,7 @@ function ParkingPage() {
             </table>
           </div>
         ) : (
-          <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
+          <div className="chairman-page mt-3 rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
             No parking slots assigned yet.
           </div>
         )}

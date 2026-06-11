@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import Sidebar from "./Sidebar";
 import TopNavbar from "./TopNavbar";
 import { clearAuthSession, getStoredRole, getStoredUser } from "../utils/session";
@@ -61,14 +62,19 @@ function DashboardLayout({ basePath = "/admin" }) {
             onLogout={handleLogout}
           />
 
-          <main className="flex-1 px-4 py-5 sm:px-6 lg:px-8 lg:py-6">
-            <div className="surface-card mx-auto max-w-7xl overflow-hidden p-4 xl:p-6" style={{
+          <main className="dashboard-main flex-1 px-4 py-5 sm:px-6 lg:px-8 lg:py-6">
+            <motion.div
+              className={`surface-card chairman-dashboard-surface ${role === "secretary" ? "secretary-dashboard-surface" : ""} ${role === "resident" ? `resident-dashboard-surface resident-dashboard-surface--${residentType || "owner"}` : ""} ${role === "staff" ? "staff-dashboard-surface" : ""} mx-auto max-w-7xl overflow-hidden p-4 xl:p-6`}
+              initial={{ opacity: 0, y: 18 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+              style={{
               backgroundColor: "var(--card)",
               borderColor: "var(--border)",
               boxShadow: "var(--shadow-elevated)"
             }}>
               <Outlet />
-            </div>
+            </motion.div>
           </main>
         </div>
       </div>

@@ -126,45 +126,35 @@ function StatusPill({ value }) {
 }
 
 function MetricCard({ label, value, helper, tone = "cyan" }) {
-  const toneMap = {
-    cyan: "from-cyan-400/20 to-cyan-400/5 text-cyan-100",
-    violet: "from-violet-400/20 to-violet-400/5 text-violet-100",
-    emerald: "from-emerald-400/20 to-emerald-400/5 text-emerald-100",
-    amber: "from-amber-400/20 to-amber-400/5 text-amber-100",
-    rose: "from-rose-400/20 to-rose-400/5 text-rose-100",
-  };
-
   return (
     <motion.article
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
+      whileHover={{ y: -6, scale: 1.01 }}
       transition={{ duration: 0.35 }}
-      className="relative overflow-hidden rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(15,23,42,0.92),rgba(15,23,42,0.66))] p-5 shadow-2xl shadow-slate-950/20 backdrop-blur-xl"
+      className={cn("sa-stat-card", `sa-stat-card--${tone}`)}
     >
-      <div className={cn("absolute inset-x-0 top-0 h-1 bg-gradient-to-r", toneMap[tone])} />
-      <p className="text-sm text-slate-400">{label}</p>
-      <div className="mt-3 flex items-end justify-between gap-3">
-        <p className="text-3xl font-semibold tracking-tight text-[var(--text-main)]">{value}</p>
-      </div>
-      <p className="mt-2 text-sm text-slate-500">{helper}</p>
+      <p>{label}</p>
+      <strong>{value}</strong>
+      <span>{helper}</span>
     </motion.article>
   );
 }
 
 function SectionShell({ title, eyebrow, description, children, actions }) {
   return (
-    <section className="overflow-hidden rounded-[30px] border border-white/10 bg-[linear-gradient(180deg,rgba(15,23,42,0.88),rgba(2,6,23,0.8))] shadow-2xl shadow-slate-950/25 backdrop-blur-xl">
-      <div className="border-b border-white/10 px-5 py-4 sm:px-6">
+    <section className="sa-panel">
+      <div className="sa-panel__header">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            {eyebrow ? <p className="text-xs font-semibold uppercase tracking-[0.32em] text-cyan-300/80">{eyebrow}</p> : null}
-            <h2 className="mt-2 text-2xl font-semibold text-[var(--text-main)]">{title}</h2>
-            {description ? <p className="mt-1 max-w-3xl text-sm leading-6 text-slate-400">{description}</p> : null}
+            {eyebrow ? <p className="sa-eyebrow">{eyebrow}</p> : null}
+            <h2>{title}</h2>
+            {description ? <p>{description}</p> : null}
           </div>
           {actions ? <div className="flex flex-wrap gap-2">{actions}</div> : null}
         </div>
       </div>
-      <div className="p-5 sm:p-6">{children}</div>
+      <div className="sa-panel__body">{children}</div>
     </section>
   );
 }
@@ -174,7 +164,7 @@ function ChartCard({ title, subtitle, data, color = "#22d3ee", labelKey = "perio
   const gradientId = `gradient-${title.replace(/[^a-z0-9]/gi, "")}`;
 
   return (
-    <div className="rounded-[24px] border border-white/10 bg-white/5 p-4 shadow-xl shadow-slate-950/20">
+    <div className="sa-chart-card">
       <div className="mb-4">
         <h3 className="text-base font-semibold text-[var(--text-main)]">{title}</h3>
         <p className="mt-1 text-sm text-slate-400">{subtitle}</p>
@@ -212,14 +202,14 @@ function ChartCard({ title, subtitle, data, color = "#22d3ee", labelKey = "perio
 
 function emptyState(title, description, actionLabel, onAction) {
   return (
-    <div className="rounded-[24px] border border-dashed border-white/15 bg-white/5 px-6 py-12 text-center">
-      <p className="text-lg font-semibold text-[var(--text-main)]">{title}</p>
-      <p className="mx-auto mt-2 max-w-xl text-sm text-slate-400">{description}</p>
+    <div className="sa-empty-state">
+      <p>{title}</p>
+      <span>{description}</span>
       {actionLabel ? (
         <button
           type="button"
           onClick={onAction}
-          className="mt-6 inline-flex items-center justify-center rounded-full bg-cyan-400 px-5 py-2.5 text-sm font-semibold text-slate-950 transition hover:bg-cyan-300"
+          className="sa-primary-btn mt-6"
         >
           {actionLabel}
         </button>
@@ -408,19 +398,14 @@ function SuperAdminDashboardPage() {
 
   const summaryCards = useMemo(() => {
     const cards = platformStats?.cards || {};
+    const pendingApprovalsTotal = approvalMeta?.total ?? (cards.chairmanRequests || 0) + (cards.secretaryRequests || 0) + (cards.pendingSocietyRequests || 0);
     return [
       { label: "Total Societies", value: cards.totalSocieties ?? 0, helper: "Registered societies across the platform", tone: "cyan" },
-      { label: "Active Societies", value: cards.activeSocieties ?? 0, helper: "Live production societies", tone: "emerald" },
-      { label: "Pending Society Requests", value: cards.pendingSocietyRequests ?? 0, helper: "Trial/onboarding societies", tone: "amber" },
-      { label: "Total Platform Users", value: cards.totalPlatformUsers ?? 0, helper: "All users, roles, and staff", tone: "violet" },
-      { label: "Active Residents", value: cards.activeResidents ?? 0, helper: "Approved residents currently active", tone: "emerald" },
-      { label: "Chairman Requests", value: cards.chairmanRequests ?? 0, helper: "Pending chairman approvals", tone: "rose" },
-      { label: "Secretary Requests", value: cards.secretaryRequests ?? 0, helper: "Pending secretary approvals", tone: "amber" },
-      { label: "Revenue / Subscriptions", value: `${formatCurrency(cards.revenue ?? 0)} / ${cards.activeSubscriptions ?? 0}`, helper: "Collected revenue and active subscription count", tone: "cyan" },
-      { label: "Total Complaints", value: cards.totalComplaints ?? 0, helper: "Platform complaint volume", tone: "rose" },
-      { label: "Active Security Staff", value: cards.activeSecurityStaff ?? 0, helper: "Security operators online", tone: "emerald" },
+      { label: "Active Users", value: cards.totalPlatformUsers ?? cards.activeResidents ?? 0, helper: "Approved platform users and operators", tone: "violet" },
+      { label: "Revenue", value: formatCurrency(cards.revenue ?? 0), helper: `${cards.activeSubscriptions ?? 0} active subscriptions`, tone: "emerald" },
+      { label: "Pending Approvals", value: pendingApprovalsTotal, helper: "Society and role requests waiting for action", tone: "amber" },
     ];
-  }, [platformStats]);
+  }, [platformStats, approvalMeta]);
 
   const filteredApprovals = useMemo(() => {
     const role = ROLE_TAB_CONFIG.find((item) => item.key === approvalTab)?.role;
@@ -638,7 +623,7 @@ function SuperAdminDashboardPage() {
   const approvalsByTab = approvalMeta?.counts || {};
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.16),transparent_30%),radial-gradient(circle_at_top_right,rgba(168,85,247,0.14),transparent_24%),linear-gradient(180deg,#020617_0%,#07111f_48%,#020617_100%)] px-4 py-6 text-slate-100 sm:px-6 lg:px-8">
+    <div className="superadmin-shell superadmin-dashboard">
       {toast ? (
         <div
           className={cn(
@@ -651,14 +636,14 @@ function SuperAdminDashboardPage() {
           <p className="text-sm font-semibold">{toast.message}</p>
         </div>
       ) : null}
-      <div className="mx-auto flex w-full max-w-[1600px] flex-col gap-6">
-        <header className="relative overflow-hidden rounded-[32px] border border-white/10 bg-[linear-gradient(135deg,rgba(2,6,23,0.95),rgba(15,23,42,0.82))] p-6 shadow-2xl shadow-slate-950/30 backdrop-blur-xl sm:p-8">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(34,211,238,0.12),transparent_22%),radial-gradient(circle_at_80%_10%,rgba(168,85,247,0.16),transparent_24%),radial-gradient(circle_at_50%_100%,rgba(59,130,246,0.14),transparent_22%)]" />
+      <div className="sa-container">
+        <header className="sa-hero">
+          <div className="sa-hero__ambient" />
           <div className="relative flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
             <div className="max-w-4xl">
-              <p className="text-xs font-semibold uppercase tracking-[0.35em] text-cyan-300/80">Hidden Super Admin Control Center</p>
-              <h1 className="mt-3 text-4xl font-semibold tracking-tight text-[var(--text-main)] sm:text-5xl">Smart Society SaaS operator panel</h1>
-              <p className="mt-4 max-w-3xl text-sm leading-7 text-slate-300 sm:text-base">
+              <p className="sa-eyebrow">Hidden Super Admin Control Center</p>
+              <h1>Smart Society SaaS operator panel</h1>
+              <p>
                 Manage every society, subscription, approval, complaint, and platform event from a single production-grade console.
               </p>
               <div className="mt-5 flex flex-wrap gap-2 text-xs text-slate-300">
@@ -707,7 +692,7 @@ function SuperAdminDashboardPage() {
           <div className="rounded-[24px] border border-dashed border-white/15 bg-white/5 px-6 py-8 text-slate-300">Loading super admin control center...</div>
         ) : (
           <>
-            <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+            <section className="sa-stat-grid">
               {summaryCards.map((card) => (
                 <MetricCard key={card.label} {...card} />
               ))}

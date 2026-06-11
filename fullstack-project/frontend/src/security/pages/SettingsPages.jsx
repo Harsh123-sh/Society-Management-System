@@ -3,7 +3,7 @@ import { blacklist, shiftLogs } from "../data/securityData";
 
 function BlacklistPage() {
   return (
-    <div className="space-y-6">
+    <div className="security-page security-settings-page space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-slate-900">🚫 Blacklist</h1>
@@ -78,7 +78,7 @@ function BlacklistPage() {
 
 function ShiftLogsPage() {
   return (
-    <div className="space-y-6">
+    <div className="security-page security-settings-page space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-slate-900">🕒 Shift Logs</h1>
         <p className="mt-2 text-slate-600">Guard shift records and notes</p>
@@ -154,7 +154,7 @@ function ShiftLogsPage() {
 
 function ProfilePage() {
   return (
-    <div className="space-y-6">
+    <div className="security-page security-settings-page space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-slate-900">👤 Guard Profile</h1>
         <p className="mt-2 text-slate-600">Personal and professional information</p>

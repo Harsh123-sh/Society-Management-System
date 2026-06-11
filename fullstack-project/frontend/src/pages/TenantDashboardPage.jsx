@@ -65,10 +65,10 @@ function TenantDashboardPage() {
     loadData();
   }, []);
 
-  if (loading) return <div className="text-sm text-[rgb(var(--app-text-muted-rgb))]">Loading...</div>;
+  if (loading) return <div className="resident-page resident-tenant-page text-sm text-[rgb(var(--app-text-muted-rgb))]">Loading...</div>;
 
   return (
-    <div className="space-y-6">
+    <div className="resident-page resident-tenant-page space-y-6">
       <section className="surface-card app-surface rounded-[28px] p-6">
         <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[rgb(var(--app-text-muted-rgb))]">Tenant Dashboard</p>
         <h2 className="mt-2 text-3xl font-bold text-[rgb(var(--app-text-rgb))]">Rent, documents, and visitor requests</h2>
@@ -76,7 +76,7 @@ function TenantDashboardPage() {
       </section>
       <AlertMessage type={alert.type} message={alert.message} />
 
-      <div className="grid gap-4 md:grid-cols-3">
+      <section className="resident-metric-grid grid gap-4 md:grid-cols-3">
         <div className="surface-card app-surface p-4">
           <p className="text-sm text-[rgb(var(--app-text-muted-rgb))]">Unpaid Rent / Maintenance</p>
           <p className="text-2xl font-bold text-[rgb(var(--app-text-rgb))]">{stats.unpaidBills}</p>
@@ -89,7 +89,7 @@ function TenantDashboardPage() {
           <p className="text-sm text-[rgb(var(--app-text-muted-rgb))]">Pending Documents</p>
           <p className="text-2xl font-bold text-[rgb(var(--app-text-rgb))]">{stats.pendingDocuments}</p>
         </div>
-      </div>
+      </section>
 
       <section className="surface-card app-surface p-4">
         <h3 className="mb-3 text-base font-semibold text-[rgb(var(--app-text-rgb))]">Rent Info</h3>

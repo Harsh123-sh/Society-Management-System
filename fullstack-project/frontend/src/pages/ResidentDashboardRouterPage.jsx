@@ -7,10 +7,18 @@ function ResidentDashboardRouterPage() {
   const residentType = user?.resident_type || "owner";
 
   if (residentType === "tenant") {
-    return <TenantDashboardPage />;
+    return (
+      <div className="resident-page resident-tenant-page">
+        <TenantDashboardPage />
+      </div>
+    );
   }
 
-  return <OwnerDashboardPage />;
+  return (
+    <div className="resident-page resident-owner-page">
+      <OwnerDashboardPage />
+    </div>
+  );
 }
 
 export default ResidentDashboardRouterPage;

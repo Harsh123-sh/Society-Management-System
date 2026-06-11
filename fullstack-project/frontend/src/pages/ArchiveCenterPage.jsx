@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { motion } from "framer-motion";
 import {
   deleteComplaint,
   deleteNotice,
@@ -43,20 +44,11 @@ function downloadCsv(filename, rows) {
 }
 
 function StatCard({ label, value, tone = "teal" }) {
-  const toneClasses =
-    tone === "amber"
-      ? "border-amber-500/25 bg-amber-500/10 text-amber-100"
-      : tone === "rose"
-        ? "border-rose-500/25 bg-rose-500/10 text-rose-100"
-        : tone === "cyan"
-          ? "border-cyan-500/25 bg-cyan-500/10 text-cyan-100"
-          : "border-teal-500/25 bg-teal-500/10 text-teal-100";
-
   return (
-    <div className={`rounded-3xl border p-5 shadow-lg backdrop-blur ${toneClasses}`}>
-      <p className="text-[11px] uppercase tracking-[0.28em] opacity-80">{label}</p>
-      <p className="mt-2 text-3xl font-semibold tracking-tight">{value}</p>
-    </div>
+    <motion.div className={`sa-stat-card sa-stat-card--${tone}`} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} whileHover={{ y: -6 }}>
+      <p>{label}</p>
+      <strong>{value}</strong>
+    </motion.div>
   );
 }
 
@@ -68,7 +60,7 @@ function ArchiveRow({ item, type, selected, onSelect, onRestore, onDelete }) {
       : `${item.created_by_name || "Unknown user"} • ${item.status || "unknown"}`;
 
   return (
-    <tr className="border-b border-white/10 bg-white/5 transition hover:bg-white/10">
+    <tr className="sa-table-row">
       <td className="px-4 py-3 align-top">
         <input type="checkbox" checked={selected} onChange={() => onSelect(item.id, type)} />
       </td>
@@ -80,18 +72,18 @@ function ArchiveRow({ item, type, selected, onSelect, onRestore, onDelete }) {
       <td className="px-4 py-3 align-top text-sm text-slate-300">{formatDate(item.created_at)}</td>
       <td className="px-4 py-3 align-top text-sm text-slate-300">{formatDate(item.archived_at || item.deleted_at)}</td>
       <td className="px-4 py-3 align-top text-right">
-        <div className="flex flex-wrap justify-end gap-2">
+        <div className="chairman-page flex flex-wrap justify-end gap-2">
           <button
             type="button"
             onClick={() => onRestore(type, item.id)}
-            className="rounded-full border border-emerald-400/30 bg-emerald-400/10 px-3 py-2 text-xs font-semibold text-emerald-100 hover:bg-emerald-400/20"
+          className="sa-row-action sa-row-action--restore"
           >
             Restore
           </button>
           <button
             type="button"
             onClick={() => onDelete(type, item.id)}
-            className="rounded-full border border-rose-400/30 bg-rose-400/10 px-3 py-2 text-xs font-semibold text-rose-100 hover:bg-rose-400/20"
+          className="sa-row-action sa-row-action--delete"
           >
             Delete
           </button>
@@ -308,18 +300,18 @@ function ArchiveCenterPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(20,184,166,0.22),_transparent_35%),linear-gradient(180deg,_#06111b_0%,_#081724_45%,_#09101a_100%)] text-[var(--text-main)]">
-      <div className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-6 md:px-8">
-        <section className="overflow-hidden rounded-[32px] border border-white/10 bg-white/8 p-6 shadow-2xl backdrop-blur-xl">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+    <div className="chairman-page superadmin-shell superadmin-archive">
+      <div className="chairman-page sa-container">
+        <section className="sa-hero">
+          <div className="chairman-page flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <p className="text-[11px] uppercase tracking-[0.35em] text-teal-200/80">Archive Center</p>
-              <h1 className="mt-2 text-3xl font-semibold tracking-tight md:text-4xl">Data retention and record lifecycle control</h1>
-              <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-300">
+              <p className="sa-eyebrow">Archive Center</p>
+              <h1>Data retention and record lifecycle control</h1>
+              <p>
                 Manage archived complaints and notices, restore records when needed, enforce retention rules, and keep every action in the audit trail.
               </p>
             </div>
-            <div className="flex flex-wrap gap-3">
+            <div className="chairman-page flex flex-wrap gap-3">
               <button type="button" onClick={() => loadArchiveCenter()} className="rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-semibold text-[var(--text-main)] hover:bg-white/15">
                 Refresh
               </button>
@@ -339,32 +331,33 @@ function ArchiveCenterPage() {
           ) : null}
         </section>
 
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <div className="chairman-page grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           <StatCard label="Archived complaints" value={stats?.complaints?.archived_count || 0} tone="teal" />
           <StatCard label="Deleted complaints" value={stats?.complaints?.deleted_count || 0} tone="rose" />
           <StatCard label="Archived notices" value={stats?.notices?.archived_count || 0} tone="cyan" />
           <StatCard label="Retention rules" value={stats?.retention?.total_rules || 0} tone="amber" />
         </div>
 
-        <section className="rounded-[30px] border border-white/10 theme-surface p-5 shadow-2xl backdrop-blur-xl">
-          <div className="grid gap-3 lg:grid-cols-7">
-            <input className="lg:col-span-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-[var(--text-main)] outline-none placeholder:text-slate-400" placeholder="Search title, resident, or email" value={filters.search} onChange={(e) => setFilters((current) => ({ ...current, search: e.target.value }))} />
-            <select className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-[var(--text-main)] outline-none" value={filters.status} onChange={(e) => setFilters((current) => ({ ...current, status: e.target.value }))}>
+        <section className="sa-panel sa-filter-panel">
+          <div className="chairman-page sa-panel__body">
+          <div className="chairman-page grid gap-3 lg:grid-cols-7">
+            <input className="sa-input lg:col-span-2" placeholder="Search title, resident, or email" value={filters.search} onChange={(e) => setFilters((current) => ({ ...current, search: e.target.value }))} />
+            <select className="sa-input" value={filters.status} onChange={(e) => setFilters((current) => ({ ...current, status: e.target.value }))}>
               <option value="all">All statuses</option>
               <option value="archived">Archived</option>
               <option value="deleted">Deleted</option>
             </select>
-            <input className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-[var(--text-main)] outline-none placeholder:text-slate-400" placeholder="Category" value={filters.category} onChange={(e) => setFilters((current) => ({ ...current, category: e.target.value }))} />
-            <input className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-[var(--text-main)] outline-none placeholder:text-slate-400" placeholder="Flat number" value={filters.flatNumber} onChange={(e) => setFilters((current) => ({ ...current, flatNumber: e.target.value }))} />
-            <input className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-[var(--text-main)] outline-none placeholder:text-slate-400" placeholder="Resident ID" value={filters.residentId} onChange={(e) => setFilters((current) => ({ ...current, residentId: e.target.value }))} />
-            <input className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-[var(--text-main)] outline-none" type="date" value={filters.fromDate} onChange={(e) => setFilters((current) => ({ ...current, fromDate: e.target.value }))} />
-            <input className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-[var(--text-main)] outline-none" type="date" value={filters.toDate} onChange={(e) => setFilters((current) => ({ ...current, toDate: e.target.value }))} />
+            <input className="sa-input" placeholder="Category" value={filters.category} onChange={(e) => setFilters((current) => ({ ...current, category: e.target.value }))} />
+            <input className="sa-input" placeholder="Flat number" value={filters.flatNumber} onChange={(e) => setFilters((current) => ({ ...current, flatNumber: e.target.value }))} />
+            <input className="sa-input" placeholder="Resident ID" value={filters.residentId} onChange={(e) => setFilters((current) => ({ ...current, residentId: e.target.value }))} />
+            <input className="sa-input" type="date" value={filters.fromDate} onChange={(e) => setFilters((current) => ({ ...current, fromDate: e.target.value }))} />
+            <input className="sa-input" type="date" value={filters.toDate} onChange={(e) => setFilters((current) => ({ ...current, toDate: e.target.value }))} />
           </div>
-          <div className="mt-4 flex flex-wrap gap-3">
-            <button type="button" onClick={() => loadArchiveCenter(filters)} className="rounded-full bg-teal-400 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-teal-300">
+          <div className="chairman-page mt-4 flex flex-wrap gap-3">
+            <button type="button" onClick={() => loadArchiveCenter(filters)} className="sa-primary-btn">
               Apply Filters
             </button>
-            <button type="button" onClick={() => setFilters(defaultFilters)} className="rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-[var(--text-main)] hover:bg-white/10">
+            <button type="button" onClick={() => setFilters(defaultFilters)} className="sa-secondary-btn">
               Reset
             </button>
             <button type="button" onClick={handleBulkRestore} disabled={!selectedCount || saving} className="rounded-full border border-emerald-400/30 bg-emerald-400/10 px-4 py-2 text-sm font-semibold text-emerald-100 disabled:opacity-40">
@@ -374,16 +367,18 @@ function ArchiveCenterPage() {
               Delete selected ({selectedCount})
             </button>
           </div>
+          </div>
         </section>
 
         <section className="grid gap-6 xl:grid-cols-[minmax(0,1.7fr),minmax(0,1fr)]">
-          <div className="rounded-[30px] border border-white/10 theme-surface p-5 shadow-2xl backdrop-blur-xl">
-            <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="chairman-page sa-panel">
+            <div className="chairman-page sa-panel__body">
+            <div className="chairman-page flex flex-wrap items-center justify-between gap-3">
               <div>
                 <p className="text-[11px] uppercase tracking-[0.28em] text-slate-400">Archived records</p>
                 <h2 className="mt-1 text-xl font-semibold text-[var(--text-main)]">Complaints and notices</h2>
               </div>
-              <div className="flex rounded-full border border-white/10 bg-white/5 p-1 text-sm">
+              <div className="chairman-page flex rounded-full border border-white/10 bg-white/5 p-1 text-sm">
                 <button type="button" onClick={() => setActiveTab("complaints")} className={`rounded-full px-4 py-2 ${activeTab === "complaints" ? "bg-teal-400 text-slate-950" : "text-slate-300"}`}>
                   Complaints
                 </button>
@@ -393,13 +388,13 @@ function ArchiveCenterPage() {
               </div>
             </div>
 
-            <div className="mt-5 overflow-hidden rounded-3xl border border-white/10">
+            <div className="chairman-page sa-table-wrap mt-5">
               {loading ? (
-                <div className="p-6 text-sm text-slate-300">Loading archive records...</div>
+                <div className="chairman-page p-6 text-sm text-slate-300">Loading archive records...</div>
               ) : visibleRows.length ? (
-                <div className="overflow-x-auto">
+                <div className="chairman-page overflow-x-auto">
                   <table className="min-w-full text-left text-sm">
-                    <thead className="bg-white/5 text-xs uppercase tracking-[0.2em] text-slate-400">
+                    <thead>
                       <tr>
                         <th className="px-4 py-3">Select</th>
                         <th className="px-4 py-3">Record</th>
@@ -425,21 +420,22 @@ function ArchiveCenterPage() {
                   </table>
                 </div>
               ) : (
-                <div className="p-6 text-sm text-slate-300">No archived records found for the current filter set.</div>
+                <div className="chairman-page sa-empty-state"><p>No archived records found.</p><span>Try adjusting filters or switching between complaints and notices.</span></div>
               )}
+            </div>
             </div>
           </div>
 
-          <div className="space-y-6">
+          <div className="chairman-page space-y-6">
             <section className="rounded-[30px] border border-white/10 theme-surface p-5 shadow-2xl backdrop-blur-xl">
               <div>
                 <p className="text-[11px] uppercase tracking-[0.28em] text-slate-400">Retention</p>
                 <h2 className="mt-1 text-xl font-semibold text-[var(--text-main)]">Policy controls</h2>
               </div>
-              <div className="mt-4 space-y-3">
+              <div className="chairman-page mt-4 space-y-3">
                 {retentionRules.map((rule) => (
                   <div key={rule.id} className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                    <div className="flex items-center justify-between gap-3">
+                    <div className="chairman-page flex items-center justify-between gap-3">
                       <div>
                         <p className="font-semibold text-[var(--text-main)]">{rule.resource_type}</p>
                         <p className="text-xs text-slate-400">Auto archive: {rule.auto_archive_enabled ? "enabled" : "disabled"}</p>
@@ -448,7 +444,7 @@ function ArchiveCenterPage() {
                         Edit
                       </button>
                     </div>
-                    <div className="mt-3 grid grid-cols-2 gap-3 text-sm text-slate-300">
+                    <div className="chairman-page mt-3 grid grid-cols-2 gap-3 text-sm text-slate-300">
                       <div>Retention: {rule.retention_days} days</div>
                       <div>Archive after: {rule.archive_after_days} days</div>
                       <div>Permanent delete: {rule.allow_permanent_delete ? "allowed" : "disabled"}</div>
@@ -464,11 +460,11 @@ function ArchiveCenterPage() {
                 <p className="text-[11px] uppercase tracking-[0.28em] text-slate-400">Audit trail</p>
                 <h2 className="mt-1 text-xl font-semibold text-[var(--text-main)]">Recent archive actions</h2>
               </div>
-              <div className="mt-4 space-y-3 max-h-[520px] overflow-auto pr-1">
+              <div className="chairman-page mt-4 space-y-3 max-h-[520px] overflow-auto pr-1">
                 {auditLogs.length ? (
                   auditLogs.map((log) => (
                     <div key={log.id} className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-slate-300">
-                      <div className="flex items-center justify-between gap-3">
+                      <div className="chairman-page flex items-center justify-between gap-3">
                         <p className="font-semibold text-[var(--text-main)]">{log.action} {log.resource_type}</p>
                         <p className="text-xs text-slate-400">{formatDate(log.created_at)}</p>
                       </div>
@@ -477,7 +473,7 @@ function ArchiveCenterPage() {
                     </div>
                   ))
                 ) : (
-                  <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-slate-300">No recent archive activity.</div>
+                  <div className="chairman-page rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-slate-300">No recent archive activity.</div>
                 )}
               </div>
             </section>

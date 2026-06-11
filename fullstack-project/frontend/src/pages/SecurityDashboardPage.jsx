@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { motion } from "framer-motion";
 import AlertMessage from "../components/AlertMessage";
 import { getApiMessage } from "../services/authApi";
 import {
@@ -30,11 +31,17 @@ function MetricCard({ title, value, helper, tone = "slate" }) {
   };
 
   return (
-    <article className={`surface-card app-surface rounded-3xl border p-5 ${toneMap[tone]}`}>
+    <motion.article
+      className={`security-metric-card surface-card app-surface rounded-3xl border p-5 ${toneMap[tone]}`}
+      initial={{ opacity: 0, y: 14 }}
+      animate={{ opacity: 1, y: 0 }}
+      whileHover={{ y: -4, scale: 1.01 }}
+      transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+    >
       <p className="text-xs font-semibold uppercase tracking-wide text-[rgb(var(--app-text-muted-rgb))]">{title}</p>
       <p className="mt-2 text-3xl font-bold text-[var(--text-primary)]">{value}</p>
       <p className="mt-1 text-sm text-[rgb(var(--app-text-muted-rgb))]">{helper}</p>
-    </article>
+    </motion.article>
   );
 }
 
@@ -179,11 +186,11 @@ function SecurityDashboardPage() {
   }
 
   if (loading) {
-    return <div className="text-sm text-[var(--text-secondary)]">Loading visitor dashboard...</div>;
+    return <div className="security-page text-sm text-[var(--text-secondary)]">Loading visitor dashboard...</div>;
   }
 
   return (
-    <div className="space-y-6">
+    <div className="security-page security-dashboard-page space-y-6">
       <section className="rounded-[28px] bg-[var(--hero-bg)] p-6 text-[var(--text-main)] shadow-lg">
         <p className="text-xs font-semibold uppercase tracking-[0.3em] text-emerald-200">Smart Security Dashboard</p>
         <h1 className="mt-2 text-3xl font-bold">Visitor Operations Center</h1>
@@ -194,11 +201,13 @@ function SecurityDashboardPage() {
 
       <AlertMessage type={alert.type} message={alert.message} />
 
-      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <MetricCard title="Total visits" value={summary.total_visits || 0} helper="All recorded visits" tone="blue" />
-        <MetricCard title="Today visits" value={summary.today_visits || 0} helper="Entries logged today" tone="green" />
-        <MetricCard title="Active visits" value={summary.active_visits || 0} helper="Visitors inside premises" tone="amber" />
-        <MetricCard title="Blacklist hits" value={summary.blacklist_hits || 0} helper="Blocked or flagged entries" tone="red" />
+      <section className="security-command-grid grid gap-4 sm:grid-cols-2 xl:grid-cols-6">
+        <MetricCard title="Today's Visitors" value={summary.today_visits || 0} helper="Entries logged today" tone="green" />
+        <MetricCard title="Active Visitors" value={summary.active_visits || 0} helper="Visitors inside premises" tone="amber" />
+        <MetricCard title="Pending Approvals" value={pendingApprovals.length} helper="Awaiting resident or guard action" tone="blue" />
+        <MetricCard title="Deliveries" value={dashboardDeliveries.length} helper="Courier and package movements" tone="slate" />
+        <MetricCard title="Security Alerts" value={alerts.length + Number(summary.blacklist_hits || 0)} helper="Emergency and blacklist signals" tone="red" />
+        <MetricCard title="Daily Activity Feed" value={feed.length || recentVisitors.length || history.length} helper="Live and recent gate events" tone="blue" />
       </section>
 
       <section className="grid gap-4 xl:grid-cols-2">

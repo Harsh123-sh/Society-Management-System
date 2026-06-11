@@ -63,7 +63,7 @@ function OwnerSettingsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="resident-page resident-owner-page space-y-6">
       <section className="rounded-3xl bg-gradient-to-r from-[var(--page-bg)] via-[var(--surface-soft)] to-teal-800 p-6 text-[var(--text-main)] shadow-[0_24px_60px_-30px_rgba(15,23,42,0.55)] sm:p-8">
         <div className="flex flex-wrap items-center gap-3 text-xs font-semibold uppercase tracking-[0.22em] text-[var(--text-secondary)]">
           <span>Owner Control Panel</span>

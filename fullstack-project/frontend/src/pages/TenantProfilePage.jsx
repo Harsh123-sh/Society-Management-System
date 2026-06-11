@@ -5,7 +5,7 @@ function TenantProfilePage() {
   const user = useMemo(() => getStoredUser(), []);
 
   return (
-    <div className="space-y-6">
+    <div className="resident-page resident-tenant-page space-y-6">
       <section className="rounded-2xl bg-gradient-to-r from-[var(--page-bg)] via-[var(--surface-soft)] to-violet-700 p-6 text-[var(--text-main)] shadow-lg">
         <h2 className="text-2xl font-bold">Tenant Profile</h2>
         <p className="mt-1 text-sm text-slate-200">Flat details, rent profile, documents, and quick tenant status.</p>

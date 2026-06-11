@@ -1,45 +1,72 @@
-import { Link } from "react-router-dom";
-import AnimatedBackground from "./AnimatedBackground";
 import AuthCard from "./AuthCard";
 import AuthHero from "./AuthHero";
 import ThemeToggle from "./ThemeToggle";
-import { MotionConfig } from "framer-motion";
+import { MotionConfig, motion } from "framer-motion";
 
-export const authLabelClass = "text-sm font-medium auth-label";
+export const authLabelClass = "auth-label";
 
 function AuthLayout({ title, subtitle, children }) {
   return (
-    <MotionConfig transition={{ duration: 0.45 }}>
-      <div className="app-shell app-shell--auth min-h-screen" style={{ backgroundColor: "var(--background)", color: "var(--text)" }}>
-        <div className="grid min-h-screen lg:grid-cols-[1.05fr_0.95fr]">
-          <aside className="relative overflow-hidden px-6 py-8 sm:px-10 lg:px-12 lg:py-10" style={{ background: "var(--hero-bg)", color: "var(--text)" }}>
-            <AnimatedBackground />
-            <AuthHero />
-            <div className="mt-8 hidden md:block">
-              <div className="space-y-4 rounded-[1.75rem] border p-5 shadow-[0_32px_80px_-40px_rgba(0,0,0,0.18)] backdrop-blur-lg" style={{ backgroundColor: "var(--surface)", borderColor: "var(--border)" }}>
-                <p className="text-xs font-semibold uppercase tracking-[0.24em]" style={{ color: "var(--text-muted)" }}>Designed for premium communities</p>
-                <h2 className="text-3xl font-semibold leading-tight sm:text-4xl" style={{ color: "var(--text)" }}>Secure auth with society-aware intelligence.</h2>
-                <p className="max-w-md text-sm leading-6" style={{ color: "var(--text-muted)" }}>One unified sign-in experience across login, registration, verification, and reset workflows.</p>
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <div className="rounded-2xl border p-4 text-sm" style={{ backgroundColor: "var(--surface)", borderColor: "var(--border)", color: "var(--text)" }}>Modern AI-first auth</div>
-                  <div className="rounded-2xl border p-4 text-sm" style={{ backgroundColor: "var(--surface)", borderColor: "var(--border)", color: "var(--text)" }}>Role-aware registration</div>
+    <MotionConfig transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}>
+      <div className="auth-shell">
+        <div className="auth-shell__glow auth-shell__glow--one" />
+        <div className="auth-shell__glow auth-shell__glow--two" />
+
+        <div className="auth-frame">
+          <aside className="auth-side">
+            <div className="auth-side__top">
+              <AuthHero />
+            </div>
+
+            <motion.div
+              className="auth-insight-card"
+              initial={{ opacity: 0, y: 28 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.18 }}
+            >
+              <p>Designed for premium communities</p>
+              <h2>Secure auth with society-aware intelligence.</h2>
+              <span>One unified sign-in experience across login, registration, verification, and reset workflows.</span>
+              <div className="auth-insight-card__grid">
+                <div>
+                  <strong>AI-ready</strong>
+                  <span>Contextual onboarding</span>
+                </div>
+                <div>
+                  <strong>Role-aware</strong>
+                  <span>Chairman to resident flows</span>
                 </div>
               </div>
-            </div>
+            </motion.div>
           </aside>
 
-          <main className="flex items-center justify-center px-4 py-8 sm:px-6 lg:px-10">
-            <div className="w-full max-w-md">
-              <AuthCard className="p-6 sm:p-8">
-                <div className="mb-6 flex flex-col gap-2">
-                  <div>
-                    <h2 className="text-3xl font-semibold tracking-tight" style={{ color: "var(--text)" }}>{title}</h2>
-                    <p className="mt-2 text-sm leading-6" style={{ color: "var(--text-muted)" }}>{subtitle}</p>
-                  </div>
-                </div>
-                <div className="space-y-5">{children}</div>
-              </AuthCard>
+          <main className="auth-main">
+            <div className="auth-main__toolbar">
+              <ThemeToggle />
             </div>
+
+            <motion.div
+              className="auth-card-wrap"
+              initial={{ opacity: 0, y: 26, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ delay: 0.08 }}
+            >
+              <AuthCard>
+                <div className="auth-card__heading">
+                  <span>Society Pro</span>
+                  <h2>{title}</h2>
+                  <p>{subtitle}</p>
+                </div>
+                <motion.div
+                  className="auth-card__body"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.24 }}
+                >
+                  {children}
+                </motion.div>
+              </AuthCard>
+            </motion.div>
           </main>
         </div>
       </div>

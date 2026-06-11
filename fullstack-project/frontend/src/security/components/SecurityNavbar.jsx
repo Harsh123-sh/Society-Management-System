@@ -77,12 +77,23 @@ function SecurityNavbar() {
     { id: 3, title: "Delivery Pending", message: "Courier waiting for B-205", time: "10 min ago" },
   ];
 
+  function openMobileSidebar() {
+    window.dispatchEvent(new Event("security-sidebar:open"));
+  }
+
   return (
-    <nav className="dashboard-navbar fixed left-0 right-0 top-0 z-30 border-b border-[var(--border)] bg-[var(--card-bg)] lg:pl-64">
+    <nav className="security-navbar dashboard-navbar fixed left-0 right-0 top-0 z-30 border-b border-[var(--border)] bg-[var(--card-bg)] lg:pl-64">
       <div className="flex items-center justify-between h-20 px-4 lg:px-8">
         {/* Left Section - Guard Info */}
         <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[rgb(var(--app-primary-rgb))] text-sm font-bold text-[var(--text-main)]">
+          <button
+            type="button"
+            onClick={openMobileSidebar}
+            className="security-icon-button rounded-lg border border-[var(--border)] px-3 py-2 text-sm font-semibold text-[var(--text-primary)] lg:hidden"
+          >
+            Menu
+          </button>
+          <div className="security-avatar flex h-11 w-11 items-center justify-center rounded-full bg-[rgb(var(--app-primary-rgb))] text-sm font-bold text-[var(--text-main)]">
             {profileLoading ? "..." : guardInitials}
           </div>
           <div className="hidden md:block">
@@ -98,14 +109,14 @@ function SecurityNavbar() {
         {/* Right Section - Actions */}
         <div className="flex items-center gap-4">
           {/* Shift Status */}
-          <div className="hidden items-center gap-2 rounded-lg border border-green-200 bg-green-50 px-4 py-2 lg:flex">
+          <div className="security-duty-pill hidden items-center gap-2 rounded-lg border border-green-200 bg-green-50 px-4 py-2 lg:flex">
             <span className="text-xs font-semibold text-green-700">
               {t("security.onDuty")}
             </span>
           </div>
 
           {/* QR Scanner Button */}
-            <button className="hidden items-center gap-2 rounded-lg bg-[rgb(var(--app-surface-muted-rgb))] px-3 py-2 transition-colors hover:opacity-90 sm:flex">
+            <button className="security-action-button hidden items-center gap-2 rounded-lg bg-[rgb(var(--app-surface-muted-rgb))] px-3 py-2 transition-colors hover:opacity-90 sm:flex">
             <span className="text-lg">📷</span>
               <span className="text-xs font-semibold text-[rgb(var(--app-text-rgb))]">{t("security.qrOcr")}</span>
           </button>
@@ -120,7 +131,7 @@ function SecurityNavbar() {
                 setShowNotifications(!showNotifications);
                 setShowProfile(false);
               }}
-              className="relative rounded-lg p-2 transition-colors hover:bg-[rgb(var(--app-surface-muted-rgb))]"
+              className="security-icon-button relative rounded-lg p-2 transition-colors hover:bg-[rgb(var(--app-surface-muted-rgb))]"
             >
               🔔
               <span className="absolute top-1 right-1 h-5 w-5 rounded-full bg-red-500 text-[var(--text-main)] text-xs flex items-center justify-center font-bold">
@@ -130,7 +141,7 @@ function SecurityNavbar() {
 
             {/* Notification Dropdown */}
             {showNotifications && (
-              <div className="app-surface absolute right-0 mt-2 max-h-96 w-80 space-y-3 overflow-y-auto rounded-lg p-4 shadow-lg">
+              <div className="security-dropdown app-surface absolute right-0 mt-2 max-h-96 w-80 space-y-3 overflow-y-auto rounded-lg p-4 shadow-lg">
                 {notifications.map((notif) => (
                   <div
                     key={notif.id}
@@ -151,7 +162,7 @@ function SecurityNavbar() {
 
           {/* AI Assistant */}
           <Link
-            className="rounded-lg p-2 transition-colors hover:bg-[rgb(var(--app-surface-muted-rgb))]"
+            className="security-icon-button rounded-lg p-2 transition-colors hover:bg-[rgb(var(--app-surface-muted-rgb))]"
             title={t("security.aiAssistant")}
             to="/security-dashboard/alerts"
           >
@@ -166,12 +177,12 @@ function SecurityNavbar() {
                 setShowProfile(!showProfile);
                 setShowNotifications(false);
               }}
-              className="p-2 rounded-lg transition-colors hover:bg-[rgb(var(--app-surface-muted-rgb))] text-[var(--text-primary)]"
+              className="security-icon-button p-2 rounded-lg transition-colors hover:bg-[rgb(var(--app-surface-muted-rgb))] text-[var(--text-primary)]"
             >
               👤
             </button>
             {showProfile && (
-              <div className="app-surface absolute right-0 mt-2 w-56 space-y-3 rounded-lg p-4 shadow-lg">
+              <div className="security-dropdown app-surface absolute right-0 mt-2 w-56 space-y-3 rounded-lg p-4 shadow-lg">
                 <div className="border-b border-[rgb(var(--app-border-rgb))] pb-3 text-center">
                   <p className="font-bold text-[rgb(var(--app-text-rgb))]">
                     {guardName}

@@ -65,7 +65,7 @@ function NoticesPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="chairman-page space-y-6">
       <div>
         <h2 className="text-xl font-bold text-slate-900">Notice Board</h2>
         <p className="text-sm text-slate-600">
@@ -111,17 +111,17 @@ function NoticesPage() {
         <h3 className="text-base font-semibold text-slate-900">Latest Notices</h3>
 
         {loading ? (
-          <div className="rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-600 shadow-sm">
+          <div className="chairman-page rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-600 shadow-sm">
             Loading notices...
           </div>
         ) : notices.length ? (
-          <div className="space-y-3">
+          <div className="chairman-page space-y-3">
             {notices.map((notice) => (
               <article
                 key={notice.id}
                 className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
               >
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                <div className="chairman-page flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                   <div>
                     <h4 className="text-base font-semibold text-slate-900">{notice.title}</h4>
                     <p className="mt-2 whitespace-pre-wrap text-sm text-slate-700">
@@ -139,7 +139,7 @@ function NoticesPage() {
             ))}
           </div>
         ) : (
-          <div className="rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-600 shadow-sm">
+          <div className="chairman-page rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-600 shadow-sm">
             No notices available.
           </div>
         )}

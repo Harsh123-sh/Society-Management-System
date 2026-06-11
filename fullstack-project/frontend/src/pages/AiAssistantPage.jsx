@@ -257,7 +257,7 @@ function AiAssistantPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="chairman-page space-y-6">
       <section className="rounded-2xl bg-gradient-to-r from-[var(--page-bg)] via-[var(--surface-soft)] to-cyan-800 p-6 text-[var(--text-main)] shadow-lg">
         <h2 className="text-2xl font-bold">AI Control Center</h2>
         <p className="mt-2 max-w-3xl text-sm text-slate-100">
@@ -276,43 +276,43 @@ function AiAssistantPage() {
           className="mt-3 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none"
           placeholder="Ask anything about society management"
         />
-        <div className="mt-3 flex flex-wrap gap-2">
+        <div className="chairman-page mt-3 flex flex-wrap gap-2">
           <button type="button" onClick={handleAskAssistant} disabled={loading || !assistantPrompt.trim()} className="rounded-lg theme-surface px-4 py-2 text-sm font-semibold text-[var(--text-main)] disabled:opacity-60">Ask AI</button>
           <button type="button" onClick={isListening ? stopVoiceInput : startVoiceInput} className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700">{isListening ? "Stop Voice" : "Voice Input"}</button>
           <button type="button" onClick={speakAssistantReply} disabled={!assistantReply} className="rounded-lg border border-indigo-300 bg-indigo-50 px-4 py-2 text-sm font-semibold text-indigo-700 disabled:opacity-60">Speak Reply</button>
         </div>
-        <div className="mt-3 rounded-lg bg-slate-50 p-3 text-sm text-slate-700">{assistantReply || "AI reply will appear here."}</div>
+        <div className="chairman-page mt-3 rounded-lg bg-slate-50 p-3 text-sm text-slate-700">{assistantReply || "AI reply will appear here."}</div>
       </section>
 
       <section className="grid gap-4 xl:grid-cols-2">
-        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="chairman-page rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
           <h3 className="text-base font-semibold text-slate-900">AI Notices and Complaints</h3>
           <input value={noticeTopic} onChange={(event) => setNoticeTopic(event.target.value)} className="mt-3 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" placeholder="Notice topic" />
           <textarea value={noticeDetail} onChange={(event) => setNoticeDetail(event.target.value)} rows={2} className="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" placeholder="Notice detail" />
           <input value={noticeAudience} onChange={(event) => setNoticeAudience(event.target.value)} className="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" placeholder="Audience" />
           <button type="button" onClick={handleGenerateNotice} disabled={loading} className="mt-2 rounded-lg bg-indigo-700 px-4 py-2 text-sm font-semibold text-[var(--text-main)] disabled:opacity-60">Generate Notice</button>
-          <div className="mt-2 rounded-lg bg-slate-50 p-3 text-sm text-slate-700">{noticeOutput || "Notice output"}</div>
+          <div className="chairman-page mt-2 rounded-lg bg-slate-50 p-3 text-sm text-slate-700">{noticeOutput || "Notice output"}</div>
 
           <textarea value={complaintPrompt} onChange={(event) => setComplaintPrompt(event.target.value)} rows={2} className="mt-3 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" placeholder="Complaint prompt" />
           <button type="button" onClick={handleGenerateComplaint} disabled={loading} className="mt-2 rounded-lg border border-rose-300 bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-700 disabled:opacity-60">Generate Complaint</button>
-          <div className="mt-2 rounded-lg bg-slate-50 p-3 text-sm text-slate-700">{complaintOutput || "Complaint output"}</div>
+          <div className="chairman-page mt-2 rounded-lg bg-slate-50 p-3 text-sm text-slate-700">{complaintOutput || "Complaint output"}</div>
         </div>
 
-        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="chairman-page rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
           <h3 className="text-base font-semibold text-slate-900">AI Translation and Report Summaries</h3>
           <textarea value={translateText} onChange={(event) => setTranslateText(event.target.value)} rows={2} className="mt-3 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" placeholder="Text to translate" />
           <input value={targetLanguage} onChange={(event) => setTargetLanguage(event.target.value)} className="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" placeholder="Target language code" />
           <button type="button" onClick={handleTranslate} disabled={loading} className="mt-2 rounded-lg bg-cyan-700 px-4 py-2 text-sm font-semibold text-[var(--text-main)] disabled:opacity-60">Translate</button>
-          <div className="mt-2 rounded-lg bg-slate-50 p-3 text-sm text-slate-700">{translatedText || "Translation output"}</div>
+          <div className="chairman-page mt-2 rounded-lg bg-slate-50 p-3 text-sm text-slate-700">{translatedText || "Translation output"}</div>
 
           <textarea value={summaryInput} onChange={(event) => setSummaryInput(event.target.value)} rows={3} className="mt-3 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" placeholder="Report text for summarization" />
           <button type="button" onClick={handleSummarize} disabled={loading} className="mt-2 rounded-lg bg-emerald-700 px-4 py-2 text-sm font-semibold text-[var(--text-main)] disabled:opacity-60">Summarize Report</button>
-          <div className="mt-2 rounded-lg bg-slate-50 p-3 text-sm text-slate-700">{summaryOutput || "Summary output"}</div>
+          <div className="chairman-page mt-2 rounded-lg bg-slate-50 p-3 text-sm text-slate-700">{summaryOutput || "Summary output"}</div>
         </div>
       </section>
 
       <section className="grid gap-4 xl:grid-cols-2">
-        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="chairman-page rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
           <h3 className="text-base font-semibold text-slate-900">AI Smart Search and Analytics</h3>
           <input value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} className="mt-3 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" placeholder="Search knowledge base" />
           <button type="button" onClick={handleSearch} disabled={loading} className="mt-2 rounded-lg theme-surface px-4 py-2 text-sm font-semibold text-[var(--text-main)] disabled:opacity-60">Search</button>
@@ -330,9 +330,9 @@ function AiAssistantPage() {
           ) : null}
         </div>
 
-        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="chairman-page rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
           <h3 className="text-base font-semibold text-slate-900">OCR AI, Speech-to-Text, and Workflow Automation</h3>
-          <div className="mt-3 flex flex-wrap gap-2">
+          <div className="chairman-page mt-3 flex flex-wrap gap-2">
             <label className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 cursor-pointer">
               Upload Image for OCR
               <input type="file" accept="image/*" className="hidden" onChange={handleOcrUpload} />
@@ -342,8 +342,8 @@ function AiAssistantPage() {
               <input type="file" accept="audio/*" className="hidden" onChange={handleAudioUpload} />
             </label>
           </div>
-          <div className="mt-2 rounded-lg bg-slate-50 p-3 text-sm text-slate-700">OCR: {ocrOutput || "No OCR result"}</div>
-          <div className="mt-2 rounded-lg bg-slate-50 p-3 text-sm text-slate-700">STT: {sttOutput || "No speech-to-text result"}</div>
+          <div className="chairman-page mt-2 rounded-lg bg-slate-50 p-3 text-sm text-slate-700">OCR: {ocrOutput || "No OCR result"}</div>
+          <div className="chairman-page mt-2 rounded-lg bg-slate-50 p-3 text-sm text-slate-700">STT: {sttOutput || "No speech-to-text result"}</div>
 
           <select value={workflowAction} onChange={(event) => setWorkflowAction(event.target.value)} className="mt-3 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm">
             <option value="create_notice">create_notice</option>

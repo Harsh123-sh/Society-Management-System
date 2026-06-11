@@ -2,7 +2,7 @@ import AuthInput from "./AuthInput";
 
 export default function SocietyCodeInput({ value, onChange, label = "Society code", helperText, societyName, status }) {
   return (
-    <div className="space-y-1">
+    <div className="auth-society-code-wrap">
       <AuthInput
         id="society-code"
         name="societyCode"
@@ -12,11 +12,11 @@ export default function SocietyCodeInput({ value, onChange, label = "Society cod
         placeholder="e.g. GREEN-VALLEY"
         className="auth-society-code"
       />
-      {helperText ? <p className="text-xs text-[var(--text-secondary)]">{helperText}</p> : null}
+      {helperText ? <p className="auth-helper-text">{helperText}</p> : null}
       {societyName ? (
-        <div className="rounded-3xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-[var(--text-secondary)]">
-          <p className="font-semibold text-[var(--text-main)]">{societyName}</p>
-          <p className="mt-1 text-xs text-[var(--text-secondary)]">{status || "Verified society identity"}</p>
+        <div className="auth-society-card">
+          <p>{societyName}</p>
+          <span>{status || "Verified society identity"}</span>
         </div>
       ) : null}
     </div>

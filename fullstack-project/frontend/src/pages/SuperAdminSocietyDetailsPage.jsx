@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { motion } from "framer-motion";
 import { fetchSuperAdminSocietyDetails, getApiMessage } from "../services/authApi";
 
 function formatDate(value) {
@@ -15,19 +16,19 @@ function formatDate(value) {
 
 function Metric({ label, value, helper }) {
   return (
-    <div className="rounded-[22px] border border-white/10 bg-white/5 p-5 shadow-lg shadow-slate-950/20 backdrop-blur-xl">
-      <p className="text-xs uppercase tracking-[0.22em] text-slate-500">{label}</p>
-      <p className="mt-3 text-3xl font-semibold text-[var(--text-main)]">{value}</p>
-      {helper ? <p className="mt-2 text-sm text-slate-400">{helper}</p> : null}
-    </div>
+    <motion.div className="sa-stat-card" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} whileHover={{ y: -6 }}>
+      <p>{label}</p>
+      <strong>{value}</strong>
+      {helper ? <span>{helper}</span> : null}
+    </motion.div>
   );
 }
 
 function SocietyStat({ label, value }) {
   return (
-    <div className="rounded-2xl border border-white/10 theme-surface px-4 py-3">
-      <p className="text-xs uppercase tracking-[0.2em] text-slate-500">{label}</p>
-      <p className="mt-2 text-lg font-semibold text-[var(--text-main)]">{value}</p>
+    <div className="sa-mini-card">
+      <p>{label}</p>
+      <strong>{value}</strong>
     </div>
   );
 }
@@ -98,14 +99,14 @@ export default function SuperAdminSocietyDetailsPage() {
   const subscription = payload?.subscription || null;
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.16),transparent_30%),radial-gradient(circle_at_top_right,rgba(168,85,247,0.14),transparent_24%),linear-gradient(180deg,#020617_0%,#07111f_48%,#020617_100%)] px-4 py-6 text-slate-100 sm:px-6 lg:px-8">
-      <div className="mx-auto flex w-full max-w-[1400px] flex-col gap-6">
-        <header className="rounded-[32px] border border-white/10 bg-[linear-gradient(135deg,rgba(2,6,23,0.95),rgba(15,23,42,0.82))] p-6 shadow-2xl shadow-slate-950/30 backdrop-blur-xl sm:p-8">
+    <div className="superadmin-shell superadmin-details">
+      <div className="sa-container">
+        <header className="sa-hero">
           <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.35em] text-cyan-300/80">Society details</p>
-              <h1 className="mt-3 text-4xl font-semibold tracking-tight text-[var(--text-main)] sm:text-5xl">{society?.name || "Society details"}</h1>
-              <p className="mt-4 max-w-3xl text-sm leading-7 text-slate-300 sm:text-base">
+              <p className="sa-eyebrow">Society details</p>
+              <h1>{society?.name || "Society details"}</h1>
+              <p>
                 Review the full society profile, status, counts, payments, complaints, visitors, flats, and analytics from the shared MySQL source.
               </p>
               <div className="mt-5 flex flex-wrap gap-2">
@@ -146,8 +147,32 @@ export default function SuperAdminSocietyDetailsPage() {
               <Metric label="Complaints" value={counts.totalComplaints ?? 0} helper="Complaint records across the society" />
             </section>
 
+            <section className="sa-panel">
+              <div className="sa-panel__header">
+                <div>
+                  <p className="sa-eyebrow">Society health</p>
+                  <h2>Health indicators and management actions</h2>
+                  <p>Fast operational readout for occupancy, approvals, security, billing, and complaint pressure.</p>
+                </div>
+              </div>
+              <div className="sa-panel__body">
+                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                  <SocietyStat label="Occupancy health" value={`${counts.occupiedFlats ?? 0}/${counts.totalFlats ?? 0} flats`} />
+                  <SocietyStat label="Complaint pressure" value={`${counts.pendingComplaints ?? 0} pending`} />
+                  <SocietyStat label="Security readiness" value={`${counts.activeSecurityStaff ?? 0} active staff`} />
+                  <SocietyStat label="Billing activity" value={`${counts.totalPayments ?? 0} payments`} />
+                </div>
+                <div className="mt-5 flex flex-wrap gap-3">
+                  <button type="button" onClick={() => navigate("/super-admin/dashboard")} className="sa-secondary-btn">Open society management</button>
+                  <button type="button" onClick={() => window.print()} className="sa-secondary-btn">Export profile</button>
+                  <button type="button" onClick={() => window.location.reload()} className="sa-primary-btn">Refresh health</button>
+                </div>
+              </div>
+            </section>
+
             <section className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
-              <div className="rounded-[28px] border border-white/10 bg-white/5 p-6 shadow-lg shadow-slate-950/20 backdrop-blur-xl">
+              <div className="sa-panel">
+                <div className="sa-panel__body">
                 <div className="flex flex-wrap items-center justify-between gap-4">
                   <div>
                     <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Society profile</p>
@@ -166,9 +191,11 @@ export default function SuperAdminSocietyDetailsPage() {
                   <SocietyStat label="Contact email" value={society.contact_email || "-"} />
                   <SocietyStat label="Contact phone" value={society.contact_phone || "-"} />
                 </div>
+                </div>
               </div>
 
-              <div className="rounded-[28px] border border-white/10 bg-white/5 p-6 shadow-lg shadow-slate-950/20 backdrop-blur-xl">
+              <div className="sa-panel">
+                <div className="sa-panel__body">
                 <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Operations</p>
                 <h2 className="mt-2 text-2xl font-semibold text-[var(--text-main)]">Live society metrics</h2>
                 <div className="mt-6 grid gap-4 sm:grid-cols-2">
@@ -180,6 +207,7 @@ export default function SuperAdminSocietyDetailsPage() {
                   <SocietyStat label="Occupied flats" value={counts.occupiedFlats ?? 0} />
                   <SocietyStat label="Vacant flats" value={counts.vacantFlats ?? 0} />
                   <SocietyStat label="Pending complaints" value={counts.pendingComplaints ?? 0} />
+                </div>
                 </div>
               </div>
             </section>

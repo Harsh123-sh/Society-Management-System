@@ -54,10 +54,10 @@ function SecretaryHomePage() {
   const societyName = society?.name || currentUser?.society_name || localStorage.getItem("societyName") || "Linked society";
   const societyCode = society?.code || currentUser?.society_code || localStorage.getItem("societyId") || "";
 
-  if (loading) return <div className="text-sm text-[rgb(var(--app-text-muted-rgb))]">Loading...</div>;
+  if (loading) return <div className="secretary-page text-sm text-[rgb(var(--app-text-muted-rgb))]">Loading...</div>;
 
   return (
-    <div className="space-y-6">
+    <div className="secretary-page space-y-6">
       <section className="surface-card app-surface rounded-[28px] p-6">
         <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[rgb(var(--app-text-muted-rgb))]">Society operations console</p>
         <h2 className="mt-2 text-3xl font-bold text-[rgb(var(--app-text-rgb))]">{currentUser?.name || `${roleLabel} profile`}</h2>
@@ -92,7 +92,7 @@ function SecretaryHomePage() {
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
+      <section className="secretary-ops-grid grid gap-4 md:grid-cols-3">
         <div className="surface-card app-surface p-4">
           <p className="text-sm text-[rgb(var(--app-text-muted-rgb))]">Users Managed</p>
           <p className="text-2xl font-bold text-[rgb(var(--app-text-rgb))]">{stats.users}</p>
@@ -105,7 +105,7 @@ function SecretaryHomePage() {
           <p className="text-sm text-[rgb(var(--app-text-muted-rgb))]">Pending Complaints</p>
           <p className="text-2xl font-bold text-[rgb(var(--app-text-rgb))]">{stats.pendingComplaints}</p>
         </div>
-      </div>
+      </section>
 
       <div className="flex flex-wrap gap-2">
         <Link className="rounded-xl bg-[rgb(var(--app-primary-rgb))] px-3 py-2 text-sm font-semibold text-[var(--text-main)] transition-all hover:opacity-90" to="/secretary/users">
@@ -122,4 +122,4 @@ function SecretaryHomePage() {
   );
 }
 
-export { default } from "./ChairmanSecretaryDashboardPage";
+export default SecretaryHomePage;

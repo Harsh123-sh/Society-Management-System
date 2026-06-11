@@ -83,7 +83,7 @@ function DocumentsPage() {
   }
 
   return (
-    <div className="space-y-5">
+    <div className="chairman-page space-y-5">
       <h2 className="text-2xl font-bold text-slate-900">Documents</h2>
       <AlertMessage type={alert.type} message={alert.message} />
 
@@ -127,7 +127,7 @@ function DocumentsPage() {
         {loading ? (
           <p className="text-sm text-slate-600">Loading...</p>
         ) : documents.length ? (
-          <div className="overflow-x-auto">
+          <div className="chairman-page overflow-x-auto">
             <table className="min-w-full text-left text-sm">
               <thead className="bg-slate-50 text-slate-600">
                 <tr>
@@ -156,7 +156,7 @@ function DocumentsPage() {
                     </td>
                     {isAdminPanel ? (
                       <td className="px-3 py-2">
-                        <div className="flex gap-2">
+                        <div className="chairman-page flex gap-2">
                           <button
                             type="button"
                             onClick={() => handleReview(doc.id, "approved")}

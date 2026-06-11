@@ -24,16 +24,11 @@ export default function FloatingInput({
   const inputType = isPassword && show ? "text" : type;
 
   return (
-    <div className={`relative ${className}`}>
+    <div className={`auth-field relative ${className}`}>
       <motion.input
         initial={false}
-        animate={focused || value ? { boxShadow: "0 10px 38px rgba(6,182,212,0.14)" } : { boxShadow: "none" }}
-        className={`block w-full rounded-2xl border px-4 py-3 text-sm backdrop-blur transition focus:outline-none ${error ? "border-rose-400/70" : ""}`}
-        style={{
-          backgroundColor: "var(--input-bg)",
-          borderColor: error ? "rgba(244,63,94,0.7)" : "var(--input-border)",
-          color: "var(--text)",
-        }}
+        animate={focused || value ? { boxShadow: "0 18px 45px rgba(20, 184, 166, 0.14)" } : { boxShadow: "0 10px 28px rgba(15, 23, 42, 0.04)" }}
+        className={`auth-input block w-full ${error ? "auth-input--error" : ""}`}
         type={inputType}
         value={value}
         onChange={(e) => onChange && onChange(e.target.value)}
@@ -48,8 +43,7 @@ export default function FloatingInput({
       />
 
       <label
-        className={`pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 transform origin-left text-sm transition-all ${focused || value ? "-translate-y-8 scale-90" : ""}`}
-        style={{ color: focused || value ? "var(--text-muted)" : "var(--input-placeholder)" }}
+        className={`auth-floating-label ${focused || value ? "is-raised" : ""}`}
       >
         {label}
       </label>
@@ -58,8 +52,7 @@ export default function FloatingInput({
         <button
           type="button"
           onClick={() => setShow((s) => !s)}
-          className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1"
-          style={{ color: "var(--text-muted)" }}
+          className="auth-password-toggle"
           aria-label={show ? "Hide password" : "Show password"}
         >
           {show ? (

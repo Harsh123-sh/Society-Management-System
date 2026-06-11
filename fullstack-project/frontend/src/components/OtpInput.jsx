@@ -34,7 +34,7 @@ function OtpInput({ value, onChange, length = 6, disabled = false, autoFocus = f
   }
 
   return (
-    <div className="flex flex-wrap gap-2 sm:gap-3">
+    <div className="auth-otp">
       {digits.map((digit, index) => (
         <input
           key={index}
@@ -48,7 +48,7 @@ function OtpInput({ value, onChange, length = 6, disabled = false, autoFocus = f
           disabled={disabled}
           onChange={(event) => updateAtIndex(index, event.target.value)}
           onKeyDown={(event) => handleKeyDown(event, index)}
-          className="auth-input h-14 w-12 rounded-2xl px-0 text-center text-lg font-semibold tracking-[0.2em] sm:h-16 sm:w-14"
+          className="auth-otp__input"
           aria-label={`OTP digit ${index + 1}`}
         />
       ))}

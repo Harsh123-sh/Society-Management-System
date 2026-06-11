@@ -71,7 +71,7 @@ function StatCard({ label, value, helper, tone = "slate" }) {
   }[tone];
 
   return (
-    <article className={`rounded-xl border ${toneClass} bg-white p-4 shadow-sm`}>
+    <article className={`security-metric-card rounded-xl border ${toneClass} bg-white p-4 shadow-sm`}>
       <p className="text-sm text-slate-500">{label}</p>
       <p className="mt-2 text-2xl font-bold text-slate-900">{value}</p>
       <p className="mt-1 text-xs text-slate-500">{helper}</p>
@@ -370,7 +370,7 @@ function useVisitorHub() {
 
 function VisitorEntryForm({ hub }) {
   return (
-    <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+    <section className="security-operation-panel rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
       <h3 className="text-base font-semibold text-slate-900">Visitor Entry System</h3>
       <form className="mt-4 grid gap-3 md:grid-cols-3" onSubmit={hub.checkInVisitor}>
         <input
@@ -455,7 +455,7 @@ function VisitorEntryForm({ hub }) {
 
 function VisitorLogTable({ hub }) {
   return (
-    <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+    <section className="security-operation-panel rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
       <div className="mb-3 grid gap-3 md:grid-cols-[1fr_160px_140px]">
         <input
           type="text"
@@ -563,7 +563,7 @@ function SecurityDashboard() {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="security-page security-hub-page space-y-6">
       <section className="rounded-2xl bg-gradient-to-r from-[var(--page-bg)] via-[var(--surface-soft)] to-red-700 p-6 text-[var(--text-main)] shadow-lg">
         <SectionHeader
           title="Security Dashboard"
@@ -636,7 +636,7 @@ function VisitorsPage() {
   const hub = useVisitorHub();
 
   return (
-    <div className="space-y-6">
+    <div className="security-page security-hub-page space-y-6">
       <SectionHeader
         title="Visitor Management"
         subtitle="Check-in, check-out, photo capture, ID details, and status filtering"
@@ -653,7 +653,7 @@ function PreApprovedPage() {
   const hub = useVisitorHub();
 
   return (
-    <div className="space-y-6">
+    <div className="security-page security-hub-page space-y-6">
       <SectionHeader
         title="Pre-Approved Visitors"
         subtitle="Resident-created pre-approvals — verify via OTP/QR, then check-in at the gate"
@@ -726,7 +726,7 @@ function DeliveriesPage() {
   const hub = useVisitorHub();
 
   return (
-    <div className="space-y-6">
+    <div className="security-page security-hub-page space-y-6">
       <SectionHeader
         title="Delivery Management"
         subtitle="Courier and food delivery entries, pending tracking, and resident contact actions"
@@ -776,7 +776,7 @@ function VehiclesPage() {
   const hub = useVisitorHub();
 
   return (
-    <div className="space-y-6">
+    <div className="security-page security-hub-page space-y-6">
       <SectionHeader
         title="Vehicle Tracking"
         subtitle="Visitor vehicle numbers, resident vehicles database, and parking logs"
@@ -823,7 +823,7 @@ function VehiclesPage() {
 
 function GatePassPage() {
   return (
-    <div className="space-y-6">
+    <div className="security-page security-hub-page space-y-6">
       <SectionHeader
         title="Gate Pass System"
         subtitle="Temporary, worker, daily, and weekly pass issuance with validation"
@@ -864,7 +864,7 @@ function GatePassPage() {
 
 function StaffEntryPage() {
   return (
-    <div className="space-y-6">
+    <div className="security-page security-hub-page space-y-6">
       <SectionHeader
         title="Staff & Worker Entry"
         subtitle="Maid, driver, electrician and other worker attendance tracking"
@@ -908,7 +908,7 @@ function AlertsPage() {
   const hub = useVisitorHub();
 
   return (
-    <div className="space-y-6">
+    <div className="security-page security-hub-page space-y-6">
       <SectionHeader
         title="Alert & Emergency System"
         subtitle="Panic button, fire alerts, unauthorized entry alerts, and AI suspicious monitoring"
@@ -946,7 +946,7 @@ function AlertsPage() {
 
 function ReportsPage() {
   return (
-    <div className="space-y-6">
+    <div className="security-page security-hub-page space-y-6">
       <SectionHeader
         title="Logs & History Reports"
         subtitle="Visitor logs, entry and exit history, with date and flat filters"

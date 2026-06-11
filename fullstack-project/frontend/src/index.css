@@ -6,78 +6,100 @@
 
 /* ==========================================
    GLOBAL THEME SYSTEM - LIGHT MODE (DEFAULT)
+   Apple + Linear + Stripe Inspired Premium SaaS
    ========================================== */
 :root {
-  --app-bg: #f8fafc;
-  --page-bg: #f8fafc;
-  --surface: #ffffff;
-  --surface-soft: #f1f5f9;
-  --card-bg: #ffffff;
-  --hero-bg: linear-gradient(135deg, #ffffff, #f1f5f9);
-  --sidebar-bg: #f8fafc;
-  --navbar-bg: #ffffff;
-  --text-main: #0f172a;
-  --text-secondary: #334155;
-  --text-muted: #64748b;
-  --border: #e2e8f0;
-  --input-bg: #ffffff;
-  --input-text: #0f172a;
-  --modal-bg: #ffffff;
-  --table-bg: #ffffff;
-  --table-header-bg: #f1f5f9;
-  --button-primary-bg: #06b6d4;
+  /* ========== LIGHT MODE COLORS ========== */
+  
+  /* Backgrounds */
+  --background: #F5F7FA;
+  --surface: #FFFFFF;
+  --surface-secondary: #F9FAFB;
+  --surface-tertiary: #F3F4F6;
+  
+  /* Borders */
+  --border: #E5E7EB;
+  --border-light: #F3F4F6;
+  
+  /* Text Colors */
+  --text: #111827;
+  --text-secondary: #6B7280;
+  --text-tertiary: #9CA3AF;
+  --text-disabled: #D1D5DB;
+  --text-muted: var(--text-secondary);
+  
+  /* Semantic Colors */
+  --primary: #007AFF;
+  --primary-light: #0A84FF;
+  --primary-dark: #0051D5;
+  
+  --secondary: #5E5CE6;
+  --accent: #007AFF;
+  --success: #30D158;
+  --warning: #FF9F0A;
+  --danger: #FF453A;
+  --error: #FF453A;
+  --info: #00C7FF;
+  
+  /* Interactive States */
+  --hover-bg: rgba(0, 0, 0, 0.04);
+  --active-bg: rgba(0, 0, 0, 0.08);
+  --selected-bg: rgba(0, 122, 255, 0.1);
+  
+  /* Shadows */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.10);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.12);
+  --shadow-xl: 0 20px 48px rgba(0, 0, 0, 0.15);
+  --shadow-elevated: 0 30px 60px rgba(0, 0, 0, 0.20);
+  --shadow-glow: 0 0 24px rgba(0, 122, 255, 0.15);
+  
+  /* Glass Effect Variables */
+  --glass-bg: rgba(255, 255, 255, 0.80);
+  --glass-border: 1px solid rgba(255, 255, 255, 0.60);
+  --glass-blur: blur(12px);
+  
+  /* Legacy Compatibility */
+  --app-bg: var(--background);
+  --page-bg: var(--background);
+  --card-bg: var(--surface);
+  --sidebar-bg: var(--surface);
+  --navbar-bg: var(--surface);
+  --input-bg: var(--surface);
+  --input-text: var(--text);
+  --modal-bg: var(--surface);
+  --table-bg: var(--surface);
+  --table-header-bg: var(--surface-tertiary);
+  --button-primary-bg: var(--primary);
   --button-primary-text: #ffffff;
-  --shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
-
-  /* PRIMARY THEME PALETTE - LIGHT */
-  --background: var(--app-bg);
-  --surface-muted: var(--surface-soft);
-  --surface-subtle: var(--page-bg);
-  --card: var(--card-bg);
-  --card-elevated: var(--card-bg);
-  --sidebar-card: var(--surface-soft);
   
-  /* TEXT & SEMANTIC */
-  --text: var(--text-main);
-  --text-primary: var(--text-main);
-  --text-subtle: var(--text-muted);
-  --text-disabled: #94A3B8;
+  /* Typography */
+  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   
-  /* INTERACTIVE */
-  --border-subtle: #CBD5E1;
-  --border-dark: #94A3B8;
-  --input-border: var(--border);
-  --input-placeholder: #94A3B8;
-  --button-hover: rgba(15, 23, 42, 0.08);
-  --button-active: rgba(15, 23, 42, 0.12);
+  /* Border Radius */
+  --radius-xs: 8px;
+  --radius-sm: 12px;
+  --radius-md: 14px;
+  --radius-lg: 18px;
+  --radius-xl: 24px;
+  --radius-2xl: 28px;
   
-  /* SHADOWS */
-  --shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.04);
-  --shadow-md: 0 4px 16px rgba(15, 23, 42, 0.06);
-  --shadow-lg: 0 10px 32px rgba(15, 23, 42, 0.08);
-  --shadow-elevated: 0 20px 60px rgba(15, 23, 42, 0.12);
+  /* Spacing */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 12px;
+  --space-lg: 16px;
+  --space-xl: 24px;
+  --space-2xl: 32px;
+  --space-3xl: 40px;
   
-  /* COLORS */
-  --primary: #06B6D4;
-  --primary-dark: #0891B2;
-  --secondary: #4F46E5;
-  --accent: #10B981;
-  --success: #16A34A;
-  --warning: #D97706;
-  --error: #DC2626;
-  --danger: #DC2626;
-  --info: #0EA5E9;
-
-  /* LEGACY COMPATIBILITY */
-  --bg-background: #f8fafc;
-  --bg-surface: #ffffff;
-  --bg-main: var(--background);
-  --bg-card: var(--card);
-  --bg-sidebar: var(--sidebar-bg);
-  --bg-header: var(--navbar-bg);
-  --border-color: var(--border);
-  --border-soft: rgba(15, 23, 42, 0.08);
-  --button-bg: var(--surface);
+  /* Animation */
+  --duration-fast: 150ms;
+  --duration-normal: 300ms;
+  --duration-slow: 500ms;
+  --easing-out: cubic-bezier(0, 0, 0.2, 1);
+  --easing-inOut: cubic-bezier(0.4, 0, 0.2, 1);
   --button-text: var(--text);
   --surface-strong: rgba(255, 255, 255, 0.9);
   --border-default: rgba(15, 23, 42, 0.08);
@@ -96,93 +118,77 @@
 }
 
 /* ==========================================
-   DARK MODE THEME
+   DARK MODE THEME - Premium SaaS
+   Apple + Linear + Stripe Inspired
    ========================================== */
 [data-theme="dark"],
 :root.dark {
-  --app-bg: #020617;
-  --page-bg: #020617;
-  --surface: #0f172a;
-  --surface-soft: #1e293b;
-  --card-bg: #111827;
-  --hero-bg: linear-gradient(135deg, #020617, #0f766e);
-  --sidebar-bg: #020617;
-  --navbar-bg: #0f172a;
-  --text-main: #f8fafc;
-  --text-secondary: #cbd5e1;
-  --text-muted: #94a3b8;
-  --border: #334155;
-  --input-bg: #1e293b;
-  --input-text: #f8fafc;
-  --modal-bg: #0f172a;
-  --table-bg: #0f172a;
-  --table-header-bg: #1e293b;
-  --button-primary-bg: #06b6d4;
-  --button-primary-text: #ffffff;
-  --shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
-
-  /* PRIMARY THEME PALETTE - DARK */
-  --background: var(--app-bg);
-  --surface-muted: var(--surface-soft);
-  --surface-subtle: var(--page-bg);
-  --card: var(--card-bg);
-  --card-elevated: var(--surface-soft);
-  --sidebar-card: var(--surface-soft);
+  /* Backgrounds */
+  --background: #0A0A0A;
+  --surface: #111111;
+  --surface-secondary: #1A1A1A;
+  --surface-tertiary: #242424;
   
-  /* TEXT & SEMANTIC */
-  --text: var(--text-main);
-  --text-primary: var(--text-main);
-  --text-subtle: var(--text-muted);
-  --text-disabled: #64748B;
+  /* Borders */
+  --border: #2D2D2D;
+  --border-light: #3D3D3D;
   
-  /* INTERACTIVE */
-  --border: #334155;
-  --border-subtle: #475569;
-  --border-dark: #0F172A;
-  --input-bg: #0F172A;
-  --input-border: #334155;
-  --input-placeholder: #64748B;
-  --button-hover: rgba(255, 255, 255, 0.08);
-  --button-active: rgba(255, 255, 255, 0.12);
+  /* Text Colors */
+  --text: #FFFFFF;
+  --text-secondary: #ABABAB;
+  --text-tertiary: #808080;
+  --text-disabled: #4A4A4A;
+  --text-muted: var(--text-secondary);
   
-  /* SHADOWS */
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
-  --shadow-lg: 0 10px 32px rgba(0, 0, 0, 0.5);
-  --shadow-elevated: 0 20px 60px rgba(0, 0, 0, 0.6);
+  /* Semantic Colors */
+  --primary: #0A84FF;
+  --primary-light: #40B0FF;
+  --primary-dark: #0051D5;
   
-  /* COLORS */
-  --primary: #06B6D4;
-  --primary-dark: #0891B2;
-  --secondary: #818CF8;
-  --accent: #34D399;
-  --success: #34D399;
-  --warning: #FBBF24;
-  --error: #FB7185;
-  --danger: #FB7185;
-  --info: #06B6D4;
-
-  /* LEGACY COMPATIBILITY */
-  --bg-background: #020617;
-  --bg-surface: #1E293B;
-  --bg-main: var(--background);
-  --bg-card: var(--card);
-  --bg-sidebar: var(--sidebar-bg);
-  --bg-header: var(--navbar-bg);
-  --border-color: var(--border);
-  --button-bg: var(--surface);
+  --secondary: #7C7CFF;
+  --accent: #0A84FF;
+  --success: #34C759;
+  --warning: #FFB800;
+  --danger: #FF453A;
+  --error: #FF453A;
+  --info: #00D9FF;
+  
+  /* Interactive States */
+  --hover-bg: rgba(255, 255, 255, 0.08);
+  --active-bg: rgba(255, 255, 255, 0.12);
+  --selected-bg: rgba(10, 132, 255, 0.15);
+  
+  /* Shadows */
+  --shadow-xs: 0 1px 3px rgba(0, 0, 0, 0.30);
+  --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.40);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.50);
+  --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.60);
+  --shadow-xl: 0 20px 60px rgba(0, 0, 0, 0.70);
+  --shadow-elevated: 0 30px 80px rgba(0, 0, 0, 0.80);
+  --shadow-glow: 0 0 24px rgba(10, 132, 255, 0.20);
+  
+  /* Glass Effect Variables */
+  --glass-bg: rgba(17, 17, 17, 0.80);
+  --glass-border: 1px solid rgba(255, 255, 255, 0.10);
+  --glass-blur: blur(12px);
+  
+  /* Legacy Compatibility */
+  --app-bg: var(--background);
+  --page-bg: var(--background);
+  --card-bg: var(--surface);
+  --sidebar-bg: var(--background);
+  --navbar-bg: var(--surface);
+  --input-bg: var(--surface);
+  --input-text: var(--text);
+  --modal-bg: var(--surface);
+  --table-bg: var(--surface);
+  --table-header-bg: var(--surface-tertiary);
+  --button-primary-bg: var(--primary);
+  --button-primary-text: #000000;
   --button-text: var(--text);
-  --surface-strong: rgba(8, 15, 28, 0.86);
-  --border-soft: rgba(255, 255, 255, 0.08);
+  --surface-strong: rgba(17, 17, 17, 0.95);
+  --border-soft: rgba(255, 255, 255, 0.05);
   --border-default: rgba(255, 255, 255, 0.08);
-  --primary-50: #ecfeff;
-  --primary-100: #cffafe;
-  --primary-200: #a5f3fc;
-  --primary-300: #67e8f9;
-
-  /* ACCESSIBILITY */
-  --focus-ring: 3px;
-  --focus-color: rgba(6, 182, 212, 0.25);
 }
 
 /* ==========================================

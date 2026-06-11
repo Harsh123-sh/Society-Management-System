@@ -1,21 +1,30 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
 
 const menuItems = [
-  { id: 1, name: "Dashboard", path: "/security-dashboard" },
-  { id: 2, name: "Visitors", path: "/security-dashboard/visitors" },
-  { id: 3, name: "Pre-Approved", path: "/security-dashboard/pre-approved" },
-  { id: 4, name: "Deliveries", path: "/security-dashboard/deliveries" },
-  { id: 5, name: "Vehicles", path: "/security-dashboard/vehicles" },
-  { id: 6, name: "Gate Pass", path: "/security-dashboard/gate-pass" },
-  { id: 7, name: "Staff Entry", path: "/security-dashboard/staff-entry" },
-  { id: 8, name: "Alerts", path: "/security-dashboard/alerts" },
-  { id: 9, name: "Reports", path: "/security-dashboard/reports" },
-  { id: 10, name: "Settings", path: "/security-dashboard/settings" },
+  { id: 1, name: "Dashboard", path: "/security-dashboard", icon: "D" },
+  { id: 2, name: "Visitors", path: "/security-dashboard/visitors", icon: "V" },
+  { id: 3, name: "Pre-Approved", path: "/security-dashboard/pre-approved", icon: "P" },
+  { id: 4, name: "Deliveries", path: "/security-dashboard/deliveries", icon: "L" },
+  { id: 5, name: "Vehicles", path: "/security-dashboard/vehicles", icon: "C" },
+  { id: 6, name: "Gate Pass", path: "/security-dashboard/gate-pass", icon: "G" },
+  { id: 7, name: "Staff Entry", path: "/security-dashboard/staff-entry", icon: "S" },
+  { id: 8, name: "Alerts", path: "/security-dashboard/alerts", icon: "A" },
+  { id: 9, name: "Reports", path: "/security-dashboard/reports", icon: "R" },
+  { id: 10, name: "Settings", path: "/security-dashboard/settings", icon: "T" },
 ];
 
 function SecuritySidebar() {
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(() => (typeof window !== "undefined" ? window.innerWidth < 1024 : false));
+
+  useEffect(() => {
+    function handleOpen() {
+      setCollapsed(false);
+    }
+
+    window.addEventListener("security-sidebar:open", handleOpen);
+    return () => window.removeEventListener("security-sidebar:open", handleOpen);
+  }, []);
 
   return (
     <>
@@ -29,7 +38,7 @@ function SecuritySidebar() {
 
       {/* Sidebar */}
       <aside
-        className={`dashboard-sidebar fixed left-0 top-0 z-40 h-screen border-r border-[var(--border)] bg-[var(--card-bg)] transition-all duration-300 ${
+        className={`security-sidebar dashboard-sidebar fixed left-0 top-0 z-40 h-screen border-r border-[var(--border)] bg-[var(--card-bg)] transition-all duration-300 ${
           collapsed ? "w-0 lg:w-20" : "w-64 lg:w-64"
         }`}
       >
@@ -46,7 +55,7 @@ function SecuritySidebar() {
           )}
           <button
             onClick={() => setCollapsed(!collapsed)}
-            className="hidden lg:block text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+            className="security-icon-button hidden lg:block text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
           >
             {collapsed ? "→" : "←"}
           </button>
@@ -59,8 +68,13 @@ function SecuritySidebar() {
               <NavLink
                 key={item.id}
                 to={item.path}
+                onClick={() => {
+                  if (typeof window !== "undefined" && window.innerWidth < 1024) {
+                    setCollapsed(true);
+                  }
+                }}
                 className={({ isActive }) =>
-                  `dashboard-nav-link flex items-center gap-3 rounded-lg px-4 py-3 transition-all ${
+                  `security-nav-link dashboard-nav-link flex items-center gap-3 rounded-lg px-4 py-3 transition-all ${
                     isActive ? "is-active bg-[rgb(var(--app-primary-rgb))] text-[var(--text-main)]" : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
                   } ${collapsed ? "justify-center" : ""}`
                 }
@@ -88,7 +102,7 @@ function SecuritySidebar() {
       {!collapsed && (
         <button
           onClick={() => setCollapsed(true)}
-          className="fixed right-4 top-4 z-50 lg:hidden text-[var(--text-main)] text-2xl"
+          className="security-mobile-close fixed right-4 top-4 z-50 lg:hidden text-[var(--text-main)] text-2xl"
         >
           ✕
         </button>
