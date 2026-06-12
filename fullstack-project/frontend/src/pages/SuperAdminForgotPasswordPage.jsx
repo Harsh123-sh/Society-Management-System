@@ -45,7 +45,14 @@ function SuperAdminForgotPasswordPage() {
   return (
     <AuthLayout
       title="Forgot Super Admin Password"
-      subtitle="Request a one-time email OTP to verify hidden platform access."
+      subtitle="Request a one-time email OTP to verify platform access."
+      eyebrow="Platform Admin"
+      insightTitle="Recover platform administrator access."
+      insightSubtitle="Password recovery uses email verification only."
+      insightMeta={[
+        ["Email OTP", "Platform account"],
+        ["Secure reset", "Verified access"],
+      ]}
     >
       <AlertMessage type={alert.type} message={alert.message} />
 

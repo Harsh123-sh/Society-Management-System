@@ -7,8 +7,8 @@ const { requireSuperAdmin } = require("../middleware/superAdminMiddleware");
 const validationMiddleware = require("../middleware/validationMiddleware");
 const {
 	emailOnlyValidation,
-	loginValidation,
-	otpValidation,
+	superAdminLoginValidation,
+	superAdminOtpValidation,
 	superAdminResetPasswordValidation,
 } = require("../validators/requestValidators");
 
@@ -36,7 +36,7 @@ const superAdminLoginLimiter = rateLimit({
 
 const router = express.Router();
 
-router.post("/login", superAdminLoginLimiter, loginValidation, validationMiddleware, authController.loginSuperAdmin);
+router.post("/login", superAdminLoginLimiter, superAdminLoginValidation, validationMiddleware, authController.loginSuperAdmin);
 router.post(
 	"/forgot-password",
 	forgotPasswordLimiter,
@@ -46,7 +46,7 @@ router.post(
 );
 router.post(
 	"/verify-otp",
-	otpValidation,
+	superAdminOtpValidation,
 	validationMiddleware,
 	superAdminAuthController.verifyOtp
 );

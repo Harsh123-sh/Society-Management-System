@@ -74,6 +74,13 @@ function SuperAdminVerifyOtpPage() {
     <AuthLayout
       title="Verify OTP"
       subtitle="Enter the 6-digit OTP sent to the registered Super Admin email."
+      eyebrow="Platform Admin"
+      insightTitle="Verify platform administrator access."
+      insightSubtitle="OTP verification is tied to the registered email address."
+      insightMeta={[
+        ["Email OTP", "Platform account"],
+        ["Time-limited", "Secure reset"],
+      ]}
     >
       <AlertMessage type={alert.type} message={alert.message} />
 

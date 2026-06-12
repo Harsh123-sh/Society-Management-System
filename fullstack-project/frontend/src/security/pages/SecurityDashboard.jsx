@@ -8,50 +8,36 @@ import { EmergencyAlertsPanel, AIInsightsPanel } from "../components/AlertsPanel
 
 function SecurityDashboard() {
   return (
-    <div className="space-y-6">
-      {/* Page Header */}
-      <div>
-        <h1 className="text-4xl font-bold text-slate-900">🔒 Security Dashboard</h1>
-        <p className="mt-2 text-slate-600">
-          Real-time monitoring & fast entry system
+    <div className="security-content security-page space-y-6">
+      <div className="surface-card app-surface rounded-[22px] p-5">
+        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[rgb(var(--app-text-muted-rgb))]">
+          Gate operations dashboard
+        </p>
+        <h1 className="mt-2 font-bold text-[rgb(var(--app-text-rgb))]">Security Dashboard</h1>
+        <p className="mt-2 text-sm text-[rgb(var(--app-text-muted-rgb))]">
+          Visitor check-in, gate pass approvals, alerts, logs, and vehicle movement in one operational view.
         </p>
       </div>
 
-      {/* Summary Cards */}
-      <div>
-        <SecurityDashboardCards />
-      </div>
+      <SecurityDashboardCards />
 
-      {/* Quick Visitor Entry Form */}
-      <div>
-        <VisitorQuickEntryForm />
-      </div>
+      <VisitorQuickEntryForm />
 
-      {/* Pending Approvals & Emergency Alerts Grid */}
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2">
           <PendingApprovalsPanel />
         </div>
-        <div>
-          <EmergencyAlertsPanel />
-        </div>
+        <EmergencyAlertsPanel />
       </div>
 
-      {/* Visitor Activity */}
-      <div>
-        <VisitorActivityTable />
-      </div>
+      <VisitorActivityTable />
 
-      {/* Deliveries & Vehicles Grid */}
       <div className="grid gap-6 lg:grid-cols-2">
         <DeliveryTable />
         <VehicleTable />
       </div>
 
-      {/* AI Insights */}
-      <div>
-        <AIInsightsPanel />
-      </div>
+      <AIInsightsPanel />
     </div>
   );
 }

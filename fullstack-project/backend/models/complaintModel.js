@@ -3,6 +3,10 @@ const db = require("../config/db");
 const COMPLAINT_STATUSES = ["open", "assigned", "in_progress", "resolved", "closed", "archived", "deleted"];
 const ACTIVE_COMPLAINT_STATUSES = ["open", "assigned", "in_progress", "resolved", "closed"];
 
+function isMissingComplaintCommentsTableError(error) {
+  return error?.code === "42P01" && /complaint_comments/i.test(error.message || "");
+}
+
 function normalizeComplaintStatus(status) {
   if (!status) {
     return null;
@@ -228,13 +232,20 @@ async function deleteComplaint({ complaintId, deletedBy, reason }) {
 }
 
 async function createComment({ complaintId, userId, comment }) {
-  const { rows: result } = await db.query(
-    `INSERT INTO complaint_comments (complaint_id, user_id, comment_text)
-     VALUES (?, ?, ?)`,
-    [complaintId, userId, comment]
-  );
+  try {
+    const { rows: result } = await db.query(
+      `INSERT INTO complaint_comments (complaint_id, user_id, comment_text)
+       VALUES (?, ?, ?)`,
+      [complaintId, userId, comment]
+    );
 
-  return result.insertId;
+    return result.insertId;
+  } catch (error) {
+    if (isMissingComplaintCommentsTableError(error)) {
+      console.warn("[complaintModel.createComment] complaint_comments table is missing. Run complaint comments migration.");
+    }
+    throw error;
+  }
 }
 
 async function getCommentsByComplaintIds(complaintIds) {
@@ -242,18 +253,27 @@ async function getCommentsByComplaintIds(complaintIds) {
     return [];
   }
 
-  const placeholders = complaintIds.map(() => "?").join(",");
-  const { rows } = await db.query(
-    `SELECT cc.id, cc.complaint_id, cc.comment_text, cc.created_at,
-            cc.user_id, u.name AS user_name, u.role AS user_role
-     FROM complaint_comments cc
-     JOIN users u ON u.id = cc.user_id
-     WHERE cc.complaint_id IN (${placeholders})
-     ORDER BY cc.created_at ASC`,
-    complaintIds
-  );
+  try {
+    const placeholders = complaintIds.map(() => "?").join(",");
+    const { rows } = await db.query(
+      `SELECT cc.id, cc.complaint_id, cc.comment_text, cc.created_at,
+              cc.user_id, u.name AS user_name, u.role AS user_role
+       FROM complaint_comments cc
+       JOIN users u ON u.id = cc.user_id
+       WHERE cc.complaint_id IN (${placeholders})
+       ORDER BY cc.created_at ASC`,
+      complaintIds
+    );
 
-  return rows;
+    return rows;
+  } catch (error) {
+    if (isMissingComplaintCommentsTableError(error)) {
+      console.warn("[complaintModel.getCommentsByComplaintIds] complaint_comments table is missing. Returning empty comments.");
+      return [];
+    }
+
+    throw error;
+  }
 }
 
 module.exports = {

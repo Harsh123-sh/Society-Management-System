@@ -149,11 +149,6 @@ function LoginPage() {
         message: response.message || "Login successful",
       });
 
-      if (user?.role === "super_admin") {
-        navigate("/super-admin/dashboard", { replace: true });
-        return;
-      }
-
       navigate(getRoleHomePath(user?.role), { replace: true });
     } catch (error) {
       console.error("[LoginPage] login error", error?.response?.data || error?.message || error);
@@ -244,6 +239,14 @@ function LoginPage() {
           <span className="text-base">←</span>
           Back to Home
         </button>
+      </div>
+
+      <div className="mb-4 rounded-2xl border p-4 text-sm" style={{ backgroundColor: "var(--surface)", borderColor: "var(--border)", color: "var(--text-muted)" }}>
+        Platform administrator?{" "}
+        <AuthLink to="/super-admin/login" className="font-semibold text-[var(--text-main)]">
+          Use super admin login
+        </AuthLink>
+        . No society code is required there.
       </div>
 
       <form className="space-y-5" onSubmit={handleSubmit}>

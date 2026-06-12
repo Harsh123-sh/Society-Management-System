@@ -3,6 +3,7 @@ import { Link, Navigate, Route, Routes, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import "./App.css";
 import "./styles/theme-overrides.css";
+import "./styles/premium-redesign.css";
 import LanguageSelector from "./components/LanguageSelector";
 import { useTranslation } from "./contexts/LanguageContext";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -136,58 +137,6 @@ function formatCurrency(value) {
     maximumFractionDigits: 0,
   }).format(value);
 }
-
-const architectureTabs = [
-  {
-    id: "frontend",
-    title: "Frontend architecture",
-    summary: "Next.js or React shell with Tailwind, motion, and a design-token theme engine.",
-    signals: ["Responsive layouts", "Dark/light mode", "Role-aware navigation"],
-    items: ["Design tokens", "Shared components", "Dashboard shells", "Mobile adapters"],
-  },
-  {
-    id: "backend",
-    title: "Backend architecture",
-    summary: "Node.js or Django REST API with JWT auth, tenant scoping, and modular services.",
-    signals: ["REST endpoints", "Secure auth", "Multi-tenant guards"],
-    items: ["Auth service", "Tenant isolation", "Billing service", "Notification service"],
-  },
-  {
-    id: "ai",
-    title: "AI workflow",
-    summary: "OpenAI-powered assistant, NLP routing, OCR extraction, translation, and automation.",
-    signals: ["OCR scans", "Translated messages", "Automation rules"],
-    items: ["Prompt router", "Context memory", "Task generation", "Insight summarizer"],
-  },
-  {
-    id: "realtime",
-    title: "Realtime layer",
-    summary: "Socket.io events keep chats, approvals, payments, and incidents instantly synced.",
-    signals: ["Presence indicators", "Delivery receipts", "Live admin updates"],
-    items: ["Socket channels", "Push queues", "Event stream", "Offline recovery"],
-  },
-  {
-    id: "security",
-    title: "Security model",
-    summary: "Role-based access control, audit logs, encryption, and tenant-level permissions.",
-    signals: ["RBAC policies", "Audit trails", "Signed uploads"],
-    items: ["JWT sessions", "MFA ready", "Policy engine", "Rate limiting"],
-  },
-  {
-    id: "cloud",
-    title: "Cloud deployment",
-    summary: "Render or AWS deployment with Cloudinary assets, Firebase notifications, and autoscaling.",
-    signals: ["Managed storage", "CDN assets", "Horizontal scale"],
-    items: ["Web app", "API service", "Worker jobs", "Database cluster"],
-  },
-];
-
-const aiWorkflow = [
-  "Resident sends a complaint, bill query, or visitor request.",
-  "AI classifies intent, extracts details, and checks society context.",
-  "Automation routes the task to the right role and suggests a response.",
-  "Realtime notifications update everyone until the task is resolved.",
-];
 
 function SectionHeader({ eyebrow, title, description, align = "left" }) {
   return (
@@ -369,10 +318,16 @@ function HomePage() {
   const [previewLoading, setPreviewLoading] = useState(false);
   const [previewError, setPreviewError] = useState("");
 
-  const heroStats = useMemo(() => t("heroStats", []), [t]);
-  const capabilities = useMemo(() => t("capabilities", []), [t]);
-  const roleCards = useMemo(() => t("roleCards", []), [t]);
-  const heroFeatures = useMemo(() => t("heroFeatures", []), [t]);
+  const features = [
+    { title: "Resident Management", description: "Manage resident profiles, flats, owners, and tenants." },
+    { title: "Visitor Management", description: "Track visitor entries, approvals, and gate activity." },
+    { title: "Complaint Management", description: "Receive, assign, and resolve complaints faster." },
+    { title: "Billing & Maintenance", description: "Manage bills, payments, dues, and receipts." },
+    { title: "Notice Board", description: "Share society announcements and updates." },
+    { title: "Security Operations", description: "Support gate staff with visitor and entry records." },
+    { title: "Staff Management", description: "Assign work, track attendance, and monitor tasks." },
+    { title: "Document Management", description: "Store and organize important society documents." },
+  ];
   const loadPublicSocieties = async () => {
     setPublicLoading(true);
     setPublicError("");
@@ -459,37 +414,23 @@ function HomePage() {
   const activeSocietyDisplayName = formatSocietyDisplayName(activeSociety.name);
   const activeSocietyPreset = resolveSocietyBranding(activeSociety);
   const activeSocietyLabel = activeSociety.subscription_plan || activeSociety.status || activeSocietyPreset.label;
-  const activeSocietySummary = activeSocietyPreset.summary;
   const activeSocietyStat = livePreview?.totalFlats
     ? `${livePreview.totalFlats} flats • ${livePreview.occupiedFlats} occupied`
     : activeSocietyPreset.stat;
   const liveData = livePreview || null;
-  const landingStats = [
-    { value: liveData?.totalResidents?.toLocaleString() || "12x", label: "Faster complaint routing" },
-    { value: liveData?.todayVisitors || "24/7", label: "Live visitor and gate visibility" },
-    { value: liveData?.totalCollections ? formatCurrency(liveData.totalCollections) : "99.95%", label: "Realtime uptime target" },
-    { value: liveData?.aiTaskCount || "6", label: "Role-specific workspaces" },
-  ];
-  const testimonials = [
-    {
-      quote: "The dashboard finally feels like a calm control room instead of a spreadsheet maze.",
-      name: "Priya Mehta",
-      role: "Society Chairman",
-    },
-    {
-      quote: "Visitor approvals, notices, and billing updates are all visible before residents start calling.",
-      name: "Rahul Shah",
-      role: "Secretary",
-    },
-    {
-      quote: "Security gets a clean workflow, residents get speed, and staff gets accountability.",
-      name: "Ananya Rao",
-      role: "Operations Lead",
-    },
+  const previewModules = [
+    { label: "Residents", value: liveData?.totalResidents ? liveData.totalResidents.toLocaleString() : "Profiles" },
+    { label: "Visitors", value: liveData?.todayVisitors ? liveData.todayVisitors : "Gate Log" },
+    { label: "Complaints", value: liveData?.pendingComplaints ? liveData.pendingComplaints : "Tracking" },
+    { label: "Bills", value: liveData?.totalCollections ? formatCurrency(liveData.totalCollections) : "Payments" },
+    { label: "Notices", value: liveData?.notices?.length ? liveData.notices.length : "Updates" },
+    { label: "Documents", value: "Records" },
+    { label: "Security", value: "Gate Desk" },
+    { label: "Staff", value: "Tasks" },
   ];
 
   useEffect(() => {
-    document.title = `${activeSocietyDisplayName} | AI Society Management SaaS`;
+    document.title = `${activeSocietyDisplayName} | Society Management System`;
 
     return () => {
       document.title = "Society Management System";
@@ -522,8 +463,6 @@ function HomePage() {
 
         <nav className="landing-nav-links" aria-label="Landing sections">
           <a href="#features">Features</a>
-          <a href="#statistics">Stats</a>
-          <a href="#testimonials">Stories</a>
           <a href="#contact">Contact</a>
         </nav>
 
@@ -568,10 +507,10 @@ function HomePage() {
             className="button button--ghost"
             onClick={() => navigate("/login")}
           >
-            {t("actions.signIn")}
+            Sign In
           </button>
           <Link className="button button--primary" to="/register">
-            {t("actions.startFreeTrial")}
+            Get Demo
           </Link>
         </div>
       </motion.header>
@@ -583,300 +522,225 @@ function HomePage() {
         transition={{ duration: 0.85, delay: 0.08, ease: "easeOut" }}
       >
         <div className="hero-copy landing-hero-copy">
-          <span className="eyebrow-pill">{t("hero.eyebrow")}</span>
-          <h2>{t("hero.title")}</h2>
-          <p className="hero-description">{t("hero.description")}</p>
+          <span className="eyebrow-pill">Society Management System</span>
+          <h2>Society Management System</h2>
+          <p className="hero-description">
+            Manage residents, visitors, billing, complaints, notices, documents, and security operations from one platform.
+          </p>
 
           <div className="hero-actions">
             <Link className="button button--primary button--large" to="/register">
-              {t("hero.launchPlatform")}
+              Get Demo
             </Link>
-            <a className="button button--ghost button--large" href="#features">
-              Explore product
+            <a className="button button--ghost button--large" href="#contact">
+              Contact Us
             </a>
-          </div>
-
-          <div className="feature-strips">
-            {heroFeatures.map((feature) => (
-              <span key={feature}>{feature}</span>
-            ))}
-          </div>
-
-          <div className="hero-stats hero-stats--compact">
-            {heroStats.map((stat) => (
-              <motion.article
-                key={stat.label}
-                className="metric-card glass-card"
-                whileHover={{ y: -6, scale: 1.02 }}
-                transition={{ type: "spring", stiffness: 260, damping: 20 }}
-              >
-                <strong>{stat.value}</strong>
-                <span>{stat.label}</span>
-              </motion.article>
-            ))}
           </div>
         </div>
 
         <motion.div
-          className="hero-visual glass-card landing-device"
-          initial={{ opacity: 0, scale: 0.96, rotate: 1 }}
-          animate={{ opacity: 1, scale: 1, rotate: 0 }}
-          transition={{ duration: 0.8, delay: 0.22, ease: "easeOut" }}
+          className="hero-workstation landing-device"
+          initial={{ opacity: 0, y: 28, scale: 0.97 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.85, delay: 0.22, ease: "easeOut" }}
         >
-          <div className="hero-visual__header">
-            <div>
-              <p className="brand-eyebrow">{t("hero.liveLens")}</p>
-              <h3>{activeSocietyDisplayName}</h3>
-            </div>
-            <span className="status-chip">{activeSocietyLabel}</span>
+          <div className="workstation-glow" />
+          <div className="floating-module floating-module--one">
+            <span>Residents</span>
+            <strong>{liveData?.totalResidents ? liveData.totalResidents.toLocaleString() : "Profiles"}</strong>
+          </div>
+          <div className="floating-module floating-module--two">
+            <span>Visitors</span>
+            <strong>{liveData?.todayVisitors || "Gate Log"}</strong>
+          </div>
+          <div className="floating-module floating-module--three">
+            <span>Billing</span>
+            <strong>{liveData?.totalCollections ? formatCurrency(liveData.totalCollections) : "Payments"}</strong>
+          </div>
+          <div className="floating-module floating-module--four">
+            <span>Complaints</span>
+            <strong>{liveData?.pendingComplaints || "Tracking"}</strong>
+          </div>
+          <div className="floating-module floating-module--five">
+            <span>Security</span>
+            <strong>Gate Desk</strong>
           </div>
 
-          <div
-            className="hero-visual__dashboard"
-            style={{ background: `linear-gradient(160deg, ${activeSocietyPreset.heroStart}, ${activeSocietyPreset.heroEnd})` }}
-          >
-            <div className="dashboard-surface">
-              {previewLoading ? (
-                <div className="space-y-6">
-                  <div className="dashboard-row dashboard-row--split">
-                    <div>
-                      <p className="dashboard-label">{t("hero.health")}</p>
-                      <strong className="animate-pulse">{t("hero.fetchingAnalytics")}</strong>
+          <div className="desk-scene">
+            <div className="monitor-row">
+              <div className="monitor monitor--primary">
+                <div className="monitor-bezel">
+                  <div className="monitor-screen">
+                    <div className="screen-topbar">
+                      <span />
+                      <span />
+                      <span />
+                      <strong>{activeSocietyDisplayName}</strong>
                     </div>
-                    <span className="pulse-dot">{t("common.loading")}</span>
-                    <div className="h-16 rounded-2xl theme-surface" />
-                  </div>
-
-                  <div className="dashboard-grid">
-                    {[...Array(4)].map((_, index) => (
-                      <article key={index} className="h-24 rounded-3xl theme-surface" />
-                    ))}
+                    <div className="screen-dashboard">
+                      <div className="screen-hero-card">
+                        <p>Society Overview</p>
+                        <strong>{activeSocietyStat}</strong>
+                        <span>{previewLoading ? "Loading dashboard" : activeSocietyLabel}</span>
+                      </div>
+                      <div className="screen-stat-row">
+                        {previewModules.slice(0, 4).map((module) => (
+                          <div key={module.label} className="screen-stat">
+                            <span>{module.label}</span>
+                            <strong>{module.value}</strong>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="screen-list">
+                        <div>
+                          <span>Notice Board</span>
+                          <strong>{liveData?.notices?.[0]?.title || "Society updates"}</strong>
+                        </div>
+                        <div>
+                          <span>Maintenance</span>
+                          <strong>{liveData?.maintenanceAlerts?.[0]?.title || "Bills and dues"}</strong>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              ) : (
-                <>
-                  <div className="dashboard-row dashboard-row--split">
-                    <div>
-                      <p className="dashboard-label">{t("hero.health")}</p>
-                      <strong>
-                        {liveData?.totalResidents
-                          ? `${liveData.totalResidents.toLocaleString()} ${t("hero.residentsLabel")}`
-                          : t("hero.noResidents")}
-                      </strong>
-                    </div>
-                    <span className="pulse-dot">{t("hero.realtime")}</span>
-                  </div>
+                <div className="monitor-neck" />
+                <div className="monitor-foot" />
+              </div>
 
-                  <div className="assistant-card">
-                    <div>
-                      <p className="dashboard-label">{t("hero.assistant")}</p>
-                      <h4>
-                        {liveData?.aiTaskCount
-                          ? `${liveData.aiTaskCount} ${t("hero.aiTasks")}`
-                          : t("hero.noAiTasks")}
-                      </h4>
+              <div className="monitor monitor--secondary">
+                <div className="monitor-bezel">
+                  <div className="monitor-screen">
+                    <div className="screen-topbar screen-topbar--compact">
+                      <span />
+                      <span />
+                      <span />
+                      <strong>Modules</strong>
                     </div>
-                    <div className="assistant-chat">
-                      {liveData?.maintenanceAlerts?.length ? (
-                        <span>{liveData.maintenanceAlerts[0].title}</span>
-                      ) : liveData?.notices?.length ? (
-                        <span>{liveData.notices[0].title}</span>
-                      ) : (
-                        <span>{t("hero.societySetupInProgress")}</span>
-                      )}
+                    <div className="module-stack">
+                      {previewModules.slice(1, 8).map((module) => (
+                        <div key={module.label} className="module-row">
+                          <span>{module.label}</span>
+                          <strong>{module.value}</strong>
+                        </div>
+                      ))}
                     </div>
                   </div>
-
-                  <div className="dashboard-grid">
-                    <article>
-                      <span>{t("hero.paymentsCollected")}</span>
-                      <strong>
-                        {liveData?.totalCollections
-                          ? formatCurrency(liveData.totalCollections)
-                          : t("hero.noPaymentRecords")}
-                      </strong>
-                    </article>
-                    <article>
-                      <span>{t("hero.openComplaints")}</span>
-                      <strong>
-                        {liveData?.pendingComplaints ? liveData.pendingComplaints : t("hero.noComplaintsFound")}
-                      </strong>
-                    </article>
-                    <article>
-                      <span>{t("hero.todaysVisitors")}</span>
-                      <strong>
-                        {liveData?.todayVisitors ? liveData.todayVisitors : t("hero.noVisitorActivity")}
-                      </strong>
-                    </article>
-                    <article>
-                      <span>{t("hero.aiTasks")}</span>
-                      <strong>
-                        {liveData?.aiTaskCount ? liveData.aiTaskCount : t("hero.noAiTasks")}
-                      </strong>
-                    </article>
-                  </div>
-                </>
-              )}
+                </div>
+                <div className="monitor-neck monitor-neck--small" />
+                <div className="monitor-foot monitor-foot--small" />
+              </div>
             </div>
-          </div>
 
-          <div className="mini-rail">
-            <div>
-              <span className="mini-rail__label">{t("hero.brandPack")}</span>
-              <strong>{activeSocietyDisplayName}</strong>
-              <p>{activeSocietySummary}</p>
-            </div>
-            <div>
-              <span className="mini-rail__label">{t("hero.flats")}</span>
-              <strong>{activeSocietyStat}</strong>
-              <p>{t("hero.brandSummary")}</p>
+            <div className="desk-base">
+              <div className="keyboard">
+                {Array.from({ length: 18 }).map((_, index) => (
+                  <span key={index} />
+                ))}
+              </div>
+              <div className="trackpad" />
             </div>
           </div>
         </motion.div>
       </motion.section>
 
-      <section className="content-section landing-section" id="features">
+      <section className="content-section landing-section product-showcase-section" id="features">
         <SectionHeader
-          eyebrow={t("sections.capabilities.eyebrow")}
-          title={t("sections.capabilities.title")}
-          description={t("sections.capabilities.description")}
+          eyebrow="Product capabilities"
+          title="One operating system for society teams."
+          description="Analytics, mobile-ready workflows, AI assistance, and core operational modules in a compact enterprise workspace."
           align="center"
         />
 
-        <div className="capability-grid landing-feature-grid">
-          {capabilities.map((capability) => (
-            <motion.article
-              key={capability.title}
-              className="capability-card glass-card landing-feature-card"
-              initial={{ opacity: 0, y: 28 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.25 }}
-              whileHover={{ y: -8 }}
-              transition={{ duration: 0.5 }}
-            >
-              <h3>{capability.title}</h3>
-              <p>{capability.description}</p>
-            </motion.article>
-          ))}
-        </div>
-      </section>
+        <div className="product-showcase-grid">
+          <motion.article
+            className="showcase-card showcase-card--analytics"
+            initial={{ opacity: 0, y: 28 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.25 }}
+            whileHover={{ y: -6 }}
+          >
+            <div className="showcase-card__header">
+              <span>Analytics preview</span>
+              <strong>{liveData?.totalCollections ? formatCurrency(liveData.totalCollections) : "₹8.4L"}</strong>
+            </div>
+            <div className="mini-chart" aria-hidden="true">
+              {[42, 64, 48, 78, 58, 88, 72].map((height, index) => (
+                <span key={index} style={{ "--bar-height": `${height}%` }} />
+              ))}
+            </div>
+            <p>Collection health, occupancy, complaints, visitor movement, and staff execution stay visible without digging through reports.</p>
+          </motion.article>
 
-      <section className="content-section landing-section" id="statistics">
-        <SectionHeader
-          eyebrow="Statistics"
-          title="A lighter way to run complex communities."
-          description="Live operations, billing, support, and gate activity are designed to feel instant without feeling noisy."
-          align="center"
-        />
-
-        <div className="landing-stat-grid">
-          {landingStats.map((stat, index) => (
-            <motion.article
-              key={stat.label}
-              className="landing-stat-card glass-card"
-              initial={{ opacity: 0, y: 26 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.35 }}
-              transition={{ duration: 0.55, delay: index * 0.06 }}
-            >
-              <strong>{stat.value}</strong>
-              <span>{stat.label}</span>
-            </motion.article>
-          ))}
-        </div>
-      </section>
-
-      <section className="content-section landing-section">
-        <SectionHeader
-          eyebrow="Dashboards"
-          title="Focused workspaces for every role."
-          description="Each role gets only the tools it needs, wrapped in the same premium interface language."
-          align="center"
-        />
-
-        <div className="role-grid landing-role-grid">
-          {roleCards.map((role, index) => (
-            <motion.article
-              key={role.title}
-              className="role-card glass-card landing-role-card"
-              initial={{ opacity: 0, y: 28 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.25 }}
-              transition={{ duration: 0.5, delay: index * 0.05 }}
-            >
-              <span className="landing-card-index">0{index + 1}</span>
-              <h3>{role.title}</h3>
-              <ul>
-                {role.points.map((point) => (
-                  <li key={point}>{point}</li>
-                ))}
-              </ul>
-            </motion.article>
-          ))}
-        </div>
-      </section>
-
-      <section className="content-section landing-section" id="testimonials">
-        <SectionHeader
-          eyebrow="Testimonials"
-          title="Built for committees, residents, staff, and gates."
-          description="The experience stays calm, readable, and fast across desktop, tablet, and mobile."
-          align="center"
-        />
-
-        <div className="landing-testimonial-grid">
-          {testimonials.map((item, index) => (
-            <motion.article
-              key={item.name}
-              className="landing-testimonial glass-card"
-              initial={{ opacity: 0, y: 28 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.3 }}
-              transition={{ duration: 0.55, delay: index * 0.08 }}
-            >
-              <p>"{item.quote}"</p>
-              <div>
-                <strong>{item.name}</strong>
-                <span>{item.role}</span>
+          <motion.article
+            className="showcase-card showcase-card--mobile"
+            initial={{ opacity: 0, y: 28 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.25 }}
+            whileHover={{ y: -6 }}
+          >
+            <div className="phone-preview">
+              <div className="phone-preview__screen">
+                <span>Resident</span>
+                <strong>Maintenance bill</strong>
+                <p>{liveData?.totalCollections ? formatCurrency(liveData.totalCollections) : "Pay, complain, approve visitors"}</p>
+                <div />
+                <div />
+                <div />
               </div>
-            </motion.article>
-          ))}
+            </div>
+            <p>Resident, staff, and security workflows are built for quick mobile checks with the same role-based access model.</p>
+          </motion.article>
+
+          <motion.article
+            className="showcase-card showcase-card--ai"
+            initial={{ opacity: 0, y: 28 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.25 }}
+            whileHover={{ y: -6 }}
+          >
+            <div className="ai-preview">
+              <span>AI assistant preview</span>
+              <p>Summarize open complaints, draft a notice, forecast collections, and highlight operational risk.</p>
+            </div>
+            <div className="ai-preview__chips">
+              <span>Complaints</span>
+              <span>Notices</span>
+              <span>Collections</span>
+            </div>
+          </motion.article>
+
+          <div className="capability-grid landing-feature-grid showcase-card showcase-card--features">
+            {features.map((feature) => (
+              <motion.article
+                key={feature.title}
+                className="capability-card landing-feature-card"
+                initial={{ opacity: 0, y: 18 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.2 }}
+                transition={{ duration: 0.4 }}
+              >
+                <h3>{feature.title}</h3>
+                <p>{feature.description}</p>
+              </motion.article>
+            ))}
+          </div>
         </div>
       </section>
 
-      <section className="content-section landing-contact glass-panel" id="contact">
-        <div>
-          <span className="section-eyebrow">Contact</span>
-          <h2>Bring your society online with a polished operating layer.</h2>
-          <p>
-            Start with a branded society workspace, then add billing, visitors, complaints,
-            staff tasks, notices, documents, and AI assistance as your committee needs them.
-          </p>
-        </div>
-
-        <div className="cta-band__actions landing-contact-actions">
-          <Link className="button button--primary button--large" to="/register">
-            Start free trial
-          </Link>
-          <Link className="button button--ghost button--large" to="/login">
-            Open portal
-          </Link>
-        </div>
-      </section>
-
-      <footer className="landing-footer glass-panel">
+      <footer className="landing-footer glass-panel" id="contact">
         <div className="brand-lockup">
           <div className="brand-mark brand-mark--small">A</div>
           <div>
-            <p className="brand-eyebrow">{t("brand.eyebrow")}</p>
-            <h2>{t("brand.title")}</h2>
+            <p className="brand-eyebrow">Society Management</p>
+            <h2>Society Management System</h2>
           </div>
         </div>
         <div className="footer-note">
-          <span>Multi-tenant SaaS</span>
-          <span>Realtime-first</span>
-          <span>AI-powered</span>
-          <span>Mobile-ready</span>
+          <a href="#features">Features</a>
+          <a href="#contact">Contact</a>
+          <Link to="/login">Sign In</Link>
+          <a href="mailto:contact@society.com">Contact Us</a>
         </div>
       </footer>
     </main>

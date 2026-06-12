@@ -5,7 +5,18 @@ import { MotionConfig, motion } from "framer-motion";
 
 export const authLabelClass = "auth-label";
 
-function AuthLayout({ title, subtitle, children }) {
+function AuthLayout({
+  title,
+  subtitle,
+  children,
+  eyebrow = "Society Pro",
+  insightTitle = "Secure auth with society-aware intelligence.",
+  insightSubtitle = "One unified sign-in experience across login, registration, verification, and reset workflows.",
+  insightMeta = [
+    ["AI-ready", "Contextual onboarding"],
+    ["Role-aware", "Chairman to resident flows"],
+  ],
+}) {
   return (
     <MotionConfig transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}>
       <div className="auth-shell">
@@ -25,17 +36,15 @@ function AuthLayout({ title, subtitle, children }) {
               transition={{ delay: 0.18 }}
             >
               <p>Designed for premium communities</p>
-              <h2>Secure auth with society-aware intelligence.</h2>
-              <span>One unified sign-in experience across login, registration, verification, and reset workflows.</span>
+              <h2>{insightTitle}</h2>
+              <span>{insightSubtitle}</span>
               <div className="auth-insight-card__grid">
-                <div>
-                  <strong>AI-ready</strong>
-                  <span>Contextual onboarding</span>
-                </div>
-                <div>
-                  <strong>Role-aware</strong>
-                  <span>Chairman to resident flows</span>
-                </div>
+                {insightMeta.map(([label, value]) => (
+                  <div key={label}>
+                    <strong>{label}</strong>
+                    <span>{value}</span>
+                  </div>
+                ))}
               </div>
             </motion.div>
           </aside>
@@ -53,7 +62,7 @@ function AuthLayout({ title, subtitle, children }) {
             >
               <AuthCard>
                 <div className="auth-card__heading">
-                  <span>Society Pro</span>
+                  <span>{eyebrow}</span>
                   <h2>{title}</h2>
                   <p>{subtitle}</p>
                 </div>

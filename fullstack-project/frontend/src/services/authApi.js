@@ -231,7 +231,8 @@ export async function loginUser(payload) {
 }
 
 export async function loginSuperAdmin(payload) {
-  const { data } = await superAdminApi.post("/super-admin/login", payload);
+  const { email = "", password = "" } = payload || {};
+  const { data } = await superAdminApi.post("/super-admin/login", { email, password });
   return data;
 }
 

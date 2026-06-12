@@ -60,6 +60,13 @@ const requiredSchema = {
     "created_at",
     "updated_at",
   ],
+  complaint_comments: [
+    "id",
+    "complaint_id",
+    "user_id",
+    "comment_text",
+    "created_at",
+  ],
 };
 
 async function tableExists(tableName) {

@@ -62,18 +62,20 @@ async function logVerificationActivity(user, action, metadata = {}) {
 }
 
 function signToken(user) {
-  // Normalize token payload to use snake_case for DB-backed fields
   const payload = {
     id: user.id,
     email: user.email,
     role: user.role,
     resident_type: user.resident_type || null,
     status: user.status || null,
-    society_id: user.society_id || user.societyId || null,
-    society_code: user.society_code || user.societyCode || null,
-    society_slug: user.society_slug || user.societySlug || null,
     builder_id: user.builder_id || user.builderId || null,
   };
+
+  if (user.role !== "super_admin") {
+    payload.society_id = user.society_id || user.societyId || null;
+    payload.society_code = user.society_code || user.societyCode || null;
+    payload.society_slug = user.society_slug || user.societySlug || null;
+  }
 
   return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN || "1d" });
 }
@@ -630,11 +632,6 @@ async function loginSuperAdmin(req, res) {
       role: user.role,
       resident_type: user.resident_type || null,
       status: user.status || null,
-      society_id: user.society_id || null,
-      society_code: user.society_code || null,
-      society_name: user.society_name || null,
-      flat_id: user.flat_id || null,
-      flat_number: user.flat_number || null,
     };
 
     res.json({

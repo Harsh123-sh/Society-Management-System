@@ -2,8 +2,21 @@ function trimTrailingSlash(value) {
   return String(value || "").replace(/\/+$|\/$/, "");
 }
 
+function isLocalBrowserHost() {
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  return ["localhost", "127.0.0.1"].includes(window.location.hostname);
+}
+
+const configuredApiUrl = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || "";
+const localApiUrl = import.meta.env.VITE_LOCAL_API_URL || "http://localhost:5000";
+
 export const API_BASE_URL = trimTrailingSlash(
-  import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || "https://society-management-system-vimk.onrender.com"
+  isLocalBrowserHost()
+    ? localApiUrl
+    : configuredApiUrl || "https://society-management-system-vimk.onrender.com"
 );
 
 export default API_BASE_URL;

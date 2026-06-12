@@ -67,6 +67,17 @@ const loginValidation = [
     .withMessage("Society code must be between 2 and 30 characters"),
 ];
 
+const superAdminLoginValidation = [
+  body("email")
+    .trim()
+    .notEmpty()
+    .withMessage("Email is required")
+    .isEmail()
+    .withMessage("Email must be valid")
+    .normalizeEmail(),
+  body("password").notEmpty().withMessage("Password is required"),
+];
+
 const emailWithSocietyValidation = [
   body("email")
     .trim()
@@ -95,6 +106,16 @@ const emailOnlyValidation = [
 
 const otpValidation = [
   ...emailWithSocietyValidation,
+  body("otp")
+    .trim()
+    .notEmpty()
+    .withMessage("OTP is required")
+    .matches(/^\d{6}$/)
+    .withMessage("OTP must be a 6-digit code"),
+];
+
+const superAdminOtpValidation = [
+  ...emailOnlyValidation,
   body("otp")
     .trim()
     .notEmpty()
@@ -709,9 +730,11 @@ const userCategoryQueryValidation = [
 module.exports = {
   registerValidation,
   loginValidation,
+  superAdminLoginValidation,
   emailOnlyValidation,
   emailWithSocietyValidation,
   otpValidation,
+  superAdminOtpValidation,
   resetPasswordValidation,
   superAdminResetPasswordValidation,
   idParamValidation,

@@ -165,8 +165,7 @@ async function createEnumTypes() {
   }
 }
 
-async function runMissingSchemaMigrations() {
-  const migrationFile = path.join(__dirname, "migrations", "2026-06-05_add_missing_schema.sql");
+async function runSqlMigrationFile(migrationFile) {
   try {
     const sql = fs.readFileSync(migrationFile, "utf8");
     if (sql && sql.trim()) {
@@ -188,7 +187,18 @@ async function runMissingSchemaMigrations() {
       }
     }
   } catch (error) {
-    console.warn(`Warning applying missing schema migrations: ${error.message}`);
+    console.warn(`Warning applying migration ${migrationFile}: ${error.message}`);
+  }
+}
+
+async function runMissingSchemaMigrations() {
+  const migrationFiles = [
+    "2026-06-05_add_missing_schema.sql",
+    "2026-06-11_create_complaint_comments.sql",
+  ];
+
+  for (const migrationName of migrationFiles) {
+    await runSqlMigrationFile(path.join(__dirname, "migrations", migrationName));
   }
 }
 
@@ -518,6 +528,18 @@ async function ensureSchema() {
     await db.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS approval_status VARCHAR(50);`);
     await db.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS approved_at TIMESTAMP;`);
     await db.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS kyc_status VARCHAR(50);`);
+
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS complaint_comments (
+        id SERIAL PRIMARY KEY,
+        complaint_id INT NOT NULL REFERENCES complaints(id) ON DELETE CASCADE,
+        user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        comment_text TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    await db.query(`CREATE INDEX IF NOT EXISTS idx_complaint_comments_complaint_id ON complaint_comments(complaint_id);`);
+    await db.query(`CREATE INDEX IF NOT EXISTS idx_complaint_comments_user_id ON complaint_comments(user_id);`);
 
     await db.query(`
       CREATE TABLE IF NOT EXISTS user_otps (

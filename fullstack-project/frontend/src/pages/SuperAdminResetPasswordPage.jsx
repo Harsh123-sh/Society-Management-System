@@ -92,6 +92,13 @@ function SuperAdminResetPasswordPage() {
     <AuthLayout
       title="Reset Password"
       subtitle="Set a new secure password for the hidden Super Admin account."
+      eyebrow="Platform Admin"
+      insightTitle="Set a new platform administrator password."
+      insightSubtitle="Reset is available only after email OTP verification."
+      insightMeta={[
+        ["Verified", "OTP required"],
+        ["Protected", "Strong password"],
+      ]}
     >
       <AlertMessage type={alert.type} message={alert.message} />
 

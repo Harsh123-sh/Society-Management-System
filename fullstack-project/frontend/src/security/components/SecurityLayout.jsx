@@ -5,7 +5,13 @@ import { motion } from "framer-motion";
 
 function SecurityLayout({ children }) {
   return (
-    <div className="security-shell dashboard-shell flex min-h-screen text-[rgb(var(--app-text-rgb))]">
+    <div
+      className="security-shell dashboard-shell role-dashboard role-dashboard--security flex min-h-screen text-[rgb(var(--app-text-rgb))]"
+      style={{
+        "--role-accent-rgb": "6 182 212",
+        "--role-accent-2-rgb": "249 115 22",
+      }}
+    >
       {/* Sidebar */}
       <SecuritySidebar />
 

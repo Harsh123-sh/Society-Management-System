@@ -55,7 +55,10 @@ function SuperAdminLoginPage() {
 
     try {
       setLoading(true);
-      const response = await loginSuperAdmin(form);
+      const response = await loginSuperAdmin({
+        email: form.email,
+        password: form.password,
+      });
       const user = response.user || response.data;
       saveSuperAdminSession({ token: response.token, user });
 
@@ -70,8 +73,15 @@ function SuperAdminLoginPage() {
 
   return (
     <AuthLayout
-      title="Super Admin Access"
-      subtitle="This portal is reserved for platform administrators. Use direct access only."
+      title="Super Admin Login"
+      subtitle="Access the platform administration dashboard."
+      eyebrow="Platform Admin"
+      insightTitle="Secure access for platform administrators."
+      insightSubtitle="Manage the platform without selecting an individual society."
+      insightMeta={[
+        ["Platform-level", "Global access"],
+        ["Protected", "Direct admin access"],
+      ]}
     >
       {alert.message && <AlertMessage type={alert.type} message={alert.message} />}
 
@@ -108,7 +118,7 @@ function SuperAdminLoginPage() {
 
       <div className="space-y-4 pt-2">
         <p className="text-sm text-slate-400">
-          Super admin credentials are managed by platform administrators and are not part of normal society registration.
+          Super admin credentials are managed by platform administrators.
         </p>
       </div>
     </AuthLayout>
