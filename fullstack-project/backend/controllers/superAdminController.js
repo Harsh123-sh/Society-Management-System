@@ -7,7 +7,17 @@ const tenantModel = require("../models/tenantModel");
 const auditModel = require("../models/auditModel");
 const UserApprovalModel = require("../models/userApprovalModel");
 
-const SOCIETY_STATUSES = new Set(["active", "inactive", "suspended", "trial", "archived", "deleted"]);
+const SOCIETY_STATUSES = new Set([
+  "active",
+  "inactive",
+  "suspended",
+  "trial",
+  "pending_chairman_registration",
+  "pending_approval",
+  "rejected",
+  "archived",
+  "deleted",
+]);
 
 const PLAN_PRICING = {
   starter: 4999,
@@ -31,7 +41,8 @@ function normalizeSlug(value) {
 function normalizeCode(value) {
   const text = normalizeText(value);
   if (!text) return null;
-  return text.toUpperCase().replace(/[^A-Z0-9]/g, "");
+  const normalized = text.trim().toUpperCase().replace(/[^A-Z0-9-]/g, "");
+  return /^[A-Z0-9-]{2,30}$/.test(normalized) ? normalized : null;
 }
 
 function normalizeSocietyStatus(value, fallback = "active") {
@@ -89,12 +100,17 @@ async function ensureSuperAdmin(req, res) {
 }
 
 function mapRoleLabel(role) {
+  if (role === "chairman") return "Chairman";
   if (role === "admin") return "Chairman";
   if (role === "secretary") return "Secretary";
   if (role === "resident") return "Resident";
   if (role === "staff") return "Admin";
   if (role === "security") return "Security";
   return role ? role.replace(/_/g, " ") : "Unknown";
+}
+
+function isChairmanRole(role) {
+  return ["chairman", "admin"].includes(String(role || "").toLowerCase());
 }
 
 async function createPlatformUser({ name, email, role, societyId }) {
@@ -130,6 +146,7 @@ async function getPlatformStats(req, res) {
         COUNT(CASE WHEN status IN ('active', 'inactive', 'suspended', 'trial') AND COALESCE(code, '') <> 'DEFAULT' THEN 1 END) AS total_societies,
         COUNT(CASE WHEN status = 'active' THEN 1 END) AS active_societies,
         COUNT(CASE WHEN status = 'trial' THEN 1 END) AS pending_society_requests,
+        COUNT(CASE WHEN status = 'pending_chairman_registration' THEN 1 END) AS pending_chairman_registrations,
         COUNT(CASE WHEN status = 'suspended' THEN 1 END) AS suspended_societies
       FROM societies
     `);
@@ -138,7 +155,7 @@ async function getPlatformStats(req, res) {
       SELECT
         COUNT(*) AS total_users,
         COUNT(CASE WHEN role = 'resident' AND status = 'active' THEN 1 END) AS active_residents,
-        COUNT(CASE WHEN role = 'admin' AND status = 'pending' THEN 1 END) AS chairman_requests,
+        COUNT(CASE WHEN role IN ('admin', 'chairman') AND status = 'pending' THEN 1 END) AS chairman_requests,
         COUNT(CASE WHEN role = 'secretary' AND status = 'pending' THEN 1 END) AS secretary_requests,
         COUNT(CASE WHEN role = 'security' AND status = 'active' THEN 1 END) AS active_security_staff
       FROM users
@@ -205,6 +222,7 @@ async function getPlatformStats(req, res) {
           totalSocieties: Number(societyStats.total_societies || 0),
           activeSocieties: Number(societyStats.active_societies || 0),
           pendingSocietyRequests: Number(societyStats.pending_society_requests || 0),
+          pendingChairmanRegistrations: Number(societyStats.pending_chairman_registrations || 0),
           totalPlatformUsers: Number(userStats.total_users || 0),
           activeResidents: Number(userStats.active_residents || 0),
           chairmanRequests: Number(userStats.chairman_requests || 0),
@@ -356,6 +374,121 @@ async function listSocieties(req, res) {
   }
 }
 
+async function exportSocieties(req, res) {
+  try {
+    if (!(await ensureSuperAdmin(req, res))) return;
+
+    const search = normalizeText(req.query.search);
+    const status = normalizeText(req.query.status);
+    const plan = normalizeText(req.query.plan);
+    const sortBy = normalizeText(req.query.sortBy) || 'created_at';
+    const sortOrder = String(req.query.sortOrder || 'desc').toLowerCase() === 'asc' ? 'ASC' : 'DESC';
+
+    const allowedSorts = new Set(['created_at', 'name', 'code', 'status', 'subscription_plan', 'city']);
+    const orderColumn = allowedSorts.has(sortBy) ? sortBy : 'created_at';
+
+    const filters = [];
+    const params = [];
+
+    if (search) {
+      filters.push("(s.name ILIKE $" + (params.length + 1) + " OR s.code ILIKE $" + (params.length + 2) + " OR s.city ILIKE $" + (params.length + 3) + " OR s.state ILIKE $" + (params.length + 4) + " OR s.address ILIKE $" + (params.length + 5) + " OR s.pincode ILIKE $" + (params.length + 6) + ")");
+      const like = `%${search}%`;
+      params.push(like, like, like, like, like, like);
+    }
+
+    if (status === 'deleted') {
+      filters.push(`s.status = $${params.length + 1}`);
+      params.push(status);
+    } else if (SOCIETY_STATUSES.has(status)) {
+      filters.push(`s.status = $${params.length + 1}`);
+      params.push(status);
+    } else {
+      filters.push("s.status <> 'deleted'");
+    }
+
+    if (plan) {
+      filters.push(`s.subscription_plan = $${params.length + 1}`);
+      params.push(plan);
+    }
+
+    const whereClause = filters.length ? `WHERE ${filters.join(' AND ')}` : '';
+
+    const { rows } = await db.query(
+      `SELECT s.id, s.code, COALESCE(s.society_name, s.name) AS name, s.city, s.state, s.pincode, s.status, s.subscription_plan, s.created_at
+       FROM societies s
+       ${whereClause}
+       ORDER BY ${orderColumn} ${sortOrder}`,
+      params
+    );
+
+    // Build CSV
+    const headers = ['id','code','name','city','state','pincode','status','subscription_plan','created_at'];
+    const csvRows = [headers.join(',')];
+    for (const r of rows) {
+      const line = headers.map(h => {
+        const v = r[h] === null || r[h] === undefined ? '' : String(r[h]);
+        return '"' + v.replace(/"/g, '""') + '"';
+      }).join(',');
+      csvRows.push(line);
+    }
+
+    const csv = csvRows.join('\n');
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename="societies.csv"');
+    return res.send(csv);
+  } catch (error) {
+    console.error('[SuperAdmin] exportSocieties failed', error.message || error);
+    return res.status(500).json({ success: false, message: 'Failed to export societies' });
+  }
+}
+
+async function bulkUpdateSocieties(req, res) {
+  try {
+    if (!(await ensureSuperAdmin(req, res))) return;
+
+    const { action, ids } = req.body || {};
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ success: false, message: 'ids array required' });
+    }
+
+    const allowedActions = new Set(['suspend', 'activate', 'delete']);
+    if (!allowedActions.has(action)) {
+      return res.status(400).json({ success: false, message: 'invalid action' });
+    }
+
+    let nextStatus = 'active';
+    if (action === 'suspend') nextStatus = 'suspended';
+    if (action === 'delete') nextStatus = 'deleted';
+
+    const conn = await db.getConnection();
+    try {
+      await conn.beginTransaction();
+      await conn.query(`UPDATE societies SET status = $1, updated_at = CURRENT_TIMESTAMP WHERE id = ANY($2::int[])`, [nextStatus, ids]);
+
+      await auditModel.createAuditLog({
+        userId: req.user.id,
+        action: `societies_bulk_${action}`,
+        resourceType: 'society',
+        resourceId: null,
+        details: { ids, action },
+        status: 'success',
+      });
+
+      await conn.commit();
+    } catch (err) {
+      await conn.rollback();
+      throw err;
+    } finally {
+      conn.release();
+    }
+
+    return res.json({ success: true, message: 'Bulk update applied', count: ids.length });
+  } catch (error) {
+    console.error('[SuperAdmin] bulkUpdateSocieties failed', error.message || error);
+    return res.status(500).json({ success: false, message: 'Failed to perform bulk update' });
+  }
+}
+
 async function createSociety(req, res) {
   try {
     if (!(await ensureSuperAdmin(req, res))) return;
@@ -364,8 +497,11 @@ async function createSociety(req, res) {
 
     const {
       code,
+      societyCode,
+      society_code,
       name,
       society_name,
+      societyName,
       address,
       city,
       state,
@@ -377,6 +513,8 @@ async function createSociety(req, res) {
       chairmanName,
       chairman_email,
       chairmanEmail: chairmanEmailCamel,
+      chairman_mobile,
+      chairmanMobile,
       secretaryName,
       secretary_email,
       secretaryEmail: secretaryEmailCamel,
@@ -387,36 +525,51 @@ async function createSociety(req, res) {
       default_language,
     } = req.body || {};
 
-    const societyName = normalizeText(society_name || name);
-    if (!societyName) {
+    const normalizedSocietyName = normalizeText(society_name || societyName || name);
+    if (!normalizedSocietyName) {
       return res.status(400).json({ success: false, message: "Society name is required" });
     }
 
-    const normalizedStatus = normalizeSocietyStatus(status, "active");
+    const normalizedChairmanEmail = normalizeText(chairman_email || chairmanEmailCamel);
+    const normalizedChairmanMobile = normalizeText(chairman_mobile || chairmanMobile);
+    if ((normalizedChairmanEmail && !normalizedChairmanMobile) || (!normalizedChairmanEmail && normalizedChairmanMobile)) {
+      return res.status(400).json({ success: false, message: "Chairman email and mobile are required together" });
+    }
+
+    const normalizedStatus = normalizedChairmanEmail
+      ? "pending_chairman_registration"
+      : normalizeSocietyStatus(status, "active");
     const normalizedSubscriptionPlan = normalizeText(subscriptionPlan || subscription_plan) || "starter";
     const normalizedDefaultLanguage = normalizeText(defaultLanguage || default_language) || "en";
 
-    const normalizedCode = code ? normalizeCode(code) : await generateSocietyCode(societyName);
+    const requestedCodeInput = code ?? societyCode ?? society_code ?? null;
+    const normalizedCodeInput = normalizeCode(requestedCodeInput);
 
-    if (code) {
+    if (requestedCodeInput !== null && requestedCodeInput !== undefined && String(requestedCodeInput).trim() !== "" && !normalizedCodeInput) {
+      return res.status(400).json({ success: false, message: "Society code must be 2 to 30 characters using only uppercase letters, numbers, and hyphens." });
+    }
+
+    const normalizedCode = normalizedCodeInput || (await generateSocietyCode(normalizedSocietyName));
+
+    if (normalizedCodeInput) {
       const existingSociety = await societyModel.getSocietyByCode(normalizedCode);
       if (existingSociety) {
-        return res.status(409).json({ success: false, message: "Society code already exists" });
+        return res.status(409).json({ success: false, message: "Society code already exists." });
       }
     }
 
     const society = await societyModel.createSociety({
       code: normalizedCode,
-      name: societyName,
-      societyName,
-      slug: normalizeSlug(`${societyName}-${normalizedCode}`) || normalizedCode.toLowerCase(),
+      name: normalizedSocietyName,
+      societyName: normalizedSocietyName,
+      slug: normalizeSlug(`${normalizedSocietyName}-${normalizedCode}`) || normalizedCode.toLowerCase(),
       subdomain: normalizeSlug(normalizedCode) || normalizedCode.toLowerCase(),
       address: normalizeText(address),
       city: normalizeText(city),
       state: normalizeText(state),
       pincode: normalizeText(pincode),
-      contactEmail: normalizeText(contact_email || contactEmail),
-      contactPhone: normalizeText(contact_phone || contactPhone),
+      contactEmail: normalizeText(contact_email || contactEmail || normalizedChairmanEmail),
+      contactPhone: normalizeText(contact_phone || contactPhone || normalizedChairmanMobile),
       status: normalizedStatus,
       subscriptionPlan: normalizedSubscriptionPlan,
       defaultLanguage: normalizedDefaultLanguage,
@@ -435,15 +588,6 @@ async function createSociety(req, res) {
     });
 
     let chairman = null;
-    if (chairmanName && chairmanEmail) {
-      chairman = await createPlatformUser({
-        name: normalizeText(chairmanName),
-        email: normalizeText(chairmanEmail),
-        role: "admin",
-        societyId: society.id,
-      });
-      await societyModel.updateSocietyById(society.id, { primaryAdminUserId: chairman.user.id });
-    }
 
     let secretary = null;
     if (secretaryName && secretaryEmail) {
@@ -460,7 +604,7 @@ async function createSociety(req, res) {
       action: "society_created",
       resourceType: "society",
       resourceId: society.id,
-      details: { code: normalizedCode, name: societyName, plan: subscriptionPlan },
+      details: { code: normalizedCode, name: normalizedSocietyName, plan: normalizedSubscriptionPlan },
       status: "success",
       societyId: society.id,
     });
@@ -717,75 +861,48 @@ async function getPendingApprovals(req, res) {
   try {
     if (!(await ensureSuperAdmin(req, res))) return;
 
+    await societyModel.ensureChairmanColumn();
+    await userModel.ensureChairmanRegistrationColumns();
+    await societyModel.cleanupStaleChairmanIds();
+    await UserApprovalModel.ensureSchema();
+
     const role = normalizeText(req.query.role);
-    const validRoles = ["admin", "secretary"];
+    const validRoles = ["chairman", "secretary"];
     const approvalParams = [];
     let approvalRoleClause = "";
     if (role && validRoles.includes(role)) {
-      approvalParams.push(role);
-      approvalRoleClause = ` AND u.role = $${approvalParams.length}`;
+      if (role === "chairman") {
+        approvalRoleClause = " AND u.role IN ('chairman', 'admin')";
+      } else {
+        approvalParams.push(role);
+        approvalRoleClause = ` AND u.role = $${approvalParams.length}`;
+      }
     }
 
     const { rows: approvalRows } = await db.query(
       `SELECT ua.id AS approval_id, u.id AS user_id, ua.society_id, ua.approval_type, ua.status, ua.created_at,
-              u.name, u.email, u.role, u.resident_type,
+              u.name, u.email, COALESCE(u.mobile, u.phone) AS mobile, u.role, u.resident_type, u.is_verified,
               s.code AS society_code, s.name AS society_name
        FROM user_approvals ua
        JOIN users u ON u.id = ua.user_id
        JOIN societies s ON s.id = ua.society_id
        WHERE ua.status = 'pending'
-         AND ua.approval_type = 'registration'
-         AND u.role IN ('admin', 'secretary')${approvalRoleClause}
+         AND ua.approval_type IN ('registration', 'chairman_registration')
+         AND u.role IN ('chairman', 'admin', 'secretary')${approvalRoleClause}
        ORDER BY ua.created_at ASC`,
       approvalParams
     );
 
-    const directParams = [];
-    let directRoleClause = validRoles.map((r) => `'${r}'`).join(", ");
-    if (role && validRoles.includes(role)) {
-      directParams.push(role);
-      directRoleClause = `$1`;
-    }
-
-    const directQuery = `
-      SELECT u.id AS user_id, u.society_id, u.name, u.email, u.role, u.resident_type,
-             s.code AS society_code, s.name AS society_name, u.created_at
-      FROM users u
-      JOIN societies s ON s.id = u.society_id
-      WHERE u.status = 'pending'
-        AND u.role IN (${directRoleClause})
-        AND NOT EXISTS (
-          SELECT 1 FROM user_approvals ua
-          WHERE ua.user_id = u.id
-            AND ua.status = 'pending'
-            AND ua.approval_type = 'registration'
-        )
-      ORDER BY u.created_at ASC`;
-
-    const { rows: directRows } = await db.query(directQuery, directParams);
-
-    const rows = [
-      ...approvalRows.map((item) => ({
+    const rows = approvalRows.map((item) => ({
         id: item.approval_id,
         approval_id: item.approval_id,
         user_id: item.user_id,
         source: "approval",
         ...item,
-      })),
-      ...directRows.map((item) => ({
-        id: -item.user_id,
-        approval_id: null,
-        user_id: item.user_id,
-        society_id: item.society_id,
-        approval_type: "registration",
-        status: "pending",
-        source: "user",
-        ...item,
-      })),
-    ];
+      }));
 
     const counts = rows.reduce((acc, item) => {
-      const key = item.role === "admin" ? "chairman" : item.role;
+      const key = isChairmanRole(item.role) ? "chairman" : item.role;
       acc[key] = (acc[key] || 0) + 1;
       return acc;
     }, { chairman: 0, secretary: 0 });
@@ -805,6 +922,11 @@ async function approvePendingUser(req, res) {
   try {
     if (!(await ensureSuperAdmin(req, res))) return;
 
+    await societyModel.ensureChairmanColumn();
+    await userModel.ensureChairmanRegistrationColumns();
+    await societyModel.cleanupStaleChairmanIds();
+    await UserApprovalModel.ensureSchema();
+
     const approvalId = Number(req.params.approvalId);
     if (!Number.isInteger(approvalId)) {
       return res.status(400).json({ success: false, message: "Invalid approval id" });
@@ -819,7 +941,7 @@ async function approvePendingUser(req, res) {
       const userId = Math.abs(approvalId);
 
       const { rows: userRows } = await db.query(
-        `SELECT id, role, status
+        `SELECT id, role, status, society_id, is_verified
          FROM users
          WHERE id = $1
          LIMIT 1`,
@@ -830,9 +952,10 @@ async function approvePendingUser(req, res) {
     }
 
     if (approvalRow) {
-      const { rows: approvalUserRows } = await db.query(`SELECT role FROM users WHERE id = $1 LIMIT 1`, [approvalRow.user_id]);
-      const approvalUserRole = approvalUserRows[0]?.role || null;
-      if (!["admin", "secretary"].includes(approvalUserRole) || approvalRow.approval_type !== "registration") {
+      const { rows: approvalUserRows } = await db.query(`SELECT id, role, society_id, is_verified FROM users WHERE id = $1 LIMIT 1`, [approvalRow.user_id]);
+      const approvalUser = approvalUserRows[0] || null;
+      const approvalUserRole = approvalUser?.role || null;
+      if (!["chairman", "admin", "secretary"].includes(approvalUserRole) || !["registration", "chairman_registration"].includes(approvalRow.approval_type)) {
         return res.status(403).json({
           success: false,
           message: "Super admin can approve only chairman/secretary registration requests",
@@ -843,19 +966,74 @@ async function approvePendingUser(req, res) {
         return res.status(404).json({ success: false, message: "Approval not found" });
       }
 
+      if (isChairmanRole(approvalUserRole) && !approvalUser.is_verified) {
+        return res.status(400).json({ success: false, message: "Chairman must verify OTP before approval." });
+      }
+
+      if (isChairmanRole(approvalUserRole)) {
+        const { rows: existingChairmanRows } = await db.query(
+          `SELECT id
+           FROM users
+           WHERE society_id = $1
+             AND role IN ('chairman', 'admin')
+             AND status = 'active'
+             AND id <> $2
+             AND deleted_at IS NULL
+           LIMIT 1`,
+          [approvalUser.society_id, approvalUser.id]
+        );
+        if (existingChairmanRows.length) {
+          return res.status(409).json({ success: false, message: "This society already has an active Chairman" });
+        }
+      }
+
       const approval = await UserApprovalModel.approveUser(approvalId, req.user.id, req.body?.comments || null);
       if (!approval) {
         return res.status(404).json({ success: false, message: "Approval not found" });
       }
 
+      if (isChairmanRole(approvalUserRole)) {
+        await societyModel.updateSocietyById(approvalUser.society_id, {
+          status: "active",
+          chairmanId: approvalUser.id,
+        });
+      }
+
       return res.json({ success: true, message: "User approved successfully", data: approval });
     }
 
-    if (!directUser || directUser.status !== "pending" || !["admin", "secretary"].includes(directUser.role)) {
+    if (!directUser || !["pending", "pending_approval"].includes(directUser.status) || !["chairman", "admin", "secretary"].includes(directUser.role)) {
       return res.status(404).json({ success: false, message: "Approval not found" });
     }
 
+    if (isChairmanRole(directUser.role) && !directUser.is_verified) {
+      return res.status(400).json({ success: false, message: "Chairman must verify OTP before approval." });
+    }
+
+    if (isChairmanRole(directUser.role)) {
+      const { rows: existingChairmanRows } = await db.query(
+        `SELECT id
+         FROM users
+         WHERE society_id = $1
+           AND role IN ('chairman', 'admin')
+           AND status = 'active'
+           AND id <> $2
+           AND deleted_at IS NULL
+         LIMIT 1`,
+        [directUser.society_id, directUser.id]
+      );
+      if (existingChairmanRows.length) {
+        return res.status(409).json({ success: false, message: "This society already has an active Chairman" });
+      }
+    }
+
     await db.query(`UPDATE users SET status = 'active', is_verified = TRUE WHERE id = $1`, [directUser.id]);
+    if (isChairmanRole(directUser.role)) {
+      await societyModel.updateSocietyById(directUser.society_id, {
+        status: "active",
+        chairmanId: directUser.id,
+      });
+    }
     const response = { user_id: directUser.id, role: directUser.role, status: "active", approved_by: req.user.id };
 
     return res.json({ success: true, message: "User approved successfully", data: response });
@@ -865,9 +1043,104 @@ async function approvePendingUser(req, res) {
   }
 }
 
+async function assignChairman(req, res) {
+  try {
+    if (!(await ensureSuperAdmin(req, res))) return;
+
+    const societyId = Number.parseInt(req.params.id, 10);
+    if (!Number.isInteger(societyId) || societyId <= 0) {
+      return res.status(400).json({ success: false, message: 'Invalid society id' });
+    }
+
+    const { userId, userEmail } = req.body || {};
+    if (!userId && !userEmail) {
+      return res.status(400).json({ success: false, message: 'userId or userEmail is required' });
+    }
+
+    // find society
+    const society = await societyModel.getSocietyById(societyId);
+    if (!society) return res.status(404).json({ success: false, message: 'Society not found' });
+
+    // find user
+    let userRow = null;
+    if (userId) {
+      const { rows } = await db.query('SELECT * FROM users WHERE id = $1 LIMIT 1', [userId]);
+      userRow = rows[0] || null;
+    } else {
+      const { rows } = await db.query('SELECT * FROM users WHERE LOWER(email) = LOWER($1) LIMIT 1', [String(userEmail).trim()]);
+      userRow = rows[0] || null;
+    }
+
+    if (!userRow) return res.status(404).json({ success: false, message: 'User not found' });
+
+    // perform assignment inside transaction
+    const conn = await db.getConnection();
+    try {
+      await conn.beginTransaction();
+
+      await conn.query(
+        `UPDATE users SET role = $1, status = $2, society_id = $3, updated_at = CURRENT_TIMESTAMP WHERE id = $4`,
+        ['chairman', 'active', societyId, userRow.id]
+      );
+
+      await conn.query(
+        `UPDATE societies SET chairman_id = $1, primary_admin_user_id = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2`,
+        [userRow.id, societyId]
+      );
+
+      await auditModel.createAuditLog({
+        userId: req.user.id,
+        action: 'assign_chairman',
+        resourceType: 'society',
+        resourceId: societyId,
+        details: { assignedUserId: userRow.id, assignedUserEmail: userRow.email },
+        status: 'success',
+        societyId,
+      });
+
+      await conn.commit();
+    } catch (err) {
+      await conn.rollback();
+      throw err;
+    } finally {
+      conn.release();
+    }
+
+    return res.json({ success: true, message: 'Chairman assigned', data: { userId: userRow.id } });
+  } catch (error) {
+    console.error('[SuperAdmin] assignChairman failed', error?.message || error);
+    return res.status(500).json({ success: false, message: 'Failed to assign chairman' });
+  }
+}
+
+async function searchUsers(req, res) {
+  try {
+    if (!(await ensureSuperAdmin(req, res))) return;
+
+    const q = normalizeText(req.query.query || req.query.q || '');
+    const limit = Math.min(parsePositiveInt(req.query.limit, 10), 50);
+
+    if (!q) return res.json({ success: true, data: [] });
+
+    const like = `%${q}%`;
+    const { rows } = await db.query(
+      `SELECT id, name, email, role, society_id FROM users WHERE (LOWER(name) ILIKE $1 OR LOWER(email) ILIKE $1) AND deleted_at IS NULL ORDER BY id DESC LIMIT $2`,
+      [like, limit]
+    );
+
+    return res.json({ success: true, data: rows });
+  } catch (error) {
+    console.error('[SuperAdmin] searchUsers failed', error.message || error);
+    return res.status(500).json({ success: false, message: 'Failed to search users' });
+  }
+}
+
 async function rejectPendingUser(req, res) {
   try {
     if (!(await ensureSuperAdmin(req, res))) return;
+
+    await userModel.ensureChairmanRegistrationColumns();
+    await UserApprovalModel.ensureSchema();
 
     const approvalId = Number(req.params.approvalId);
     const reason = normalizeText(req.body?.reason);
@@ -888,7 +1161,7 @@ async function rejectPendingUser(req, res) {
       const userId = Math.abs(approvalId);
 
       const { rows: userRows } = await db.query(
-        `SELECT id, role, status
+        `SELECT id, role, status, society_id
          FROM users
          WHERE id = $1
          LIMIT 1`,
@@ -901,7 +1174,7 @@ async function rejectPendingUser(req, res) {
     if (approvalRow) {
       const { rows: approvalUserRows } = await db.query(`SELECT role FROM users WHERE id = $1 LIMIT 1`, [approvalRow.user_id]);
       const approvalUserRole = approvalUserRows[0]?.role || null;
-      if (!["admin", "secretary"].includes(approvalUserRole) || approvalRow.approval_type !== "registration") {
+      if (!["chairman", "admin", "secretary"].includes(approvalUserRole) || !["registration", "chairman_registration"].includes(approvalRow.approval_type)) {
         return res.status(403).json({
           success: false,
           message: "Super admin can reject only chairman/secretary registration requests",
@@ -920,7 +1193,7 @@ async function rejectPendingUser(req, res) {
       return res.json({ success: true, message: "User rejected successfully", data: approval });
     }
 
-    if (!directUser || directUser.status !== "pending" || !["admin", "secretary"].includes(directUser.role)) {
+    if (!directUser || !["pending", "pending_approval"].includes(directUser.status) || !["chairman", "admin", "secretary"].includes(directUser.role)) {
       return res.status(404).json({ success: false, message: "Approval not found" });
     }
 
@@ -1213,6 +1486,10 @@ module.exports = {
   getPendingApprovals,
   approvePendingUser,
   rejectPendingUser,
+  assignChairman,
+  exportSocieties,
+  bulkUpdateSocieties,
+  searchUsers,
   getActivityLogs,
   getSubscriptions,
   getPlatformAnalytics,

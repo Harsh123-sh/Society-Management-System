@@ -10,6 +10,39 @@ export async function fetchSecurityProfile() {
   return data;
 }
 
+export async function searchSecurityResidents(query = "") {
+  const { data } = await api.get("/security/residents/search", {
+    params: { query },
+  });
+  return data;
+}
+
+export async function checkInSecurityVisitor(payload) {
+  const config = payload instanceof FormData ? { headers: { "Content-Type": "multipart/form-data" } } : undefined;
+  const { data } = await api.post("/security/visitors/check-in", payload, config);
+  return data;
+}
+
+export async function fetchSecurityVisitors(params = {}) {
+  const { data } = await api.get("/security/visitors", { params });
+  return data;
+}
+
+export async function checkOutSecurityVisitor(visitorId) {
+  const { data } = await api.post(`/security/visitors/${visitorId}/check-out`);
+  return data;
+}
+
+export async function createSecurityVehicleEntry(payload) {
+  const { data } = await api.post("/security/vehicles/entry", payload);
+  return data;
+}
+
+export async function fetchSecurityVehicles(params = {}) {
+  const { data } = await api.get("/security/vehicles", { params });
+  return data;
+}
+
 export async function securityCheckIn(notes) {
   const { data } = await api.post("/security/attendance/check-in", { notes });
   return data;

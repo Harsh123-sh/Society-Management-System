@@ -57,4 +57,12 @@ router.get(
   dashboardController.getSecurityDashboard
 );
 
+// Staff Dashboard
+router.get(
+  "/staff",
+  authenticateToken,
+  requireRole("staff"),
+  dashboardController.getStaffDashboard
+);
+
 module.exports = router;

@@ -4,6 +4,8 @@ const notificationModel = require("../models/notificationModel");
 const { uploadVisitorPhoto } = require("../utils/cloudinary");
 const { sendVisitorArrivalEmails } = require("../utils/mailer");
 const { emitVisitorEvent } = require("../sockets/chatSocket");
+const userModel = require("../models/userModel");
+const flatModel = require("../models/flatModel");
 
 const MIN_FACE_CONFIDENCE = Number(process.env.MIN_FACE_CONFIDENCE || 0.8);
 
@@ -17,16 +19,14 @@ function emitSafe(eventName, payload) {
 
 async function createVisitorArrivalNotification(visitor, details = {}) {
   try {
-    const title = visitor.blacklist_flag ? "Blacklisted visitor blocked" : "Visitor arrived";
-    const message = visitor.blacklist_flag
-      ? `${visitor.visitor_name} matched blacklist detection at the gate`
-      : `${visitor.visitor_name} arrived for ${visitor.purpose || "a visit"}`;
+    const title = "Visitor arrived";
+    const message = `${visitor.visitor_name} arrived for ${visitor.purpose || "a visit"}`;
 
     await notificationModel.createNotification({
       targetRole: "security",
       title,
       message,
-      priority: visitor.blacklist_flag ? "critical" : "high",
+      priority: "high",
       category: "visitor_alert",
       relatedType: "visitor",
       relatedId: visitor.id,
@@ -55,7 +55,9 @@ async function addVisitorEntry(req, res) {
       visitorName,
       visitorEmail,
       phone,
+      gender,
       purpose,
+      visitorCount,
       personToMeet,
       vehicleNumber,
       flatId,
@@ -63,16 +65,24 @@ async function addVisitorEntry(req, res) {
       photoBase64,
       flatNumber,
       wing,
+      floor,
+      residentName,
+      residentPhone,
       faceDetectionConfidence,
       isFaceValid,
-      qrPassToken,
-      otpCode,
       faceSignature,
       faceCaptureUrl,
     } = req.body;
+    const societyId = req.user?.societyId || req.user?.society_id || null;
+    if (!societyId) {
+      return res.status(403).json({ success: false, message: "Society mismatch." });
+    }
 
-    if (!photoBase64) {
-      return res.status(400).json({ success: false, message: "Please capture visitor face before check-in." });
+    const uploadedPhotoUrl = req.file ? `/uploads/visitors/${req.file.filename}` : null;
+    const photoSource = photoBase64 || uploadedPhotoUrl;
+
+    if (!photoSource) {
+      return res.status(400).json({ success: false, message: "Missing required fields." });
     }
 
     const parsedConfidence = faceDetectionConfidence === undefined || faceDetectionConfidence === null || faceDetectionConfidence === ""
@@ -93,7 +103,6 @@ async function addVisitorEntry(req, res) {
       });
     }
 
-    let visitor = null;
     let normalizedVisitorName = String(visitorName || "").trim();
     let normalizedVisitorEmail = visitorEmail ? String(visitorEmail).trim().toLowerCase() : null;
     let normalizedPhone = String(phone || "").trim();
@@ -104,7 +113,7 @@ async function addVisitorEntry(req, res) {
     let normalizedPreapprovalId = preapprovalId ? Number(preapprovalId) : null;
     let normalizedFlatNumber = flatNumber ? String(flatNumber).trim() : "";
     let normalizedWing = wing ? String(wing).trim().toUpperCase() : "";
-    const computedFaceSignature = visitorModel.createSignature(faceSignature || photoBase64);
+    const computedFaceSignature = visitorModel.createSignature(faceSignature || photoSource);
 
     if (normalizedPreapprovalId) {
       const preapproval = await visitorModel.getVisitorPreapprovalById(normalizedPreapprovalId);
@@ -120,72 +129,94 @@ async function addVisitorEntry(req, res) {
     }
 
     if (!normalizedVisitorName) {
-      return res.status(400).json({ success: false, message: "visitorName is required" });
+      return res.status(400).json({ success: false, message: "Missing required fields." });
     }
 
-    if (!normalizedFlatId) {
-      if (!normalizedFlatNumber || !normalizedWing) {
-        return res.status(400).json({ success: false, message: "flatNumber and wing are required" });
+    if (!normalizedPhone || !normalizedPurpose) {
+      return res.status(400).json({ success: false, message: "Missing required fields." });
+    }
+
+    // prepare holder variables
+    let owner = null;
+    let selectedResidentName = residentName ? String(residentName).trim() : null;
+    let selectedResidentPhone = residentPhone ? String(residentPhone).trim() : null;
+    let selectedWing = wing ? String(wing).trim() : null;
+    let selectedFloor = floor ? String(floor).trim() : null;
+    let selectedFlatNumber = flatNumber ? String(flatNumber).trim() : null;
+
+    // If this request is created by a security guard, require selected resident and flat IDs
+    let normalizedResidentId = req.body.residentId ? Number(req.body.residentId) : (req.body.resident_id ? Number(req.body.resident_id) : null);
+    if (req.user && req.user.role === "security") {
+      const selectedFlatId = flatId ? Number(flatId) : (req.body.flat_id ? Number(req.body.flat_id) : null);
+      const manualResidentFields = ["wing", "floor", "flatNumber", "flat_number", "residentName", "resident_name", "residentPhone", "resident_phone"];
+      const hasManualResidentFields = manualResidentFields.some((field) => String(req.body[field] || "").trim());
+      if (hasManualResidentFields) {
+        return res.status(400).json({ success: false, message: "Only residentId and flatId are accepted for resident selection." });
       }
 
-      const flat = await visitorModel.getFlatByWingAndFlatNumber({
-        societyId: req.user?.society_id,
-        builderId: req.user?.builder_id,
-        wing: normalizedWing,
-        flatNumber: normalizedFlatNumber,
-      });
+      if (!normalizedResidentId || !selectedFlatId) {
+        return res.status(400).json({ success: false, message: "Resident is not registered in this society. Please contact Chairman/Secretary." });
+      }
+
+      const resident = await userModel.getUserById(normalizedResidentId);
+      if (!resident || resident.society_id !== societyId || resident.role !== 'resident' || resident.status !== 'active' || !["owner", "tenant"].includes(resident.resident_type)) {
+        return res.status(400).json({ success: false, message: "Resident is not registered in this society. Please contact Chairman/Secretary." });
+      }
+
+      const flat = await flatModel.getFlatById(selectedFlatId, { societyId });
       if (!flat) {
-        return res.status(400).json({ success: false, message: "No approved flat found for the provided wing and flat number" });
+        return res.status(400).json({ success: false, message: "Resident is not registered in this society. Please contact Chairman/Secretary." });
       }
-      normalizedFlatId = flat.id;
-    }
 
-    const blacklist = await visitorModel.isBlacklisted({
-      visitorName: normalizedVisitorName,
-      phone: normalizedPhone,
-      faceSignature: computedFaceSignature,
-    });
-
-    if (blacklist.blacklisted) {
-      const alertId = await visitorModel.createEmergencyAlert({
-        triggeredBy: req.user.id,
-        alertType: "security",
-        severity: "critical",
-        message: `Blacklisted visitor attempt: ${normalizedVisitorName}`,
-        location: `Wing ${normalizedWing || "NA"} Flat ${normalizedFlatNumber || normalizedFlatId}`,
-      });
-
-      emitSafe("visitor:blacklist_detected", {
-        alertId,
-        visitorName: normalizedVisitorName,
-        phone: normalizedPhone,
-        reason: blacklist.record?.reason || "Blacklisted match",
-      });
-
-      return res.status(403).json({
-        success: false,
-        message: "Blacklist match detected. Entry blocked and security alerted.",
-        data: { blacklist: blacklist.record },
-      });
-    }
-
-    if (normalizedPreapprovalId && otpCode) {
-      const otpResult = await visitorModel.verifyVisitorOtp({
-        preapprovalId: normalizedPreapprovalId,
-        otpCode,
-        verifiedBy: req.user.id,
-      });
-
-      if (!otpResult.verified) {
-        return res.status(400).json({ success: false, message: otpResult.reason || "OTP verification failed" });
+      // Ensure resident belongs to the selected flat
+      if (Number(resident.flat_id) !== Number(flat.id)) {
+        return res.status(400).json({ success: false, message: "Selected resident does not belong to the selected flat." });
       }
+
+      normalizedFlatId = selectedFlatId;
+      // use resident as owner
+      owner = resident;
+      // authoritative resident/flat fields
+      selectedResidentName = owner.name;
+      selectedResidentPhone = owner.phone || null;
+      selectedWing = flat.wing;
+      selectedFloor = flat.floor;
+      selectedFlatNumber = flat.flat_number || null;
+    } else {
+      // existing behavior for non-security flows (preapprovals etc.)
+      if (!normalizedFlatId) {
+        if (!normalizedFlatNumber || !normalizedWing) {
+          return res.status(400).json({ success: false, message: "Missing required fields." });
+        }
+
+        const flat = await visitorModel.getFlatByWingAndFlatNumber({
+          societyId,
+          builderId: req.user?.builder_id,
+          wing: normalizedWing,
+          flatNumber: normalizedFlatNumber,
+        });
+        if (!flat) {
+          return res.status(404).json({ success: false, message: "Resident not found." });
+        }
+        normalizedFlatId = flat.id;
+      }
+
+      const ownerFromModel = await visitorModel.getFlatOwnerByFlatId(normalizedFlatId);
+      if (!ownerFromModel) {
+        return res.status(404).json({ success: false, message: "Resident not found." });
+      }
+      owner = ownerFromModel;
+      selectedResidentName = owner.name;
+      selectedResidentPhone = owner.phone || null;
     }
 
-    let photoUrl = null;
-    try {
-      photoUrl = await uploadVisitorPhoto(photoBase64);
-    } catch (uploadError) {
-      console.warn("Photo upload failed, storing the captured image in the visitor row only:", uploadError.message);
+    let photoUrl = uploadedPhotoUrl;
+    if (!photoUrl && photoBase64) {
+      try {
+        photoUrl = await uploadVisitorPhoto(photoBase64);
+      } catch (uploadError) {
+        console.warn("Photo upload failed, storing captured image reference in visitor row:", uploadError.message);
+      }
     }
 
     const recognition = await visitorModel.recognizeVisitorFace({
@@ -196,34 +227,25 @@ async function addVisitorEntry(req, res) {
       flatId: normalizedFlatId,
     });
 
-    const approvalStatus = normalizedPreapprovalId ? "approved" : "manual_review";
-    const visitorId = await visitorModel.createVisitorEntry({
+    const insertedVisitor = await visitorModel.createGuardVisitorEntry({
       visitorName: normalizedVisitorName,
       visitorEmail: normalizedVisitorEmail,
       phone: normalizedPhone,
+      gender: String(gender || "").trim() || null,
       purpose: normalizedPurpose,
-      personToMeet: normalizedPersonToMeet,
-      vehicleNumber: normalizedVehicleNumber,
       flatId: normalizedFlatId,
-      preapprovalId: normalizedPreapprovalId,
-      securityId: req.user.id,
+      residentId: owner?.id || null,
+      residentName: String(selectedResidentName || owner?.name || "").trim() || null,
+      residentPhone: String(selectedResidentPhone || owner?.phone || "").trim() || null,
+      guardId: req.user.id,
+      visitorCount: Number(visitorCount) || 1,
       photoUrl,
-      faceCaptureUrl: faceCaptureUrl || photoBase64,
-      faceSignature: computedFaceSignature,
-      faceMatchConfidence: recognition.confidence,
-      approvalStatus,
-      blacklistFlag: recognition.matchFound ? 0 : 0,
-      qrPassId: null,
-      otpVerifiedAt: normalizedPreapprovalId ? new Date() : null,
-      societyId: req.user?.societyId || req.user?.society_id || null,
+      societyId,
     });
 
     if (normalizedPreapprovalId) {
       await visitorModel.markPreapprovalVisited(normalizedPreapprovalId);
     }
-
-    const insertedVisitor = await visitorModel.getVisitorById(visitorId);
-    const owner = await visitorModel.getFlatOwnerByFlatId(normalizedFlatId);
 
     try {
       await sendVisitorArrivalEmails({
@@ -231,8 +253,8 @@ async function addVisitorEntry(req, res) {
         ownerName: owner?.name || null,
         visitorEmail: normalizedVisitorEmail,
         visitorName: normalizedVisitorName,
-        flatNumber: insertedVisitor?.flat_number || normalizedFlatNumber,
-        wing: insertedVisitor?.wing || normalizedWing,
+        flatNumber: insertedVisitor?.flat_number || selectedFlatNumber || normalizedFlatNumber,
+        wing: insertedVisitor?.wing || selectedWing || normalizedWing,
       });
     } catch (mailError) {
       if (process.env.NODE_ENV !== "production") {
@@ -251,7 +273,7 @@ async function addVisitorEntry(req, res) {
 
     return res.status(201).json({
       success: true,
-      message: "Visitor entry created",
+      message: "Visitor checked in successfully.",
       data: {
         ...insertedVisitor,
         faceRecognition: recognition,
@@ -259,7 +281,7 @@ async function addVisitorEntry(req, res) {
     });
   } catch (error) {
     console.error("Add visitor error:", error);
-    return res.status(500).json({ success: false, message: "Internal server error" });
+    return res.status(500).json({ success: false, message: "Failed to save visitor." });
   }
 }
 
@@ -339,32 +361,6 @@ async function updatePreapprovalStatusBySecurity(req, res) {
   }
 }
 
-// Security: verify QR token and auto-approve preapproval
-async function verifyQrToken(req, res) {
-  try {
-    const { token } = req.body;
-    if (!token) {
-      return res.status(400).json({ success: false, message: "token is required" });
-    }
-
-    const pass = await visitorModel.getQrPassByToken(token);
-    if (!pass) {
-      return res.status(404).json({ success: false, message: "QR pass not found" });
-    }
-
-    // mark scanned and set preapproval approved
-    await visitorModel.markQrPassScanned({ passId: pass.id, scannedBy: req.user.id });
-    await visitorModel.updateVisitorPreapprovalStatusBySecurity({ id: pass.preapproval_id, status: "approved", updatedBy: req.user.id, societyId: req.user?.societyId || req.user?.society_id });
-
-    const preapproval = await visitorModel.getVisitorPreapprovalById(pass.preapproval_id);
-    emitSafe("visitor:qr_verified", { preapproval, passId: pass.id });
-
-    return res.json({ success: true, message: "QR verified and pre-approval approved", data: { preapproval, pass } });
-  } catch (error) {
-    return res.status(500).json({ success: false, message: "Failed to verify QR" });
-  }
-}
-
 // Security: check-in from preapproval (creates visitor entry and marks preapproval checked_in)
 async function checkInFromPreapproval(req, res) {
   try {
@@ -375,7 +371,7 @@ async function checkInFromPreapproval(req, res) {
     const visitorId = await visitorModel.createVisitorEntryFromPreapproval({
       preapprovalId,
       securityId: req.user.id,
-      entryMethod: req.body.entryMethod || "qr",
+      entryMethod: req.body.entryMethod || "guard",
       photoBase64: String(req.body.photoBase64 || "").trim() || null,
       societyId,
     });
@@ -543,71 +539,6 @@ async function rejectOwnerPreapproval(req, res) {
   }
 }
 
-async function issueQrPass(req, res) {
-  try {
-    const preapprovalId = Number(req.params.id);
-    const issued = await visitorModel.issueQrPass({
-      preapprovalId,
-      issuedBy: req.user.id,
-      deviceLabel: req.body.deviceLabel,
-    });
-
-    const preapproval = await visitorModel.getVisitorPreapprovalById(preapprovalId);
-    emitSafe("visitor:qr_pass_issued", { preapprovalId, issued });
-
-    return res.status(201).json({ success: true, message: "QR pass issued", data: { ...issued, preapproval } });
-  } catch (error) {
-    return res.status(500).json({ success: false, message: "Failed to issue QR pass" });
-  }
-}
-
-async function sendOtp(req, res) {
-  try {
-    const preapprovalId = Number(req.params.id);
-    const otp = await visitorModel.createVisitorOtp({ preapprovalId, issuedBy: req.user.id });
-    emitSafe("visitor:otp_issued", { preapprovalId, expiresAt: otp.expiresAt });
-
-    return res.status(201).json({
-      success: true,
-      message: "OTP generated",
-      data: {
-        otpId: otp.id,
-        otpCode: process.env.NODE_ENV === "production" ? undefined : otp.otpCode,
-        expiresAt: otp.expiresAt,
-      },
-    });
-  } catch (error) {
-    return res.status(500).json({ success: false, message: "Failed to generate OTP" });
-  }
-}
-
-async function verifyOtp(req, res) {
-  try {
-    const preapprovalId = Number(req.params.id);
-    const otpCode = String(req.body.otpCode || "").trim();
-
-    if (!otpCode) {
-      return res.status(400).json({ success: false, message: "otpCode is required" });
-    }
-
-    const result = await visitorModel.verifyVisitorOtp({ preapprovalId, otpCode, verifiedBy: req.user.id });
-    if (!result.verified) {
-      return res.status(400).json({ success: false, message: result.reason || "OTP verification failed" });
-    }
-
-    // If OTP verified, mark preapproval as approved and emit event
-    const preapproval = await visitorModel.getVisitorPreapprovalById(preapprovalId);
-    emitSafe("visitor:otp_verified", { preapprovalId, otpId: result.otpId });
-    if (preapproval) {
-      emitSafe("visitor:preapproval_approved", preapproval);
-    }
-
-    return res.json({ success: true, message: "OTP verified", data: result });
-  } catch (error) {
-    return res.status(500).json({ success: false, message: "Failed to verify OTP" });
-  }
-}
-
 async function recognizeFace(req, res) {
   try {
     if (!req.user?.societyId) {
@@ -649,34 +580,6 @@ async function recognizeFace(req, res) {
     return res.json({ success: true, data: recognition });
   } catch (error) {
     return res.status(500).json({ success: false, message: "Failed to recognize face" });
-  }
-}
-
-async function addBlacklist(req, res) {
-  try {
-    if (!req.user?.societyId) {
-      return res.status(403).json({ success: false, message: "Society context required" });
-    }
-
-    const { visitorName, phone, reason, flatId, faceSignature } = req.body;
-    if (!reason) {
-      return res.status(400).json({ success: false, message: "reason is required" });
-    }
-
-    const id = await visitorModel.addBlacklistEntry({
-      visitorName,
-      phone,
-      reason,
-      flatId: flatId ? Number(flatId) : null,
-      faceSignature: faceSignature ? visitorModel.createSignature(faceSignature) : null,
-      blockedBy: req.user.id,
-      societyId: req.user.societyId,
-    });
-
-    emitSafe("visitor:blacklist_added", { id, visitorName, phone, reason });
-    return res.status(201).json({ success: true, message: "Blacklist entry added", data: { id } });
-  } catch (error) {
-    return res.status(500).json({ success: false, message: "Failed to add blacklist entry" });
   }
 }
 
@@ -938,7 +841,6 @@ module.exports = {
   getOwnerPreapprovals,
   listSecurityPreapprovals,
   updatePreapprovalStatusBySecurity,
-  verifyQrToken,
   checkInFromPreapproval,
   checkOutVisitorBySecurity,
   securityUpdatePreapprovalStatus,
@@ -946,11 +848,7 @@ module.exports = {
   securityCheckOutVisitor,
   approveOwnerPreapproval,
   rejectOwnerPreapproval,
-  issueQrPass,
-  sendOtp,
-  verifyOtp,
   recognizeFace,
-  addBlacklist,
   updateVisitorExit,
   getVisitorLogs,
   getVisitorHistory,

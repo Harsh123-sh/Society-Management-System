@@ -8,7 +8,9 @@ import ErrorBoundary from './components/ErrorBoundary.jsx'
 import { initializeWebPushNotifications } from './services/pushNotificationService'
 import { ThemeProvider } from './contexts/ThemeContext'
 import { LanguageProvider } from './contexts/LanguageContext'
+import { SocietyProvider } from './contexts/SocietyContext'
 import { applyAppearanceSettings, getAppearanceSettings } from './utils/appearance'
+import './i18n'
 
 function PushBootstrap() {
   useEffect(() => {
@@ -24,9 +26,11 @@ createRoot(document.getElementById('root')).render(
     <ErrorBoundary>
       <BrowserRouter>
         <LanguageProvider>
-          <ThemeProvider>
-            <PushBootstrap />
-          </ThemeProvider>
+          <SocietyProvider>
+            <ThemeProvider>
+              <PushBootstrap />
+            </ThemeProvider>
+          </SocietyProvider>
         </LanguageProvider>
       </BrowserRouter>
     </ErrorBoundary>

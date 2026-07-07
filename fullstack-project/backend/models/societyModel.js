@@ -1,4 +1,33 @@
 const db = require("../config/db");
+let chairmanColumnEnsured = false;
+
+async function ensureChairmanColumn() {
+  if (chairmanColumnEnsured) return;
+  await db.query(`ALTER TABLE societies ADD COLUMN IF NOT EXISTS chairman_id INT`);
+  await db.query(`ALTER TABLE societies ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT 'pending_chairman_registration'`);
+  chairmanColumnEnsured = true;
+}
+
+async function getChairmanIdBySocietyId(societyId) {
+  await ensureChairmanColumn();
+  const { rows } = await db.query("SELECT chairman_id FROM societies WHERE id = $1", [societyId]);
+  return rows[0]?.chairman_id || null;
+}
+
+async function cleanupStaleChairmanIds() {
+  await ensureChairmanColumn();
+  await db.query(`
+    UPDATE societies
+    SET chairman_id = NULL
+    WHERE chairman_id IS NOT NULL
+      AND NOT EXISTS (
+        SELECT 1
+        FROM users
+        WHERE users.id = societies.chairman_id
+          AND users.deleted_at IS NULL
+      )
+  `);
+}
 
 async function getSocietyByCode(code) {
   if (!code) {
@@ -11,9 +40,9 @@ async function getSocietyByCode(code) {
             COALESCE(society_name, name) AS name,
             COALESCE(society_name, name) AS society_name,
             logo_url,
-            address, city, state, pincode, contact_email, contact_phone, builder_id, status, subscription_plan, default_language, created_by, primary_admin_user_id, created_at
+            registration_number, office_timing, address, city, state, pincode, contact_email, contact_phone, builder_id, status, subscription_plan, default_language, created_by, chairman_id, primary_admin_user_id, created_at
      FROM societies
-     WHERE code = $1
+     WHERE LOWER(TRIM(code)) = LOWER(TRIM($1))
      LIMIT 1`,
     [normalizedCode]
   );
@@ -27,7 +56,7 @@ async function getSocietyById(id) {
             COALESCE(society_name, name) AS name,
             COALESCE(society_name, name) AS society_name,
             logo_url,
-            address, city, state, pincode, contact_email, contact_phone, builder_id, status, subscription_plan, default_language, created_by, primary_admin_user_id, created_at
+            registration_number, office_timing, address, city, state, pincode, contact_email, contact_phone, builder_id, status, subscription_plan, default_language, created_by, chairman_id, primary_admin_user_id, created_at
      FROM societies
      WHERE id = $1
      LIMIT 1`,
@@ -42,7 +71,7 @@ async function listSocieties() {
     `SELECT id, code, code AS society_code, slug, subdomain,
             COALESCE(society_name, name) AS name,
             COALESCE(society_name, name) AS society_name,
-            address, city, state, pincode, contact_email, contact_phone, builder_id, status, subscription_plan, subscription_plan AS plan, default_language, created_by, primary_admin_user_id, created_at
+            registration_number, office_timing, address, city, state, pincode, contact_email, contact_phone, builder_id, status, subscription_plan, subscription_plan AS plan, default_language, created_by, chairman_id, primary_admin_user_id, created_at
      FROM societies
      ORDER BY name ASC, code ASC`
   );
@@ -61,7 +90,7 @@ async function getSocietyBySlug(slug) {
             COALESCE(society_name, name) AS name,
             COALESCE(society_name, name) AS society_name,
             logo_url,
-            address, city, state, pincode, contact_email, contact_phone, builder_id, status, subscription_plan, default_language, created_by, primary_admin_user_id, created_at
+            registration_number, office_timing, address, city, state, pincode, contact_email, contact_phone, builder_id, status, subscription_plan, default_language, created_by, chairman_id, primary_admin_user_id, created_at
      FROM societies
      WHERE slug = $1
      LIMIT 1`,
@@ -82,7 +111,7 @@ async function getSocietyBySubdomain(subdomain) {
             COALESCE(society_name, name) AS name,
             COALESCE(society_name, name) AS society_name,
             logo_url,
-            address, city, state, pincode, contact_email, contact_phone, builder_id, status, subscription_plan, default_language, created_by, primary_admin_user_id, created_at
+            registration_number, office_timing, address, city, state, pincode, contact_email, contact_phone, builder_id, status, subscription_plan, default_language, created_by, chairman_id, primary_admin_user_id, created_at
      FROM societies
      WHERE subdomain = $1
      LIMIT 1`,
@@ -235,6 +264,12 @@ async function updateSocietyById(id, updates = {}) {
     params.push(updates.primaryAdminUserId || null);
   }
 
+  if (updates.chairmanId !== undefined) {
+    await ensureChairmanColumn();
+    fields.push(`chairman_id = $${paramIndex++}`);
+    params.push(updates.chairmanId || null);
+  }
+
   if (!fields.length) {
     return getSocietyById(id);
   }
@@ -250,7 +285,7 @@ async function listSocietiesByBuilder(builderId, limit = 50, offset = 0) {
     `SELECT id, code, code AS society_code, slug, subdomain,
             COALESCE(society_name, name) AS name,
             COALESCE(society_name, name) AS society_name,
-            address, city, state, pincode, contact_email, contact_phone, builder_id, status, subscription_plan, default_language, created_by, primary_admin_user_id, created_at
+            registration_number, office_timing, address, city, state, pincode, contact_email, contact_phone, builder_id, status, subscription_plan, default_language, created_by, chairman_id, primary_admin_user_id, created_at
      FROM societies
      WHERE builder_id = $1 AND status != 'archived'
      ORDER BY created_at DESC
@@ -278,4 +313,7 @@ module.exports = {
   getSocietyCountByBuilder,
   createSociety,
   updateSocietyById,
+  ensureChairmanColumn,
+  getChairmanIdBySocietyId,
+  cleanupStaleChairmanIds,
 };

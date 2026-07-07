@@ -3,6 +3,77 @@ const bcrypt = require("bcrypt");
 const flatModel = require("../models/flatModel");
 const { sendAccountDeletionEmail } = require("../utils/mailer");
 
+const CHAIRMAN_ROLES = new Set(["chairman", "admin"]);
+const OPERATIONAL_ROLES = new Set(["resident", "staff", "security"]);
+
+function getSocietyIdFromRequest(req) {
+  return req.user?.societyId || req.user?.society_id || req.societyId || null;
+}
+
+function isChairmanRole(role) {
+  return CHAIRMAN_ROLES.has(String(role || "").toLowerCase());
+}
+
+function canApproveOperationalUser(user) {
+  const role = String(user?.role || "").toLowerCase();
+  if (!OPERATIONAL_ROLES.has(role)) return false;
+  if (role === "resident") {
+    return ["owner", "tenant"].includes(String(user?.resident_type || "").toLowerCase());
+  }
+  return true;
+}
+
+function getApprovalAuthorization({ approver, targetUser, nextStatus, requestSocietyId }) {
+  const approverRole = String(approver?.role || "").toLowerCase();
+  const targetRole = String(targetUser?.role || "").toLowerCase();
+  const isApprovalDecision = ["active", "rejected"].includes(String(nextStatus || "").toLowerCase());
+  const sameSociety =
+    requestSocietyId &&
+    targetUser?.society_id &&
+    Number(targetUser.society_id) === Number(requestSocietyId);
+
+  if (targetRole === "chairman" || targetRole === "admin") {
+    return {
+      allowed: false,
+      message: "Chairman approval requires Super Admin.",
+    };
+  }
+
+  if (targetRole === "secretary") {
+    if (Number(targetUser.id) === Number(approver?.id || approver?.userId)) {
+      return {
+        allowed: false,
+        message: "Secretary can be approved by Super Admin or Chairman.",
+      };
+    }
+
+    if (isChairmanRole(approverRole) && sameSociety && isApprovalDecision) {
+      return { allowed: true };
+    }
+
+    return {
+      allowed: false,
+      message: "Secretary can be approved by Super Admin or Chairman.",
+    };
+  }
+
+  if (canApproveOperationalUser(targetUser)) {
+    if ((isChairmanRole(approverRole) || approverRole === "secretary") && sameSociety && isApprovalDecision) {
+      return { allowed: true };
+    }
+
+    return {
+      allowed: false,
+      message: "Chairman or Secretary can approve same-society owner, tenant, staff, and security registrations.",
+    };
+  }
+
+  return {
+    allowed: false,
+    message: "Unauthorized approval target.",
+  };
+}
+
 async function getUsers(req, res) {
   try {
     const search = req.query.search ? String(req.query.search).trim() : "";
@@ -33,15 +104,28 @@ async function getUsers(req, res) {
       societyId: req.user?.societyId || null,
     });
 
+    let rows = directory.rows;
+    let total = directory.total;
+    if (["pending", "pending_approval"].includes(String(status || "").toLowerCase())) {
+      const requestSocietyId = getSocietyIdFromRequest(req);
+      rows = rows.filter((item) => getApprovalAuthorization({
+        approver: req.user,
+        targetUser: item,
+        nextStatus: "active",
+        requestSocietyId,
+      }).allowed);
+      total = rows.length;
+    }
+
     res.json({
       success: true,
-      data: directory.rows,
+      data: rows,
       summary: directory.summary,
       meta: {
-        total: directory.total,
+        total,
         page: directory.page,
         limit: directory.limit,
-        totalPages: Math.max(Math.ceil(directory.total / directory.limit), 1),
+        totalPages: Math.max(Math.ceil(total / directory.limit), 1),
       },
     });
   } catch (error) {
@@ -95,7 +179,7 @@ async function getUsersByCategory(req, res) {
 
 async function createUser(req, res) {
   try {
-    const { name, email, password, role, residentType, status, flatId, flatNumber } = req.body;
+    const { name, email, password, role, residentType, status, flatId, flatNumber, phone, department, designation } = req.body;
 
     if (!name || !email || !password) {
       return res
@@ -119,8 +203,12 @@ async function createUser(req, res) {
       residentType,
       status: role === "resident" ? "pending" : status || "active",
       isVerified: role === "resident" ? false : true,
+      societyId: req.user?.societyId || null,
       flatId: flatId || null,
       flatNumber: flatNumber || null,
+      phone: phone || null,
+      department: department || null,
+      designation: designation || null,
     });
 
     if (role === "resident" && residentType === "owner") {
@@ -153,32 +241,26 @@ async function updateUserStatus(req, res) {
       });
     }
 
-    if (req.user?.societyId && existingUser.society_id !== req.user.societyId) {
+    const requestSocietyId = getSocietyIdFromRequest(req);
+    if (!requestSocietyId || Number(existingUser.society_id) !== Number(requestSocietyId)) {
       return res.status(403).json({
         success: false,
         message: "You can only manage users from your own society",
       });
     }
 
-    if (["admin", "secretary"].includes(existingUser.role)) {
+    const authorization = getApprovalAuthorization({
+      approver: req.user,
+      targetUser: existingUser,
+      nextStatus: status,
+      requestSocietyId,
+    });
+
+    if (!authorization.allowed) {
       return res.status(403).json({
         success: false,
-        message: "Chairman and secretary accounts can only be approved by super admin",
+        message: authorization.message,
       });
-    }
-
-    if (req.user?.role === "secretary") {
-      const isPendingResidentApproval =
-        existingUser.role === "resident" &&
-        existingUser.status === "pending" &&
-        ["active", "rejected"].includes(status);
-
-      if (!isPendingResidentApproval) {
-        return res.status(403).json({
-          success: false,
-          message: "Secretary can only approve or reject pending resident registrations",
-        });
-      }
     }
 
     const updatedUser = await userModel.updateUserStatusById(userId, status);
@@ -221,7 +303,7 @@ async function updateUserStatus(req, res) {
 async function updateUser(req, res) {
   try {
     const userId = Number(req.params.id);
-    const { name, email, phone, profile_photo_url, family_members } = req.body;
+    const { name, email, phone, department, designation, profile_photo_url, family_members } = req.body;
 
     const existingUser = await userModel.getUserById(userId);
     if (!existingUser) {
@@ -232,6 +314,8 @@ async function updateUser(req, res) {
       name: name === undefined ? undefined : String(name).trim(),
       email: email === undefined ? undefined : String(email).trim(),
       phone: phone === undefined ? undefined : String(phone).trim(),
+      department: department === undefined ? undefined : String(department).trim(),
+      designation: designation === undefined ? undefined : String(designation).trim(),
       profilePhotoUrl: profile_photo_url === undefined ? undefined : String(profile_photo_url).trim(),
       familyMembers: family_members === undefined ? undefined : family_members,
     });
@@ -301,7 +385,7 @@ async function deleteUser(req, res) {
       });
     }
 
-    if (existingUser.status === "inactive") {
+    if (existingUser.deleted_at) {
       return res.status(400).json({
         success: false,
         message: "User is already deleted",

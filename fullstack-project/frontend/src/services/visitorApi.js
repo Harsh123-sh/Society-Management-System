@@ -1,13 +1,14 @@
 import { api } from "./authApi";
 
 export async function createVisitorEntry(payload) {
-  const { data } = await api.post("/visitors", payload);
+  const config = payload instanceof FormData ? { headers: { "Content-Type": "multipart/form-data" } } : undefined;
+  const { data } = await api.post("/visitors", payload, config);
   return data;
 }
 
 export async function createVisitorEntryWithPhoto(payload) {
-  // payload should include photoBase64
-  const { data } = await api.post("/visitors", payload);
+  const config = payload instanceof FormData ? { headers: { "Content-Type": "multipart/form-data" } } : undefined;
+  const { data } = await api.post("/visitors", payload, config);
   return data;
 }
 
@@ -71,11 +72,6 @@ export async function securityCheckInPreapproval(preapprovalId, payload = {}) {
   return data;
 }
 
-export async function verifyPreapprovalQr(token) {
-  const { data } = await api.post(`/visitors/preapprovals/verify-qr`, { token });
-  return data;
-}
-
 export async function approveVisitorPreapproval(preapprovalId) {
   const { data } = await api.patch(`/visitors/owner/preapprovals/${preapprovalId}/approve`);
   return data;
@@ -86,28 +82,8 @@ export async function rejectVisitorPreapproval(preapprovalId) {
   return data;
 }
 
-export async function issueVisitorQrPass(preapprovalId, payload = {}) {
-  const { data } = await api.post(`/visitors/owner/preapprovals/${preapprovalId}/qr-pass`, payload);
-  return data;
-}
-
-export async function sendVisitorOtp(preapprovalId) {
-  const { data } = await api.post(`/visitors/owner/preapprovals/${preapprovalId}/otp/send`);
-  return data;
-}
-
-export async function verifyVisitorOtp(preapprovalId, otpCode) {
-  const { data } = await api.post(`/visitors/owner/preapprovals/${preapprovalId}/otp/verify`, { otpCode });
-  return data;
-}
-
 export async function recognizeVisitorFace(payload) {
   const { data } = await api.post("/visitors/faces/recognize", payload);
-  return data;
-}
-
-export async function addVisitorBlacklistEntry(payload) {
-  const { data } = await api.post("/visitors/blacklist", payload);
   return data;
 }
 

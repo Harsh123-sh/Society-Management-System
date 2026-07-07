@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion as Motion } from "framer-motion";
 import Sidebar from "./Sidebar";
 import TopNavbar from "./TopNavbar";
 import { clearAuthSession, getStoredRole, getStoredUser } from "../utils/session";
@@ -18,13 +18,7 @@ function getDashboardRoleLabel(role, t) {
 function getRoleTheme(role) {
   const themes = {
     admin: {
-      className: "role-dashboard role-dashboard--chairman",
-      accent: "20 184 166",
-      accent2: "37 99 235",
-      label: "Society control",
-    },
-    chairman: {
-      className: "role-dashboard role-dashboard--chairman",
+      className: "role-dashboard role-dashboard--admin",
       accent: "20 184 166",
       accent2: "37 99 235",
       label: "Society control",
@@ -53,6 +47,12 @@ function getRoleTheme(role) {
       accent2: "249 115 22",
       label: "Gate operations",
     },
+    accountant: {
+      className: "role-dashboard role-dashboard--accountant",
+      accent: "0 122 255",
+      accent2: "52 199 89",
+      label: "Finance command",
+    },
   };
 
   return themes[role] || themes.resident;
@@ -61,11 +61,13 @@ function getRoleTheme(role) {
 function DashboardLayout({ basePath = "/admin" }) {
   const { t } = useTranslation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const navigate = useNavigate();
   const role = getStoredRole();
   const user = getStoredUser();
   const residentType = user?.resident_type || null;
   const roleTheme = getRoleTheme(role);
+  const isLeadershipRole = role === "admin" || role === "secretary";
 
   // Theme is initialized by the ThemeProvider.
 
@@ -76,7 +78,6 @@ function DashboardLayout({ basePath = "/admin" }) {
       console.warn("Logout API failed, clearing local session anyway.", error);
     }
 
-    localStorage.clear();
     sessionStorage.clear();
     clearAuthSession();
     navigate("/login", { replace: true });
@@ -95,7 +96,9 @@ function DashboardLayout({ basePath = "/admin" }) {
           basePath={basePath}
           role={role}
           open={isSidebarOpen}
+          collapsed={isSidebarCollapsed}
           onClose={() => setIsSidebarOpen(false)}
+          onToggleCollapse={() => setIsSidebarCollapsed((prev) => !prev)}
         />
 
         <div className="flex min-w-0 flex-1 flex-col">
@@ -110,14 +113,14 @@ function DashboardLayout({ basePath = "/admin" }) {
           />
 
           <main className="dashboard-main flex-1 px-4 py-5 sm:px-6 lg:px-8 lg:py-6">
-            <motion.div
-              className={`dashboard-page-transition chairman-dashboard-surface ${role === "secretary" ? "secretary-dashboard-surface" : ""} ${role === "resident" ? `resident-dashboard-surface resident-dashboard-surface--${residentType || "owner"}` : ""} ${role === "staff" ? "staff-dashboard-surface" : ""} mx-auto max-w-7xl`}
+            <Motion.div
+              className={`dashboard-page-transition ${role === "admin" ? "admin-dashboard-surface" : ""} ${role === "secretary" ? "secretary-dashboard-surface" : ""} ${role === "resident" ? `resident-dashboard-surface resident-dashboard-surface--${residentType || "owner"}` : ""} ${role === "staff" ? "staff-dashboard-surface" : ""} mx-auto ${isLeadershipRole ? "w-full max-w-none" : "max-w-7xl"}`}
               initial={{ opacity: 0, y: 18 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
             >
               <Outlet />
-            </motion.div>
+            </Motion.div>
           </main>
         </div>
       </div>

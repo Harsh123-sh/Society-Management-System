@@ -2,9 +2,12 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" href="/nexora-favicon.png" />
+    <link rel="apple-touch-icon" href="/nexora-logo.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="theme-color" content="#14B8A6" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>frontend</title>
+    <title>Nexora | Smart Society Management Platform</title>
     <script>
       (function () {
         try {
@@ -38,7 +41,7 @@
                 modalBg: '#0f172a',
                 tableBg: '#0f172a',
                 tableHeaderBg: '#1e293b',
-                buttonPrimaryBg: '#06b6d4',
+                buttonPrimaryBg: '#6366f1',
                 buttonPrimaryText: '#ffffff',
                 shadow: '0 12px 30px rgba(0, 0, 0, 0.35)'
               }
@@ -60,7 +63,7 @@
                 modalBg: '#ffffff',
                 tableBg: '#ffffff',
                 tableHeaderBg: '#f1f5f9',
-                buttonPrimaryBg: '#06b6d4',
+                buttonPrimaryBg: '#4f46e5',
                 buttonPrimaryText: '#ffffff',
                 shadow: '0 12px 30px rgba(15, 23, 42, 0.08)'
               };
@@ -107,7 +110,7 @@
           document.documentElement.style.setProperty('--card', tokens.cardBg);
           document.documentElement.style.setProperty('--app-font-sans', 'Manrope, Space Grotesk, Segoe UI, sans-serif');
           document.documentElement.style.setProperty('--app-layout-mode', layout);
-          document.documentElement.style.setProperty('--app-logo-url', preferences.logoUrl || '');
+          document.documentElement.style.setProperty('--app-logo-url', preferences.logoUrl || '/nexora-logo.png');
           document.documentElement.style.setProperty('--app-radius', '24px');
           document.documentElement.style.setProperty('--brand-rgb', accent);
           document.documentElement.style.setProperty('--hero-start', primary);

@@ -3,7 +3,9 @@ import {
   clearAuthSession,
   clearSuperAdminSession,
   getCurrentUserFromToken,
+  getStoredRole,
   getStoredSuperAdminToken,
+  getStoredUser,
   saveAuthSession,
 } from "../utils/session";
 import { getApiBaseUrl } from "./runtimeUrls";
@@ -15,6 +17,33 @@ const API_URL = getApiBaseUrl();
 let isRefreshing = false;
 let refreshSubscribers = [];
 
+const SOCIETY_ACCESS_MESSAGE = "Society access not found. Please login again.";
+
+function getStoredAccessToken() {
+  return localStorage.getItem("accessToken") || localStorage.getItem("token");
+}
+
+function getStoredRefreshToken() {
+  return localStorage.getItem("refreshToken");
+}
+
+function logAuthFailure(context, error) {
+  if (!import.meta.env.DEV) return;
+
+  console.warn(`[AuthAPI] ${context}`, {
+    status: error?.response?.status || null,
+    message: error?.response?.data?.message || error?.message || null,
+    url: error?.config?.url || null,
+  });
+}
+
+function redirectToLogin(message) {
+  if (message) {
+    sessionStorage.setItem("loginErrorMessage", message);
+  }
+  window.location.href = "/login";
+}
+
 // Create main API instance
 const api = axios.create({
   baseURL: API_URL,
@@ -23,7 +52,7 @@ const api = axios.create({
   },
 });
 
-const superAdminApi = axios.create({
+export const superAdminApi = axios.create({
   baseURL: API_URL,
   headers: {
     "Content-Type": "application/json",
@@ -39,11 +68,20 @@ const SUPER_ADMIN_PUBLIC_PATHS = [
 
 // Add token to request headers
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
-  const societyId = localStorage.getItem("societyId") || localStorage.getItem("selectedSocietyId");
-  const societyName = localStorage.getItem("societyName") || localStorage.getItem("selectedSocietyName");
-  const role = localStorage.getItem("role");
-  const userName = localStorage.getItem("userName");
+  const token = getStoredAccessToken();
+  const user = getStoredUser();
+  const role = getStoredRole();
+  const isStaff = role === "staff";
+  const societyId = isStaff
+    ? user?.societyId || user?.society_id || null
+    : localStorage.getItem("societyId") || localStorage.getItem("selectedSocietyId");
+  const societyName = isStaff
+    ? user?.societyName || user?.society_name || null
+    : localStorage.getItem("societyName") || localStorage.getItem("selectedSocietyName");
+  const societyCode = isStaff
+    ? user?.societyCode || user?.society_code || null
+    : localStorage.getItem("societyCode") || user?.societyCode || user?.society_code || null;
+  const userName = user?.name || user?.userName || localStorage.getItem("userName");
 
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
@@ -54,6 +92,9 @@ api.interceptors.request.use((config) => {
   }
   if (societyName) {
     config.headers["x-society-name"] = societyName;
+  }
+  if (societyCode) {
+    config.headers["x-society-code"] = societyCode;
   }
   if (role) {
     config.headers["x-user-role"] = role;
@@ -79,21 +120,33 @@ api.interceptors.response.use(
     const status = error?.response?.status;
     const originalRequest = error?.config;
 
-    // If 401 and token exists, try to refresh
-    if (status === 401 && localStorage.getItem("token") && !originalRequest._retry) {
+    // If 401 and refresh token exists, try to refresh the access token.
+    if (status === 401 && getStoredRefreshToken() && originalRequest && !originalRequest._retry && !String(originalRequest.url || "").includes("/auth/refresh-token")) {
       if (!isRefreshing) {
         isRefreshing = true;
         originalRequest._retry = true;
 
         try {
-          // Attempt token refresh
-          const { data } = await api.post("/auth/refresh-token", {});
-          const { token: newToken, user } = data;
+          const refreshToken = getStoredRefreshToken();
+          const { data } = await axios.post(`${API_URL}/auth/refresh-token`, { refreshToken }, {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${refreshToken}`,
+            },
+          });
+          const newToken = data.accessToken || data.access_token || data.token;
+          const newRefreshToken = data.refreshToken || data.refresh_token || refreshToken;
+          const { user } = data;
+
+          if (!newToken) {
+            throw new Error("Refresh response did not include an access token");
+          }
 
           // Save new token
-          saveAuthSession({ token: newToken, user });
+          saveAuthSession({ accessToken: newToken, refreshToken: newRefreshToken, user });
 
           // Retry original request with new token
+          originalRequest.headers = originalRequest.headers || {};
           originalRequest.headers.Authorization = `Bearer ${newToken}`;
 
           // Notify all queued requests
@@ -103,12 +156,14 @@ api.interceptors.response.use(
 
           return api(originalRequest);
         } catch (refreshError) {
+          logAuthFailure("token refresh failed", refreshError);
           // Refresh failed - clear session and redirect to login
           isRefreshing = false;
           refreshSubscribers.forEach(({ reject }) => reject(refreshError));
           refreshSubscribers = [];
+          const message = refreshError?.response?.data?.message;
           clearAuthSession();
-          window.location.href = "/login";
+          redirectToLogin(message === SOCIETY_ACCESS_MESSAGE ? SOCIETY_ACCESS_MESSAGE : null);
           return Promise.reject(refreshError);
         }
       } else {
@@ -116,6 +171,7 @@ api.interceptors.response.use(
         return new Promise((resolve, reject) => {
           refreshSubscribers.push({
             resolve: (token) => {
+              originalRequest.headers = originalRequest.headers || {};
               originalRequest.headers.Authorization = `Bearer ${token}`;
               resolve(api(originalRequest));
             },
@@ -126,9 +182,11 @@ api.interceptors.response.use(
     }
 
     // Clear session on other auth errors
-    if (status === 401 && localStorage.getItem("token")) {
+    if (status === 401 && getStoredAccessToken()) {
+      logAuthFailure("protected request unauthorized", error);
+      const message = error?.response?.data?.message;
       clearAuthSession();
-      window.location.href = "/login";
+      redirectToLogin(message === SOCIETY_ACCESS_MESSAGE ? SOCIETY_ACCESS_MESSAGE : null);
     }
 
     return Promise.reject(error);
@@ -174,7 +232,7 @@ superAdminApi.interceptors.response.use(
   }
 );
 
-function getApiMessage(error, fallback) {
+export function getApiMessage(error, fallback) {
   const validationErrors = error?.response?.data?.errors;
   if (Array.isArray(validationErrors) && validationErrors.length) {
     return validationErrors.map((item) => item.message).join(". ");
@@ -189,6 +247,26 @@ function getApiMessage(error, fallback) {
 
 export async function registerUser(payload) {
   const { data } = await api.post("/auth/register", payload);
+  return data;
+}
+
+export async function validateChairmanSociety(societyCode) {
+  const { data } = await api.get("/auth/chairman/validate-society", { params: { societyCode } });
+  return data;
+}
+
+export async function registerChairman(payload) {
+  const { data } = await api.post("/auth/register-chairman", payload);
+  return data;
+}
+
+export async function verifyChairmanOtp(payload) {
+  const { data } = await api.post("/auth/chairman/verify-otp", payload);
+  return data;
+}
+
+export async function resendChairmanOtp(payload) {
+  const { data } = await api.post("/auth/chairman/resend-otp", payload);
   return data;
 }
 
@@ -227,6 +305,21 @@ export async function loginUser(payload) {
   });
   const { data } = await api.post("/auth/login", payload);
   console.log("[LoginAPI] login response", data);
+  return data;
+}
+
+export async function oauthLogin(payload) {
+  const { data } = await api.post("/auth/oauth/login", payload);
+  return data;
+}
+
+export async function fetchOAuthConfig() {
+  const { data } = await api.get("/auth/oauth/config");
+  return data;
+}
+
+export async function completeOAuthProfile(payload) {
+  const { data } = await api.post("/auth/oauth/complete-profile", payload);
   return data;
 }
 
@@ -351,7 +444,13 @@ export async function resetPassword(payload) {
 }
 
 export async function refreshToken() {
-  const { data } = await api.post("/auth/refresh-token", {});
+  const storedRefreshToken = getStoredRefreshToken();
+  const { data } = await axios.post(`${API_URL}/auth/refresh-token`, { refreshToken: storedRefreshToken }, {
+    headers: {
+      "Content-Type": "application/json",
+      ...(storedRefreshToken ? { Authorization: `Bearer ${storedRefreshToken}` } : {}),
+    },
+  });
   return data;
 }
 
@@ -381,4 +480,34 @@ export async function fetchSocietyLandingStats(societyId) {
   return data;
 }
 
-export { api, getApiMessage, getCurrentUserFromToken, superAdminApi };
+export async function fetchStaffDashboard() {
+  const { data } = await api.get("/dashboards/staff");
+  return data;
+}
+
+export async function fetchStaffAttendance(params = {}) {
+  const { data } = await api.get("/staff/attendance", { params });
+  return data;
+}
+
+export async function staffAttendanceCheckIn(payload = {}) {
+  const { data } = await api.post("/staff/attendance/check-in", payload);
+  return data;
+}
+
+export async function staffAttendanceCheckOut(payload = {}) {
+  const { data } = await api.post("/staff/attendance/check-out", payload);
+  return data;
+}
+
+export async function submitStaffAttendanceRequest(payload = {}) {
+  const { data } = await api.post("/staff/attendance/requests", payload);
+  return data;
+}
+
+export async function markStaffSpecialAttendance(payload = {}) {
+  const { data } = await api.post("/staff/attendance/mark-special", payload);
+  return data;
+}
+
+export { api, getCurrentUserFromToken };

@@ -1,0 +1,86 @@
+{
+  "common": {
+    "language": "भाषा",
+    "menu": "मेनू",
+    "soon": "लवकरच",
+    "live": "लाइव्ह",
+    "backToHome": "मुख्यपृष्ठावर जा",
+    "selectedSociety": "निवडलेली सोसायटी",
+    "code": "कोड",
+    "chooseDifferentSociety": "दुसरी सोसायटी निवडा",
+    "rememberMe": "मला लक्षात ठेवा",
+    "forgotPassword": "पासवर्ड विसरलात?",
+    "role": "भूमिका",
+    "mode": "मोड",
+    "signingIn": "साइन इन होत आहे...",
+    "loading": "लोड होत आहे",
+    "search": "शोधा",
+    "settings": "सेटिंग्ज",
+    "save": "जतन करा",
+    "cancel": "रद्द करा"
+  },
+  "brand": { "eyebrow": "मल्टी-सोसायटी SaaS", "title": "NEXORA" },
+  "actions": {
+    "lightMode": "लाईट मोड",
+    "darkMode": "डार्क मोड",
+    "systemMode": "सिस्टम मोड",
+    "signIn": "साइन इन",
+    "startFreeTrial": "मोफत चाचणी सुरू करा",
+    "createAccount": "खाते तयार करा",
+    "openPortal": "पोर्टल उघडा"
+  },
+  "nav": {
+    "dashboard": "डॅशबोर्ड",
+    "billing": "बिलिंग",
+    "maintenance": "देखभाल",
+    "complaints": "तक्रारी",
+    "visitors": "अभ्यागत",
+    "documents": "कागदपत्रे",
+    "analytics": "विश्लेषण",
+    "settings": "सेटिंग्ज",
+    "aiAssistant": "AI सहाय्यक",
+    "messages": "संदेश"
+  },
+  "role": {
+    "admin": "चेअरमन",
+    "secretary": "सचिव",
+    "super_admin": "सुपर अॅडमिन",
+    "resident": "रहिवासी",
+    "staff": "कर्मचारी",
+    "security": "सुरक्षा"
+  },
+  "dashboard": { "title": "{{role}} डॅशबोर्ड" },
+  "society": {
+    "switcher": "सोसायटी स्विचर",
+    "searchPlaceholder": "सोसायटी नाव किंवा कोड शोधा",
+    "recent": "अलीकडील सोसायटी",
+    "favorites": "आवडत्या सोसायटी",
+    "allSocieties": "सर्व सोसायटी",
+    "switchSociety": "सोसायटी बदला",
+    "openSociety": "सोसायटी उघडा",
+    "viewAnalytics": "विश्लेषण पहा",
+    "manageSociety": "सोसायटी व्यवस्थापित करा",
+    "residentCount": "रहिवासी",
+    "occupancyRate": "व्याप्ती दर",
+    "pendingComplaints": "प्रलंबित तक्रारी",
+    "monthlyCollections": "मासिक वसुली",
+    "dataIsolation": "डेटा या सोसायटीपुरता मर्यादित आहे"
+  },
+  "theme": { "title": "थीम", "light": "लाईट", "dark": "डार्क", "system": "सिस्टम" },
+  "language": { "title": "भाषा", "subtitle": "संपूर्ण वेबसाइटची भाषा बदला" },
+  "auth": {
+    "welcomeBack": "पुन्हा स्वागत आहे",
+    "login": "लॉगिन",
+    "register": "नोंदणी",
+    "email": "ईमेल",
+    "password": "पासवर्ड",
+    "societyCode": "सोसायटी कोड",
+    "verifyOtp": "OTP सत्यापित करा"
+  },
+  "messages": {
+    "maintenancePayment": "देखभाल पेमेंट",
+    "success": "यशस्वी",
+    "error": "त्रुटी",
+    "empty": "डेटा उपलब्ध नाही"
+  }
+}

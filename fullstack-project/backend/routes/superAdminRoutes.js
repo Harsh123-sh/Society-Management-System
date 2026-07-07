@@ -61,6 +61,8 @@ router.use(requireSuperAdmin);
 router.get("/platform-stats", superAdminController.getPlatformStats);
 router.get("/societies", superAdminController.listSocieties);
 router.post("/societies", superAdminController.createSociety);
+router.get("/societies/export", superAdminController.exportSocieties);
+router.post("/societies/bulk", superAdminController.bulkUpdateSocieties);
 router.put("/societies/:id", superAdminController.updateSociety);
 router.patch("/societies/:id", superAdminController.updateSociety);
 router.patch("/societies/:id/code", superAdminController.changeSocietyCode);
@@ -72,6 +74,8 @@ router.get("/societies/:id/analytics", superAdminController.getSocietyAnalytics)
 router.get("/pending-approvals", superAdminController.getPendingApprovals);
 router.post("/pending-approvals/:approvalId/approve", superAdminController.approvePendingUser);
 router.post("/pending-approvals/:approvalId/reject", superAdminController.rejectPendingUser);
+router.post("/societies/:id/assign-chairman", superAdminController.assignChairman);
+router.get("/users/search", superAdminController.searchUsers);
 router.get("/activity-logs", superAdminController.getActivityLogs);
 router.get("/subscriptions", superAdminController.getSubscriptions);
 router.get("/analytics", superAdminController.getPlatformAnalytics);

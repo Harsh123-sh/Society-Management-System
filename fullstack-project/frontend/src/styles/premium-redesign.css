@@ -220,6 +220,131 @@ button:not(.auth-password-toggle):not([type="submit"]) {
   border-color: var(--border) !important;
 }
 
+/* Nexora 2026 dashboard shell */
+.dashboard-shell {
+  background:
+    radial-gradient(circle at 18% 0%, rgba(0, 122, 255, 0.12), transparent 32%),
+    linear-gradient(180deg, #ffffff, #f5f5f7) !important;
+}
+
+html[data-theme="dark"] .dashboard-shell,
+body[data-theme="dark"] .dashboard-shell,
+.dark .dashboard-shell {
+  background:
+    radial-gradient(circle at 18% 0%, rgba(79, 140, 255, 0.18), transparent 34%),
+    linear-gradient(180deg, #0a0a0a, #111827) !important;
+}
+
+.dashboard-sidebar {
+  margin: 16px 0 16px 16px;
+  height: calc(100vh - 32px);
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: 30px;
+  background: rgba(255, 255, 255, 0.78) !important;
+  box-shadow: 0 28px 80px rgba(15, 23, 42, 0.12) !important;
+  backdrop-filter: blur(28px) saturate(170%);
+}
+
+html[data-theme="dark"] .dashboard-sidebar,
+body[data-theme="dark"] .dashboard-sidebar,
+.dark .dashboard-sidebar {
+  border-color: rgba(255, 255, 255, 0.08);
+  background: rgba(17, 24, 39, 0.76) !important;
+}
+
+.dashboard-sidebar-brand {
+  border-radius: 24px !important;
+  background: rgba(245, 245, 247, 0.72) !important;
+}
+
+.dashboard-sidebar a,
+.dashboard-sidebar nav > div {
+  border-radius: 18px !important;
+}
+
+.dashboard-sidebar a.is-active,
+.dashboard-sidebar a[aria-current="page"] {
+  border-color: rgba(0, 122, 255, 0.32) !important;
+  background: linear-gradient(135deg, #007aff, #4f8cff) !important;
+  color: #ffffff !important;
+}
+
+.dashboard-navbar {
+  top: 12px !important;
+  margin: 0 14px;
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: 26px;
+  background: rgba(255, 255, 255, 0.78) !important;
+  box-shadow: 0 18px 60px rgba(15, 23, 42, 0.1);
+  backdrop-filter: blur(24px) saturate(170%);
+}
+
+html[data-theme="dark"] .dashboard-navbar,
+body[data-theme="dark"] .dashboard-navbar,
+.dark .dashboard-navbar {
+  border-color: rgba(255, 255, 255, 0.08);
+  background: rgba(17, 24, 39, 0.78) !important;
+}
+
+.dashboard-global-search {
+  border-color: rgba(17, 17, 17, 0.08) !important;
+  background: rgba(245, 245, 247, 0.9);
+}
+
+html[data-theme="dark"] .dashboard-global-search,
+body[data-theme="dark"] .dashboard-global-search,
+.dark .dashboard-global-search {
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.dashboard-icon-action,
+.dashboard-profile-chip,
+.dashboard-quick-action {
+  border: 1px solid rgba(17, 17, 17, 0.08) !important;
+  border-radius: 999px !important;
+  background: rgba(245, 245, 247, 0.86) !important;
+  color: #111111 !important;
+}
+
+html[data-theme="dark"] .dashboard-icon-action,
+html[data-theme="dark"] .dashboard-profile-chip,
+html[data-theme="dark"] .dashboard-quick-action,
+body[data-theme="dark"] .dashboard-icon-action,
+body[data-theme="dark"] .dashboard-profile-chip,
+body[data-theme="dark"] .dashboard-quick-action,
+.dark .dashboard-icon-action,
+.dark .dashboard-profile-chip,
+.dark .dashboard-quick-action {
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  background: rgba(255, 255, 255, 0.06) !important;
+  color: #ffffff !important;
+}
+
+.dashboard-main {
+  padding-top: 28px !important;
+}
+
+.dashboard-page-transition {
+  max-width: 1480px !important;
+}
+
+@media (max-width: 767px) {
+  .dashboard-sidebar {
+    margin: 10px;
+    height: calc(100vh - 20px);
+  }
+
+  .dashboard-navbar {
+    margin: 8px;
+    border-radius: 22px;
+  }
+
+  .dashboard-main {
+    padding-inline: 14px !important;
+  }
+}
+
 .button:hover,
 .auth-button:hover,
 .sa-primary-btn:hover,
@@ -887,3 +1012,433 @@ textarea::placeholder {
     padding-inline: 12px !important;
   }
 }
+
+/* Nexora admin and secretary command shell */
+.role-dashboard--admin,
+.role-dashboard--secretary {
+  background:
+    radial-gradient(circle at 78% 4%, rgba(37, 99, 235, 0.16), transparent 34%),
+    radial-gradient(circle at 24% 18%, rgba(124, 58, 237, 0.12), transparent 32%),
+    #f8fafc !important;
+}
+
+html[data-theme="dark"] .role-dashboard--admin,
+html[data-theme="dark"] .role-dashboard--secretary,
+body[data-theme="dark"] .role-dashboard--admin,
+body[data-theme="dark"] .role-dashboard--secretary {
+  background:
+    radial-gradient(circle at 78% 4%, rgba(37, 99, 235, 0.22), transparent 34%),
+    radial-gradient(circle at 24% 18%, rgba(124, 58, 237, 0.22), transparent 32%),
+    #020617 !important;
+}
+
+.role-dashboard--admin .dashboard-sidebar,
+.role-dashboard--secretary .dashboard-sidebar {
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 28px !important;
+  background: rgba(255, 255, 255, 0.82) !important;
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.12) !important;
+  backdrop-filter: blur(28px) saturate(170%);
+}
+
+html[data-theme="dark"] .role-dashboard--admin .dashboard-sidebar,
+html[data-theme="dark"] .role-dashboard--secretary .dashboard-sidebar,
+body[data-theme="dark"] .role-dashboard--admin .dashboard-sidebar,
+body[data-theme="dark"] .role-dashboard--secretary .dashboard-sidebar {
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  background: rgba(15, 23, 42, 0.86) !important;
+  box-shadow: 0 28px 90px rgba(0, 0, 0, 0.42) !important;
+}
+
+.role-dashboard--admin .dashboard-navbar,
+.role-dashboard--secretary .dashboard-navbar {
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 24px !important;
+  background: rgba(255, 255, 255, 0.84) !important;
+  box-shadow: 0 18px 55px rgba(15, 23, 42, 0.1) !important;
+  backdrop-filter: blur(24px) saturate(170%);
+}
+
+html[data-theme="dark"] .role-dashboard--admin .dashboard-navbar,
+html[data-theme="dark"] .role-dashboard--secretary .dashboard-navbar,
+body[data-theme="dark"] .role-dashboard--admin .dashboard-navbar,
+body[data-theme="dark"] .role-dashboard--secretary .dashboard-navbar {
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  background: rgba(15, 23, 42, 0.78) !important;
+}
+
+.dashboard-sidebar-nav-icon {
+  display: inline-grid;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
+  place-items: center;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.14), rgba(124, 58, 237, 0.12));
+  color: #2563eb;
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0;
+  transition: transform 180ms ease, background 180ms ease, color 180ms ease;
+}
+
+.dashboard-sidebar a:hover .dashboard-sidebar-nav-icon,
+.dashboard-sidebar a.is-active .dashboard-sidebar-nav-icon,
+.dashboard-sidebar a[aria-current="page"] .dashboard-sidebar-nav-icon {
+  background: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  transform: scale(1.04);
+}
+
+html[data-theme="dark"] .dashboard-sidebar-nav-icon,
+body[data-theme="dark"] .dashboard-sidebar-nav-icon {
+  background: rgba(255, 255, 255, 0.06);
+  color: #c4b5fd;
+}
+
+.role-dashboard--admin .dashboard-global-search,
+.role-dashboard--secretary .dashboard-global-search,
+.role-dashboard--admin .dashboard-icon-action,
+.role-dashboard--secretary .dashboard-icon-action,
+.role-dashboard--admin .dashboard-profile-chip,
+.role-dashboard--secretary .dashboard-profile-chip {
+  border-color: #e2e8f0 !important;
+  background: rgba(255, 255, 255, 0.72) !important;
+}
+
+html[data-theme="dark"] .role-dashboard--admin .dashboard-global-search,
+html[data-theme="dark"] .role-dashboard--secretary .dashboard-global-search,
+html[data-theme="dark"] .role-dashboard--admin .dashboard-icon-action,
+html[data-theme="dark"] .role-dashboard--secretary .dashboard-icon-action,
+html[data-theme="dark"] .role-dashboard--admin .dashboard-profile-chip,
+html[data-theme="dark"] .role-dashboard--secretary .dashboard-profile-chip,
+body[data-theme="dark"] .role-dashboard--admin .dashboard-global-search,
+body[data-theme="dark"] .role-dashboard--secretary .dashboard-global-search,
+body[data-theme="dark"] .role-dashboard--admin .dashboard-icon-action,
+body[data-theme="dark"] .role-dashboard--secretary .dashboard-icon-action,
+body[data-theme="dark"] .role-dashboard--admin .dashboard-profile-chip,
+body[data-theme="dark"] .role-dashboard--secretary .dashboard-profile-chip {
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  background: rgba(255, 255, 255, 0.06) !important;
+}
+
+/* Nexora dashboard layout bug fixes */
+.role-dashboard--admin,
+.role-dashboard--secretary {
+  --background: #f8fafc;
+  --surface: #ffffff;
+  --card-bg: #ffffff;
+  --text: #0f172a;
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --border: #e2e8f0;
+}
+
+html[data-theme="dark"] .role-dashboard--admin,
+html[data-theme="dark"] .role-dashboard--secretary,
+body[data-theme="dark"] .role-dashboard--admin,
+body[data-theme="dark"] .role-dashboard--secretary {
+  --background: #020617;
+  --surface: #0f172a;
+  --card-bg: #0f172a;
+  --text: #ffffff;
+  --text-main: #ffffff;
+  --text-muted: #94a3b8;
+  --border: rgba(255, 255, 255, 0.08);
+}
+
+.role-dashboard--admin .dashboard-sidebar,
+.role-dashboard--secretary .dashboard-sidebar {
+  width: 260px !important;
+  min-width: 260px !important;
+  margin: 12px 0 12px 12px !important;
+  height: calc(100vh - 24px) !important;
+  padding: 16px 12px !important;
+  border-radius: 24px !important;
+}
+
+.role-dashboard--admin .dashboard-sidebar-brand,
+.role-dashboard--secretary .dashboard-sidebar-brand {
+  margin-bottom: 16px !important;
+  border-radius: 20px !important;
+  padding: 12px !important;
+  box-shadow: none !important;
+}
+
+.dashboard-sidebar-brand__leadership {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.dashboard-sidebar-logo,
+.dashboard-sidebar-logo .brand-logo,
+.dashboard-sidebar-logo .brand-logo__motion,
+.dashboard-sidebar-logo .brand-logo__mark {
+  width: 42px !important;
+  height: 42px !important;
+  min-width: 42px !important;
+}
+
+.dashboard-sidebar-logo .brand-logo__mark {
+  border-radius: 14px !important;
+}
+
+.dashboard-sidebar-product {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  line-height: 1.1;
+}
+
+.dashboard-sidebar-product strong {
+  display: block;
+  color: var(--text-main) !important;
+  font-size: 0.98rem;
+  font-weight: 900;
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+
+.dashboard-sidebar-product span {
+  display: block;
+  color: var(--text-muted) !important;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 1.25;
+  white-space: nowrap;
+}
+
+.role-dashboard--admin .dashboard-sidebar nav,
+.role-dashboard--secretary .dashboard-sidebar nav {
+  display: grid;
+  gap: 6px;
+  padding-right: 0 !important;
+}
+
+.role-dashboard--admin .dashboard-sidebar nav a,
+.role-dashboard--secretary .dashboard-sidebar nav a {
+  min-height: 42px;
+  border-radius: 14px !important;
+  padding: 7px 10px !important;
+  font-size: 0.9rem;
+}
+
+.dashboard-sidebar-nav-icon {
+  width: 28px;
+  height: 28px;
+  flex-basis: 28px;
+  border-radius: 10px;
+  font-size: 0.62rem;
+}
+
+.role-dashboard--admin .dashboard-navbar,
+.role-dashboard--secretary .dashboard-navbar {
+  min-height: 72px !important;
+  margin: 12px 16px 0 !important;
+  padding: 10px 16px !important;
+  border-radius: 20px !important;
+}
+
+.dashboard-navbar-inner {
+  min-height: 50px;
+}
+
+.dashboard-navbar-menu {
+  flex: 0 0 auto;
+}
+
+.role-dashboard--admin .society-switcher,
+.role-dashboard--secretary .society-switcher {
+  min-width: 168px;
+  max-width: 210px;
+  flex: 0 0 auto;
+}
+
+.role-dashboard--admin .society-switcher__trigger,
+.role-dashboard--secretary .society-switcher__trigger {
+  min-height: 48px !important;
+  border-radius: 16px !important;
+  padding: 7px 10px !important;
+}
+
+.role-dashboard--admin .society-switcher__trigger img,
+.role-dashboard--admin .society-switcher__trigger > span:first-child,
+.role-dashboard--secretary .society-switcher__trigger img,
+.role-dashboard--secretary .society-switcher__trigger > span:first-child {
+  width: 32px !important;
+  height: 32px !important;
+}
+
+.role-dashboard--admin .society-switcher__trigger strong,
+.role-dashboard--secretary .society-switcher__trigger strong {
+  max-width: 122px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.role-dashboard--admin .society-switcher__trigger em,
+.role-dashboard--secretary .society-switcher__trigger em {
+  max-width: 122px;
+  overflow: hidden;
+  color: var(--text-muted) !important;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.role-dashboard--admin .dashboard-global-search,
+.role-dashboard--secretary .dashboard-global-search {
+  min-height: 46px;
+  min-width: 180px !important;
+  border-radius: 16px !important;
+  padding: 0 12px !important;
+}
+
+.dashboard-search-label {
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+}
+
+.dashboard-navbar-actions {
+  min-width: 0;
+  flex: 0 0 auto;
+}
+
+.role-dashboard--admin .enterprise-language-selector,
+.role-dashboard--secretary .enterprise-language-selector,
+.role-dashboard--admin .enterprise-theme-switcher,
+.role-dashboard--secretary .enterprise-theme-switcher {
+  min-width: auto;
+}
+
+.role-dashboard--admin .enterprise-control-label,
+.role-dashboard--secretary .enterprise-control-label {
+  display: none;
+}
+
+.role-dashboard--admin .enterprise-select,
+.role-dashboard--secretary .enterprise-select {
+  min-height: 38px;
+  max-width: 112px;
+  border-radius: 12px;
+}
+
+.role-dashboard--admin .enterprise-segmented,
+.role-dashboard--secretary .enterprise-segmented {
+  min-height: 38px;
+  border-radius: 12px;
+}
+
+.role-dashboard--admin .dashboard-icon-action,
+.role-dashboard--secretary .dashboard-icon-action {
+  display: inline-grid;
+  width: 38px;
+  height: 38px;
+  min-width: 38px;
+  place-items: center;
+  padding: 0 !important;
+}
+
+.role-dashboard--admin .dashboard-quick-action,
+.role-dashboard--secretary .dashboard-quick-action {
+  align-items: center;
+  min-height: 38px;
+  padding: 0 14px !important;
+  font-size: 0.8rem;
+  font-weight: 850;
+}
+
+.role-dashboard--admin .dashboard-profile-chip,
+.role-dashboard--secretary .dashboard-profile-chip {
+  min-height: 38px;
+  max-width: 150px;
+  gap: 8px;
+  padding: 5px 10px 5px 5px;
+}
+
+.role-dashboard--admin .dashboard-profile-chip strong,
+.role-dashboard--secretary .dashboard-profile-chip strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dashboard-logout-button {
+  min-height: 38px !important;
+  border-radius: 12px !important;
+  padding: 0 14px !important;
+  white-space: nowrap;
+}
+
+.role-dashboard--admin .dashboard-main,
+.role-dashboard--secretary .dashboard-main {
+  padding: 24px !important;
+}
+
+.role-dashboard--admin .dashboard-page-transition,
+.role-dashboard--secretary .dashboard-page-transition {
+  max-width: 1440px !important;
+}
+
+@media (max-width: 1180px) {
+  .role-dashboard--admin .dashboard-navbar,
+  .role-dashboard--secretary .dashboard-navbar {
+    margin-inline: 12px !important;
+  }
+
+  .role-dashboard--admin .enterprise-language-selector,
+  .role-dashboard--secretary .enterprise-language-selector {
+    display: none;
+  }
+}
+
+@media (max-width: 900px) {
+  .role-dashboard--admin .dashboard-global-search,
+  .role-dashboard--secretary .dashboard-global-search {
+    display: none !important;
+  }
+
+  .role-dashboard--admin .dashboard-sidebar,
+  .role-dashboard--secretary .dashboard-sidebar {
+    margin: 10px !important;
+    height: calc(100vh - 20px) !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .role-dashboard--admin .dashboard-navbar,
+  .role-dashboard--secretary .dashboard-navbar {
+    min-height: 64px !important;
+    margin: 8px !important;
+    padding: 8px !important;
+  }
+
+  .dashboard-navbar-inner {
+    gap: 8px;
+  }
+
+  .role-dashboard--admin .society-switcher,
+  .role-dashboard--secretary .society-switcher {
+    min-width: 0;
+    max-width: none;
+    flex: 1 1 auto;
+  }
+
+  .role-dashboard--admin .dashboard-profile-chip,
+  .role-dashboard--secretary .dashboard-profile-chip,
+  .dashboard-logout-button {
+    display: none !important;
+  }
+
+  .role-dashboard--admin .dashboard-main,
+  .role-dashboard--secretary .dashboard-main {
+    padding: 14px 12px 92px !important;
+  }
+}
+

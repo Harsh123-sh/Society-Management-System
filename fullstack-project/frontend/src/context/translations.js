@@ -20,12 +20,6 @@ export const translations = {
       parking: "Parking",
       documents: "Documents",
     },
-    chairman: {
-      title: "Chairman Dashboard",
-      totalResidents: "Total Residents",
-      totalFlats: "Total Flats",
-      openBilling: "Open Billing",
-    },
     billing: {
       createBill: "Create Bill",
       sendReminder: "Send Reminder",
@@ -54,12 +48,6 @@ export const translations = {
       visitors: "आगंतुक",
       parking: "पार्किंग",
       documents: "दस्तावेज़",
-    },
-    chairman: {
-      title: "चेयरमैन डैशबोर्ड",
-      totalResidents: "कुल निवासी",
-      totalFlats: "कुल फ्लैट",
-      openBilling: "बिलिंग खोलें",
     },
     billing: {
       createBill: "बिल बनाएं",

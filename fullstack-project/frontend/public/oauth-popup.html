@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OAuth Redirect</title>
+  </head>
+  <body>
+    <script>
+      const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+      const queryParams = new URLSearchParams(window.location.search);
+      const payload = {
+        type: "nexora-oauth-callback",
+        accessToken: hashParams.get("access_token") || queryParams.get("access_token"),
+        error: hashParams.get("error") || queryParams.get("error"),
+        errorDescription: hashParams.get("error_description") || queryParams.get("error_description"),
+      };
+
+      if (window.opener) {
+        window.opener.postMessage(payload, window.location.origin);
+      }
+      window.close();
+    </script>
+  </body>
+</html>

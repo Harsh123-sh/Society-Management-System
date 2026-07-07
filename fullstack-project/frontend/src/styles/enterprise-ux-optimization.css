@@ -1,0 +1,1843 @@
+/* Nexora enterprise UX optimization layer. Loaded last to compact the app without changing features. */
+
+:root {
+  --nx-space-1: 4px;
+  --nx-space-2: 8px;
+  --nx-space-3: 12px;
+  --nx-space-4: 16px;
+  --nx-space-5: 20px;
+  --nx-radius-card: 14px;
+  --nx-radius-control: 10px;
+  --nx-sidebar-expanded: 264px;
+  --nx-sidebar-collapsed: 72px;
+  --nx-compact-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+}
+
+.dashboard-shell {
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+.dashboard-main {
+  padding: 14px 18px 18px !important;
+}
+
+.dashboard-page-transition {
+  max-width: 100% !important;
+}
+
+.dashboard-navbar {
+  min-height: 58px;
+  padding-block: 8px !important;
+}
+
+.dashboard-navbar-inner {
+  max-width: 100% !important;
+}
+
+.dashboard-sidebar {
+  position: sticky;
+  top: 0;
+  width: var(--nx-sidebar-expanded) !important;
+  min-width: var(--nx-sidebar-expanded) !important;
+  height: 100vh;
+  padding: 12px !important;
+  overflow: visible;
+  transition: width 220ms ease, min-width 220ms ease, transform 220ms ease, box-shadow 220ms ease;
+}
+
+.dashboard-sidebar--collapsed {
+  width: var(--nx-sidebar-collapsed) !important;
+  min-width: var(--nx-sidebar-collapsed) !important;
+  padding-inline: 10px !important;
+}
+
+.dashboard-sidebar-collapse {
+  position: absolute;
+  top: 14px;
+  right: -12px;
+  z-index: 5;
+  display: grid;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--card-bg);
+  color: var(--text);
+  font-size: 0.78rem;
+  font-weight: 900;
+  box-shadow: var(--nx-compact-shadow);
+  transition: transform 180ms ease, background 180ms ease;
+}
+
+.dashboard-sidebar-collapse:hover {
+  transform: scale(1.06);
+}
+
+.dashboard-sidebar-brand {
+  position: sticky;
+  top: 12px;
+  z-index: 2;
+  margin-bottom: 12px !important;
+  border-radius: var(--nx-radius-card) !important;
+  padding: 10px !important;
+}
+
+.dashboard-sidebar-brand__leadership {
+  gap: 10px;
+}
+
+.dashboard-sidebar-logo,
+.dashboard-sidebar-brand img {
+  width: 34px !important;
+  height: 34px !important;
+  object-fit: contain;
+}
+
+.dashboard-sidebar-product strong {
+  font-size: 1.02rem;
+  letter-spacing: 0;
+}
+
+.dashboard-sidebar-product span {
+  font-size: 0.72rem;
+}
+
+.dashboard-sidebar nav {
+  padding-right: 0 !important;
+}
+
+.dashboard-sidebar nav :is(a, div) {
+  min-height: 38px;
+  border-radius: 12px !important;
+  padding: 8px 10px !important;
+  transition: transform 160ms ease, background 160ms ease, border-color 160ms ease, color 160ms ease;
+}
+
+.dashboard-sidebar-svg-icon,
+.premium-control-svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.dashboard-sidebar-svg-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.dashboard-sidebar nav a:hover {
+  transform: translateX(2px);
+  background: color-mix(in srgb, var(--primary) 9%, transparent) !important;
+}
+
+.dashboard-sidebar-nav-icon {
+  display: inline-grid;
+  width: 28px;
+  min-width: 28px;
+  height: 28px;
+  place-items: center;
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--primary) 12%, transparent);
+  color: var(--primary);
+  font-size: 0.7rem;
+  font-weight: 900;
+}
+
+.dashboard-sidebar--collapsed .dashboard-sidebar-brand {
+  display: grid;
+  place-items: center;
+}
+
+.dashboard-sidebar--collapsed .dashboard-sidebar-text,
+.dashboard-sidebar--collapsed .dashboard-sidebar-label,
+.dashboard-sidebar--collapsed .enterprise-society-switcher,
+.dashboard-sidebar--collapsed .enterprise-language-selector,
+.dashboard-sidebar--collapsed .enterprise-theme-switcher {
+  display: none !important;
+}
+
+.dashboard-sidebar--collapsed nav :is(a, div) {
+  justify-content: center;
+  padding-inline: 0 !important;
+}
+
+.dashboard-sidebar--collapsed .dashboard-sidebar-nav-icon {
+  margin: 0;
+}
+
+.dashboard-global-search {
+  min-height: 40px !important;
+}
+
+.dashboard-profile-chip {
+  min-height: 38px;
+  padding: 0 10px !important;
+}
+
+.dashboard-logout-button,
+.dashboard-quick-action,
+.enterprise-select,
+.enterprise-segmented,
+.auth-button,
+button,
+select,
+input {
+  min-height: 36px;
+}
+
+.role-dashboard :is(section, article, .surface-card, .dashboard-card, .stat-card, .glass-card, .table-wrapper, .app-surface),
+.chairman-page :is(section, article),
+.nx-panel,
+.nx-kpi,
+.nx-hero,
+.nx-action-center,
+.nx-mobile-experience,
+.nx-ai-command,
+.nx-workflow-suite {
+  border-radius: var(--nx-radius-card) !important;
+  box-shadow: var(--nx-compact-shadow) !important;
+}
+
+.role-dashboard :is(section, .surface-card, .dashboard-card, .table-wrapper),
+.chairman-page > section,
+.nx-panel,
+.nx-action-center,
+.nx-mobile-experience,
+.nx-ai-command,
+.nx-workflow-suite {
+  padding: 12px !important;
+}
+
+.chairman-page,
+.nx-dashboard {
+  gap: 10px !important;
+}
+
+.chairman-page.space-y-6 > :not([hidden]) ~ :not([hidden]) {
+  margin-top: 12px !important;
+}
+
+.chairman-page :is(.rounded-3xl, .rounded-\[28px\]) {
+  border-radius: var(--nx-radius-card) !important;
+}
+
+.chairman-page :is(.p-8, .sm\:p-8, .p-6, .sm\:p-6, .p-5) {
+  padding: 12px !important;
+}
+
+.chairman-page :is(.py-3, .py-2\.5) {
+  padding-top: 8px !important;
+  padding-bottom: 8px !important;
+}
+
+.chairman-page :is(.px-4, .px-3) {
+  padding-left: 10px !important;
+  padding-right: 10px !important;
+}
+
+.chairman-page :is(h1, h2) {
+  font-size: clamp(1.25rem, 1.8vw, 2rem) !important;
+  line-height: 1.08 !important;
+}
+
+.chairman-page :is(h3, h4) {
+  font-size: 1rem !important;
+  line-height: 1.2 !important;
+}
+
+.chairman-page p {
+  line-height: 1.35 !important;
+}
+
+.chairman-page section:first-child {
+  min-height: auto !important;
+}
+
+.chairman-page section:first-child :is(p.text-sm, p.text-base, .leading-6) {
+  display: none !important;
+}
+
+.nx-dashboard {
+  padding-bottom: 56px !important;
+}
+
+.nx-hero {
+  grid-template-columns: minmax(0, 1.2fr) minmax(220px, 280px) !important;
+  min-height: 148px !important;
+  padding: 14px !important;
+}
+
+.nx-hero h1 {
+  max-width: 700px;
+  font-size: clamp(1.45rem, 2.4vw, 2.25rem) !important;
+  line-height: 1 !important;
+}
+
+.nx-hero p,
+.nx-kpi small,
+.nx-mobile-experience p,
+.nx-ai-command > div:first-of-type p {
+  display: none !important;
+}
+
+.nx-hero-score strong {
+  font-size: clamp(2rem, 4vw, 3rem) !important;
+}
+
+.nx-hero-card {
+  border-radius: var(--nx-radius-card) !important;
+  padding: 12px !important;
+}
+
+.nx-quick-strip {
+  margin-top: 10px !important;
+}
+
+.nx-quick-strip button,
+.nx-action-center button {
+  min-height: 34px !important;
+  padding-inline: 11px !important;
+  font-size: 0.78rem;
+}
+
+.nx-section-nav {
+  padding: 6px !important;
+}
+
+.nx-section-nav a {
+  padding: 7px 11px !important;
+}
+
+.nx-kpi-row {
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 10px !important;
+}
+
+.nx-kpi {
+  min-height: 108px !important;
+  padding: 10px !important;
+}
+
+.nx-kpi-icon {
+  width: 30px !important;
+  height: 30px !important;
+  border-radius: 10px !important;
+}
+
+.nx-kpi strong {
+  margin-top: 7px !important;
+  font-size: clamp(1.35rem, 2vw, 1.8rem) !important;
+}
+
+.nx-kpi p {
+  margin-top: 2px !important;
+  font-size: 0.72rem !important;
+}
+
+.nx-mini-trend {
+  right: 10px !important;
+  bottom: 9px !important;
+  width: 46px !important;
+  height: 22px !important;
+}
+
+.nx-main-grid,
+.nx-operations-grid,
+.nx-chairman-decisions,
+.nx-module-grid {
+  gap: 10px !important;
+}
+
+.nx-panel-head {
+  margin-bottom: 8px !important;
+}
+
+.nx-panel :is(.recharts-responsive-container) {
+  max-height: 220px;
+}
+
+.nx-table th,
+.nx-table td,
+table th,
+table td {
+  padding: 8px 10px !important;
+  line-height: 1.25 !important;
+}
+
+table thead th,
+.nx-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.nx-module-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+}
+
+.nx-module-card {
+  padding: 12px !important;
+}
+
+.nx-feature-cloud {
+  gap: 5px !important;
+  margin-top: 9px !important;
+}
+
+.nx-feature-cloud span {
+  padding: 5px 7px !important;
+  font-size: 0.68rem !important;
+}
+
+.nx-approval-grid,
+.nx-recommendations {
+  gap: 8px !important;
+}
+
+.nx-approval-grid article,
+.nx-recommendations article {
+  padding: 10px !important;
+}
+
+.nx-approval-grid strong {
+  font-size: 1.55rem !important;
+}
+
+.chairman-page .grid.gap-4.md\:grid-cols-2.xl\:grid-cols-3,
+.chairman-page .grid.gap-4.md\:grid-cols-2.xl\:grid-cols-5 {
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)) !important;
+  gap: 10px !important;
+}
+
+@media (min-width: 1366px) {
+  .chairman-page .grid.gap-4.md\:grid-cols-2.xl\:grid-cols-3,
+  .chairman-page .grid.gap-4.md\:grid-cols-2.xl\:grid-cols-5 {
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+  }
+
+  .dashboard-main {
+    padding: 12px 16px 16px !important;
+  }
+}
+
+.chairman-page .grid.gap-4.md\:grid-cols-2.xl\:grid-cols-3 article,
+.chairman-page .grid.gap-4.md\:grid-cols-2.xl\:grid-cols-5 article {
+  padding: 10px !important;
+}
+
+.chairman-page .grid.gap-4.md\:grid-cols-2.xl\:grid-cols-3 article h4,
+.chairman-page .grid.gap-4.md\:grid-cols-2.xl\:grid-cols-5 article h4 {
+  font-size: 1.1rem !important;
+}
+
+.chairman-page .grid.gap-4.md\:grid-cols-2.xl\:grid-cols-3 article .mt-4,
+.chairman-page .grid.gap-4.md\:grid-cols-2.xl\:grid-cols-5 article .mt-4 {
+  margin-top: 8px !important;
+}
+
+.chairman-page table {
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.82rem !important;
+}
+
+.chairman-page table tbody tr {
+  transition: background 140ms ease;
+}
+
+.chairman-page table tbody tr:hover {
+  background: color-mix(in srgb, var(--primary) 6%, transparent);
+}
+
+.chairman-page table button {
+  min-height: 28px !important;
+  padding: 4px 8px !important;
+}
+
+.dashboard-sidebar,
+.dashboard-navbar,
+.nx-kpi,
+.nx-panel,
+.chairman-page article,
+.chairman-page button {
+  will-change: transform;
+}
+
+.nx-kpi:hover,
+.nx-panel:hover,
+.chairman-page article:hover {
+  transform: translateY(-2px);
+}
+
+html[data-theme="light"],
+body[data-theme="light"] {
+  --background: #f7f8fb;
+  --card-bg: #ffffff;
+  --surface-muted: #f2f5f9;
+  --border: rgba(15, 23, 42, 0.1);
+  --text: #111827;
+  --text-muted: #5b6472;
+}
+
+html[data-theme="dark"],
+body[data-theme="dark"],
+.dark {
+  --background: #0b1220;
+  --card-bg: #111827;
+  --surface-muted: rgba(30, 41, 59, 0.78);
+  --border: rgba(255, 255, 255, 0.1);
+  --text: #f8fafc;
+  --text-muted: #a5b4c6;
+}
+
+@media (max-width: 1180px) {
+  .nx-hero,
+  .nx-action-center,
+  .nx-mobile-experience,
+  .nx-operations-grid,
+  .nx-ai-command,
+  .nx-chairman-decisions {
+    grid-template-columns: 1fr !important;
+  }
+
+  .nx-kpi-row,
+  .nx-module-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 767px) {
+  .dashboard-main {
+    padding: 10px 10px 94px !important;
+  }
+
+  .dashboard-sidebar {
+    position: fixed;
+    width: min(86vw, 300px) !important;
+    min-width: 0 !important;
+    padding: 12px !important;
+  }
+
+  .dashboard-sidebar--collapsed {
+    width: min(86vw, 300px) !important;
+  }
+
+  .dashboard-sidebar-collapse {
+    display: none;
+  }
+
+  .dashboard-sidebar--collapsed .dashboard-sidebar-text,
+  .dashboard-sidebar--collapsed .dashboard-sidebar-label,
+  .dashboard-sidebar--collapsed .enterprise-society-switcher {
+    display: revert !important;
+  }
+
+  .dashboard-navbar {
+    min-height: 54px;
+  }
+
+  .dashboard-global-search,
+  .dashboard-profile-chip,
+  .dashboard-quick-action {
+    display: none !important;
+  }
+
+  .nx-dashboard {
+    padding-bottom: 104px !important;
+  }
+
+  .nx-hero {
+    grid-template-columns: 1fr !important;
+    min-height: auto !important;
+  }
+
+  .nx-kpi-row,
+  .nx-main-grid,
+  .nx-module-grid,
+  .nx-approval-grid,
+  .nx-recommendations,
+  .chairman-page .grid.gap-4.md\:grid-cols-2.xl\:grid-cols-3,
+  .chairman-page .grid.gap-4.md\:grid-cols-2.xl\:grid-cols-5 {
+    grid-template-columns: 1fr !important;
+  }
+
+  .chairman-page table {
+    min-width: 760px;
+  }
+
+  .chairman-page .overflow-x-auto,
+  .nx-table-wrap {
+    border-radius: var(--nx-radius-card);
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .chairman-page section:first-child :is(p.text-sm, p.text-base, .leading-6) {
+    display: none !important;
+  }
+}
+
+/* Chairman readability and sidebar polish. Loaded last by design. */
+:root,
+html[data-theme="light"],
+body[data-theme="light"] {
+  --chairman-bg: #f6f8fc;
+  --chairman-surface: #ffffff;
+  --chairman-card: #ffffff;
+  --chairman-text: #0b1220;
+  --chairman-text-secondary: #334155;
+  --chairman-muted: #475569;
+  --chairman-border: rgba(15, 23, 42, 0.12);
+  --chairman-input: #ffffff;
+  --chairman-input-placeholder: #64748b;
+  --chairman-active: linear-gradient(135deg, #6d5ef6 0%, #2563eb 100%);
+  --chairman-accent: #6d5ef6;
+  --sidebar-bg: #ffffff;
+  --sidebar-card: #f8fafc;
+  --sidebar-text: #0b1220;
+  --sidebar-text-muted: #334155;
+  --sidebar-icon: #4f46e5;
+  --active: var(--chairman-active);
+  --active-text: #ffffff;
+}
+
+html[data-theme="dark"],
+body[data-theme="dark"],
+.dark {
+  --chairman-bg: #020617;
+  --chairman-surface: #0b1220;
+  --chairman-card: #111827;
+  --chairman-text: #f8fafc;
+  --chairman-text-secondary: #d1d9e6;
+  --chairman-muted: #aebbd0;
+  --chairman-border: rgba(226, 232, 240, 0.14);
+  --chairman-input: #111827;
+  --chairman-input-placeholder: #9ca8bb;
+  --chairman-active: linear-gradient(135deg, #7c3aed 0%, #2563eb 100%);
+  --chairman-accent: #a78bfa;
+  --sidebar-bg: #0b1220;
+  --sidebar-card: #111827;
+  --sidebar-text: #f8fafc;
+  --sidebar-text-muted: #d1d9e6;
+  --sidebar-icon: #d8d9ff;
+  --active: var(--chairman-active);
+  --active-text: #ffffff;
+}
+
+.role-dashboard--admin,
+.role-dashboard--secretary {
+  background: var(--chairman-bg) !important;
+  color: var(--chairman-text) !important;
+}
+
+.role-dashboard--admin .dashboard-sidebar,
+.role-dashboard--secretary .dashboard-sidebar {
+  width: var(--nx-sidebar-expanded) !important;
+  min-width: var(--nx-sidebar-expanded) !important;
+  border: 1px solid var(--chairman-border) !important;
+  background: var(--sidebar-bg) !important;
+  color: var(--sidebar-text) !important;
+}
+
+.role-dashboard--admin .dashboard-sidebar--collapsed,
+.role-dashboard--secretary .dashboard-sidebar--collapsed {
+  width: var(--nx-sidebar-collapsed) !important;
+  min-width: var(--nx-sidebar-collapsed) !important;
+}
+
+.role-dashboard--admin .dashboard-sidebar-brand,
+.role-dashboard--secretary .dashboard-sidebar-brand {
+  border-color: var(--chairman-border) !important;
+  background: var(--sidebar-card) !important;
+}
+
+.role-dashboard--admin .dashboard-sidebar :is(strong, h1, h2, h3),
+.role-dashboard--secretary .dashboard-sidebar :is(strong, h1, h2, h3) {
+  color: var(--sidebar-text) !important;
+}
+
+.role-dashboard--admin .dashboard-sidebar :is(p, span, small),
+.role-dashboard--secretary .dashboard-sidebar :is(p, span, small) {
+  color: var(--sidebar-text-muted) !important;
+}
+
+.role-dashboard--admin .dashboard-sidebar nav,
+.role-dashboard--secretary .dashboard-sidebar nav {
+  display: grid;
+  gap: 8px;
+  overflow-x: visible;
+}
+
+.role-dashboard--admin .dashboard-sidebar nav a,
+.role-dashboard--secretary .dashboard-sidebar nav a {
+  min-height: 42px;
+  min-width: 0;
+  border: 1px solid var(--chairman-border) !important;
+  border-radius: 14px !important;
+  background: transparent !important;
+  color: var(--sidebar-text) !important;
+  overflow: visible;
+  box-shadow: none !important;
+}
+
+.role-dashboard--admin .dashboard-sidebar nav a .dashboard-sidebar-label,
+.role-dashboard--secretary .dashboard-sidebar nav a .dashboard-sidebar-label {
+  min-width: 0;
+  color: inherit !important;
+  opacity: 1 !important;
+  overflow: visible;
+  line-height: 1.2;
+  white-space: normal;
+}
+
+.role-dashboard--admin .dashboard-sidebar .dashboard-sidebar-nav-icon,
+.role-dashboard--secretary .dashboard-sidebar .dashboard-sidebar-nav-icon {
+  background: color-mix(in srgb, var(--chairman-accent) 13%, transparent) !important;
+  color: var(--sidebar-icon) !important;
+}
+
+.role-dashboard--admin .dashboard-sidebar nav a:hover,
+.role-dashboard--secretary .dashboard-sidebar nav a:hover {
+  border-color: color-mix(in srgb, var(--chairman-accent) 32%, var(--chairman-border)) !important;
+  background: color-mix(in srgb, var(--chairman-accent) 10%, transparent) !important;
+  color: var(--sidebar-text) !important;
+}
+
+.role-dashboard--admin .dashboard-sidebar nav a.is-active,
+.role-dashboard--admin .dashboard-sidebar nav a[aria-current="page"],
+.role-dashboard--secretary .dashboard-sidebar nav a.is-active,
+.role-dashboard--secretary .dashboard-sidebar nav a[aria-current="page"] {
+  border-color: transparent !important;
+  border-radius: 14px !important;
+  background: var(--chairman-active) !important;
+  color: #ffffff !important;
+  box-shadow: 0 14px 30px rgba(79, 70, 229, 0.28) !important;
+}
+
+.role-dashboard--admin .dashboard-sidebar nav a.is-active *,
+.role-dashboard--admin .dashboard-sidebar nav a[aria-current="page"] *,
+.role-dashboard--secretary .dashboard-sidebar nav a.is-active *,
+.role-dashboard--secretary .dashboard-sidebar nav a[aria-current="page"] * {
+  color: #ffffff !important;
+}
+
+.role-dashboard--admin .dashboard-sidebar nav a.is-active .dashboard-sidebar-nav-icon,
+.role-dashboard--admin .dashboard-sidebar nav a[aria-current="page"] .dashboard-sidebar-nav-icon,
+.role-dashboard--secretary .dashboard-sidebar nav a.is-active .dashboard-sidebar-nav-icon,
+.role-dashboard--secretary .dashboard-sidebar nav a[aria-current="page"] .dashboard-sidebar-nav-icon {
+  background: rgba(255, 255, 255, 0.18) !important;
+  color: #ffffff !important;
+}
+
+.role-dashboard--admin .dashboard-sidebar--collapsed .dashboard-sidebar-brand,
+.role-dashboard--secretary .dashboard-sidebar--collapsed .dashboard-sidebar-brand {
+  padding: 8px !important;
+}
+
+.role-dashboard--admin .dashboard-sidebar--collapsed .dashboard-sidebar-brand__leadership,
+.role-dashboard--secretary .dashboard-sidebar--collapsed .dashboard-sidebar-brand__leadership {
+  display: flex;
+  justify-content: center;
+}
+
+.role-dashboard--admin .dashboard-sidebar--collapsed nav a,
+.role-dashboard--secretary .dashboard-sidebar--collapsed nav a {
+  width: 44px;
+  min-height: 44px;
+  min-width: 44px;
+  justify-content: center;
+  border-radius: 14px !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  position: relative;
+}
+
+.role-dashboard--admin .dashboard-sidebar--collapsed nav a.is-active,
+.role-dashboard--admin .dashboard-sidebar--collapsed nav a[aria-current="page"],
+.role-dashboard--secretary .dashboard-sidebar--collapsed nav a.is-active,
+.role-dashboard--secretary .dashboard-sidebar--collapsed nav a[aria-current="page"] {
+  background: transparent !important;
+}
+
+.role-dashboard--admin .dashboard-sidebar--collapsed nav a.is-active .dashboard-sidebar-nav-icon,
+.role-dashboard--admin .dashboard-sidebar--collapsed nav a[aria-current="page"] .dashboard-sidebar-nav-icon,
+.role-dashboard--secretary .dashboard-sidebar--collapsed nav a.is-active .dashboard-sidebar-nav-icon,
+.role-dashboard--secretary .dashboard-sidebar--collapsed nav a[aria-current="page"] .dashboard-sidebar-nav-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 14px;
+  background: var(--chairman-active) !important;
+  box-shadow: 0 12px 26px rgba(79, 70, 229, 0.32);
+}
+
+.role-dashboard--admin .dashboard-sidebar--collapsed .dashboard-sidebar-label,
+.role-dashboard--secretary .dashboard-sidebar--collapsed .dashboard-sidebar-label,
+.role-dashboard--admin .dashboard-sidebar--collapsed .dashboard-sidebar-text,
+.role-dashboard--secretary .dashboard-sidebar--collapsed .dashboard-sidebar-text {
+  display: none !important;
+}
+
+.role-dashboard--admin .dashboard-sidebar--collapsed nav,
+.role-dashboard--secretary .dashboard-sidebar--collapsed nav {
+  justify-items: center;
+}
+
+.role-dashboard--admin .dashboard-sidebar--collapsed .dashboard-sidebar-item::after,
+.role-dashboard--secretary .dashboard-sidebar--collapsed .dashboard-sidebar-item::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  top: 50%;
+  left: calc(100% + 12px);
+  z-index: 90;
+  width: max-content;
+  max-width: 220px;
+  padding: 8px 10px;
+  border: 1px solid var(--chairman-border);
+  border-radius: 10px;
+  background: var(--chairman-card);
+  color: var(--chairman-text);
+  box-shadow: 0 16px 38px rgba(15, 23, 42, 0.16);
+  font-size: 0.78rem;
+  font-weight: 800;
+  line-height: 1.15;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(4px, -50%);
+  transition: opacity 140ms ease, transform 140ms ease;
+}
+
+.role-dashboard--admin .dashboard-sidebar--collapsed .dashboard-sidebar-item:hover::after,
+.role-dashboard--admin .dashboard-sidebar--collapsed .dashboard-sidebar-item:focus-visible::after,
+.role-dashboard--secretary .dashboard-sidebar--collapsed .dashboard-sidebar-item:hover::after,
+.role-dashboard--secretary .dashboard-sidebar--collapsed .dashboard-sidebar-item:focus-visible::after {
+  opacity: 1;
+  transform: translate(0, -50%);
+}
+
+.premium-theme-control {
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.premium-theme-trigger {
+  position: relative;
+  display: inline-grid;
+  width: 44px;
+  height: 44px;
+  min-height: 44px;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--chairman-border) 82%, transparent);
+  border-radius: 999px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.26), rgba(255, 255, 255, 0.06)),
+    color-mix(in srgb, var(--chairman-card) 88%, transparent);
+  color: var(--chairman-text);
+  box-shadow:
+    0 16px 34px -28px rgba(15, 23, 42, 0.56),
+    inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  backdrop-filter: blur(18px) saturate(150%);
+  transition: transform 170ms ease, border-color 170ms ease, box-shadow 170ms ease, background 170ms ease, color 170ms ease;
+}
+
+.premium-theme-trigger:hover,
+.premium-theme-trigger[aria-expanded="true"] {
+  border-color: rgba(124, 58, 237, 0.48);
+  background:
+    linear-gradient(135deg, rgba(124, 58, 237, 0.14), rgba(37, 99, 235, 0.1)),
+    color-mix(in srgb, var(--chairman-card) 94%, transparent);
+  box-shadow:
+    0 18px 42px -24px rgba(37, 99, 235, 0.5),
+    0 0 0 4px rgba(124, 58, 237, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.36);
+  color: var(--chairman-accent);
+  transform: translateY(-1px);
+}
+
+.premium-theme-trigger .premium-control-svg {
+  display: block;
+  width: 19px;
+  height: 19px;
+  color: currentColor;
+  opacity: 1;
+  visibility: visible;
+}
+
+.premium-theme-trigger path,
+.premium-control-menu path {
+  stroke: currentColor;
+}
+
+.enterprise-theme-icon-toggle {
+  width: 42px;
+  min-width: 42px;
+  height: 42px;
+  min-height: 42px;
+  border-color: rgba(var(--app-border-rgb, 226 232 240), 0.9);
+  background: rgba(var(--app-surface-rgb, 255 255 255), 0.96);
+  color: var(--text-main, #0f172a);
+}
+
+.enterprise-theme-icon-toggle:hover {
+  border-color: rgba(var(--app-accent-rgb, 79 70 229), 0.42);
+  background: rgba(var(--app-surface-muted-rgb, 241 245 249), 0.98);
+  color: var(--primary, #2563eb);
+}
+
+html[data-theme="dark"] .enterprise-theme-icon-toggle,
+body[data-theme="dark"] .enterprise-theme-icon-toggle,
+.dark .enterprise-theme-icon-toggle {
+  background: rgba(var(--app-surface-muted-rgb, 30 41 59), 0.98);
+  color: var(--text-main, #f8fafc);
+}
+
+/* Premium Chairman sidebar rebuild */
+:root {
+  --nx-sidebar-expanded: 272px;
+  --nx-sidebar-collapsed: 92px;
+  --nx-sidebar-row: 56px;
+  --nx-sidebar-gap: 11px;
+  --nx-sidebar-icon: 24px;
+  --nx-sidebar-ease: 280ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.role-dashboard--admin .dashboard-sidebar,
+.role-dashboard--secretary .dashboard-sidebar {
+  width: var(--nx-sidebar-expanded) !important;
+  min-width: var(--nx-sidebar-expanded) !important;
+  padding: 12px !important;
+  overflow: visible !important;
+  border-width: 0 1px 0 0 !important;
+  border-style: solid !important;
+  border-color: color-mix(in srgb, var(--chairman-border) 86%, transparent) !important;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--sidebar-bg) 96%, #ffffff 4%), var(--sidebar-bg)) !important;
+  box-shadow:
+    18px 0 55px rgba(15, 23, 42, 0.08),
+    inset -1px 0 0 color-mix(in srgb, var(--chairman-border) 70%, transparent) !important;
+  transition:
+    width var(--nx-sidebar-ease),
+    min-width var(--nx-sidebar-ease),
+    padding var(--nx-sidebar-ease),
+    box-shadow var(--nx-sidebar-ease),
+    transform var(--nx-sidebar-ease) !important;
+}
+
+html[data-theme="dark"] .role-dashboard--admin .dashboard-sidebar,
+html[data-theme="dark"] .role-dashboard--secretary .dashboard-sidebar,
+body[data-theme="dark"] .role-dashboard--admin .dashboard-sidebar,
+body[data-theme="dark"] .role-dashboard--secretary .dashboard-sidebar {
+  box-shadow:
+    22px 0 70px rgba(0, 0, 0, 0.38),
+    inset -1px 0 0 color-mix(in srgb, var(--chairman-border) 78%, transparent) !important;
+}
+
+.role-dashboard--admin .dashboard-sidebar--collapsed,
+.role-dashboard--secretary .dashboard-sidebar--collapsed {
+  width: var(--nx-sidebar-collapsed) !important;
+  min-width: var(--nx-sidebar-collapsed) !important;
+  padding-inline: 14px !important;
+}
+
+.role-dashboard--admin .dashboard-sidebar-brand,
+.role-dashboard--secretary .dashboard-sidebar-brand {
+  position: relative !important;
+  top: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  min-height: 58px !important;
+  margin: 0 0 12px !important;
+  padding: 10px 44px 10px 10px !important;
+  overflow: visible !important;
+  border-radius: 18px !important;
+  border: 1px solid color-mix(in srgb, var(--chairman-border) 78%, transparent) !important;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--sidebar-card) 92%, #ffffff 8%), var(--sidebar-card)) !important;
+  box-shadow:
+    0 14px 36px rgba(15, 23, 42, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+}
+
+.role-dashboard--admin .dashboard-sidebar-brand__leadership,
+.role-dashboard--secretary .dashboard-sidebar-brand__leadership {
+  display: flex !important;
+  align-items: center !important;
+  gap: 11px !important;
+  min-width: 0 !important;
+}
+
+.role-dashboard--admin .dashboard-sidebar-logo-img,
+.role-dashboard--secretary .dashboard-sidebar-logo-img,
+.role-dashboard--admin .dashboard-sidebar-brand img,
+.role-dashboard--secretary .dashboard-sidebar-brand img {
+  width: 36px !important;
+  min-width: 36px !important;
+  height: 36px !important;
+  border-radius: 11px !important;
+  object-fit: contain !important;
+}
+
+.role-dashboard--admin .dashboard-sidebar-collapse,
+.role-dashboard--secretary .dashboard-sidebar-collapse {
+  position: absolute !important;
+  top: 50% !important;
+  right: 10px !important;
+  z-index: 4 !important;
+  display: grid !important;
+  width: 30px !important;
+  height: 30px !important;
+  min-height: 30px !important;
+  place-items: center !important;
+  border: 1px solid color-mix(in srgb, var(--chairman-border) 82%, transparent) !important;
+  border-radius: 10px !important;
+  background: color-mix(in srgb, var(--sidebar-card) 92%, #ffffff 8%) !important;
+  color: var(--sidebar-text) !important;
+  font-size: 0.88rem !important;
+  line-height: 1 !important;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12) !important;
+  transform: translateY(-50%) !important;
+  transition:
+    transform var(--nx-sidebar-ease),
+    border-color var(--nx-sidebar-ease),
+    background var(--nx-sidebar-ease),
+    box-shadow var(--nx-sidebar-ease) !important;
+}
+
+.role-dashboard--admin .dashboard-sidebar-collapse:hover,
+.role-dashboard--secretary .dashboard-sidebar-collapse:hover {
+  border-color: color-mix(in srgb, var(--chairman-accent) 44%, var(--chairman-border)) !important;
+  background: color-mix(in srgb, var(--chairman-accent) 16%, var(--sidebar-card)) !important;
+  box-shadow: 0 14px 32px color-mix(in srgb, var(--chairman-accent) 24%, transparent) !important;
+  transform: translateY(-50%) scale(1.06) !important;
+}
+
+.role-dashboard--admin .dashboard-sidebar nav,
+.role-dashboard--secretary .dashboard-sidebar nav {
+  display: grid !important;
+  align-content: start !important;
+  gap: var(--nx-sidebar-gap) !important;
+  padding: 2px 2px 16px !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  scrollbar-width: thin !important;
+}
+
+.role-dashboard--admin .dashboard-sidebar nav::-webkit-scrollbar,
+.role-dashboard--secretary .dashboard-sidebar nav::-webkit-scrollbar {
+  width: 6px !important;
+  height: 0 !important;
+}
+
+.role-dashboard--admin .dashboard-sidebar nav::-webkit-scrollbar-thumb,
+.role-dashboard--secretary .dashboard-sidebar nav::-webkit-scrollbar-thumb {
+  border-radius: 999px !important;
+  background: color-mix(in srgb, var(--chairman-border) 76%, transparent) !important;
+}
+
+.role-dashboard--admin .dashboard-sidebar .dashboard-sidebar-item,
+.role-dashboard--secretary .dashboard-sidebar .dashboard-sidebar-item,
+.role-dashboard--admin .dashboard-sidebar nav a,
+.role-dashboard--secretary .dashboard-sidebar nav a {
+  position: relative !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  width: 100% !important;
+  height: var(--nx-sidebar-row) !important;
+  min-height: var(--nx-sidebar-row) !important;
+  padding: 0 14px !important;
+  overflow: visible !important;
+  border: 1px solid transparent !important;
+  border-radius: 16px !important;
+  background: transparent !important;
+  color: var(--sidebar-text) !important;
+  box-shadow: none !important;
+  transition:
+    transform var(--nx-sidebar-ease),
+    background var(--nx-sidebar-ease),
+    border-color var(--nx-sidebar-ease),
+    box-shadow var(--nx-sidebar-ease),
+    color var(--nx-sidebar-ease) !important;
+}
+
+.role-dashboard--admin .dashboard-sidebar .dashboard-sidebar-item::before,
+.role-dashboard--secretary .dashboard-sidebar .dashboard-sidebar-item::before {
+  position: absolute;
+  inset: 7px auto 7px -1px;
+  width: 2px;
+  border-radius: 999px;
+  background: transparent;
+  content: "";
+  transition: background var(--nx-sidebar-ease), box-shadow var(--nx-sidebar-ease);
+}
+
+.role-dashboard--admin .dashboard-sidebar .dashboard-sidebar-nav-icon,
+.role-dashboard--secretary .dashboard-sidebar .dashboard-sidebar-nav-icon {
+  display: grid !important;
+  width: 36px !important;
+  min-width: 36px !important;
+  height: 36px !important;
+  place-items: center !important;
+  border-radius: 12px !important;
+  background: color-mix(in srgb, var(--chairman-accent) 12%, transparent) !important;
+  color: var(--sidebar-icon) !important;
+  transform: translateZ(0) !important;
+  transition:
+    transform var(--nx-sidebar-ease),
+    background var(--nx-sidebar-ease),
+    color var(--nx-sidebar-ease),
+    box-shadow var(--nx-sidebar-ease) !important;
+}
+
+.role-dashboard--admin .dashboard-sidebar-svg-icon,
+.role-dashboard--secretary .dashboard-sidebar-svg-icon {
+  display: block !important;
+  width: var(--nx-sidebar-icon) !important;
+  height: var(--nx-sidebar-icon) !important;
+  flex: 0 0 var(--nx-sidebar-icon) !important;
+  stroke-width: 1.9 !important;
+}
+
+.role-dashboard--admin .dashboard-sidebar .dashboard-sidebar-label,
+.role-dashboard--secretary .dashboard-sidebar .dashboard-sidebar-label {
+  min-width: 0 !important;
+  overflow: hidden !important;
+  color: inherit !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  font-size: 0.92rem !important;
+  font-weight: 780 !important;
+  line-height: 1.1 !important;
+  transition: opacity 180ms ease, transform var(--nx-sidebar-ease) !important;
+}
+
+.role-dashboard--admin .dashboard-sidebar nav a:hover,
+.role-dashboard--secretary .dashboard-sidebar nav a:hover,
+.role-dashboard--admin .dashboard-sidebar .dashboard-sidebar-item:hover,
+.role-dashboard--secretary .dashboard-sidebar .dashboard-sidebar-item:hover {
+  border-color: color-mix(in srgb, var(--chairman-accent) 30%, var(--chairman-border)) !important;
+  background: color-mix(in srgb, var(--chairman-accent) 9%, transparent) !important;
+  box-shadow: 0 12px 28px color-mix(in srgb, var(--chairman-accent) 13%, transparent) !important;
+  color: var(--sidebar-text) !important;
+  transform: translateX(2px) scale(1.012) !important;
+}
+
+.role-dashboard--admin .dashboard-sidebar nav a:hover .dashboard-sidebar-nav-icon,
+.role-dashboard--secretary .dashboard-sidebar nav a:hover .dashboard-sidebar-nav-icon,
+.role-dashboard--admin .dashboard-sidebar .dashboard-sidebar-item:hover .dashboard-sidebar-nav-icon,
+.role-dashboard--secretary .dashboard-sidebar .dashboard-sidebar-item:hover .dashboard-sidebar-nav-icon {
+  background: color-mix(in srgb, var(--chairman-accent) 20%, transparent) !important;
+  box-shadow: 0 10px 22px color-mix(in srgb, var(--chairman-accent) 18%, transparent) !important;
+  transform: scale(1.06) !important;
+}
+
+.role-dashboard--admin .dashboard-sidebar nav a.is-active,
+.role-dashboard--admin .dashboard-sidebar nav a[aria-current="page"],
+.role-dashboard--secretary .dashboard-sidebar nav a.is-active,
+.role-dashboard--secretary .dashboard-sidebar nav a[aria-current="page"] {
+  border: 1px solid color-mix(in srgb, var(--chairman-accent) 62%, transparent) !important;
+  border-left-width: 2px !important;
+  background:
+    linear-gradient(135deg, rgba(124, 58, 237, 0.96), rgba(37, 99, 235, 0.96)) !important;
+  color: #ffffff !important;
+  box-shadow:
+    0 18px 40px rgba(37, 99, 235, 0.24),
+    0 0 0 4px color-mix(in srgb, var(--chairman-accent) 12%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+  transform: none !important;
+}
+
+.role-dashboard--admin .dashboard-sidebar nav a.is-active::before,
+.role-dashboard--admin .dashboard-sidebar nav a[aria-current="page"]::before,
+.role-dashboard--secretary .dashboard-sidebar nav a.is-active::before,
+.role-dashboard--secretary .dashboard-sidebar nav a[aria-current="page"]::before {
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 0 18px rgba(255, 255, 255, 0.62);
+}
+
+.role-dashboard--admin .dashboard-sidebar nav a.is-active .dashboard-sidebar-nav-icon,
+.role-dashboard--admin .dashboard-sidebar nav a[aria-current="page"] .dashboard-sidebar-nav-icon,
+.role-dashboard--secretary .dashboard-sidebar nav a.is-active .dashboard-sidebar-nav-icon,
+.role-dashboard--secretary .dashboard-sidebar nav a[aria-current="page"] .dashboard-sidebar-nav-icon {
+  background: rgba(255, 255, 255, 0.18) !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
+}
+
+.role-dashboard--admin .dashboard-sidebar--collapsed .dashboard-sidebar-brand,
+.role-dashboard--secretary .dashboard-sidebar--collapsed .dashboard-sidebar-brand {
+  justify-content: center !important;
+  min-height: 64px !important;
+  padding: 10px !important;
+}
+
+.role-dashboard--admin .dashboard-sidebar--collapsed .dashboard-sidebar-brand__leadership,
+.role-dashboard--secretary .dashboard-sidebar--collapsed .dashboard-sidebar-brand__leadership {
+  width: 100% !important;
+  justify-content: center !important;
+}
+
+.role-dashboard--admin .dashboard-sidebar--collapsed .dashboard-sidebar-logo-img,
+.role-dashboard--secretary .dashboard-sidebar--collapsed .dashboard-sidebar-logo-img,
+.role-dashboard--admin .dashboard-sidebar--collapsed .dashboard-sidebar-brand img,
+.role-dashboard--secretary .dashboard-sidebar--collapsed .dashboard-sidebar-brand img {
+  width: 38px !important;
+  min-width: 38px !important;
+  height: 38px !important;
+}
+
+.role-dashboard--admin .dashboard-sidebar--collapsed .dashboard-sidebar-product,
+.role-dashboard--secretary .dashboard-sidebar--collapsed .dashboard-sidebar-product,
+.role-dashboard--admin .dashboard-sidebar--collapsed .dashboard-sidebar-label,
+.role-dashboard--secretary .dashboard-sidebar--collapsed .dashboard-sidebar-label,
+.role-dashboard--admin .dashboard-sidebar--collapsed .dashboard-sidebar-text,
+.role-dashboard--secretary .dashboard-sidebar--collapsed .dashboard-sidebar-text {
+  display: none !important;
+}
+
+.role-dashboard--admin .dashboard-sidebar--collapsed .dashboard-sidebar-collapse,
+.role-dashboard--secretary .dashboard-sidebar--collapsed .dashboard-sidebar-collapse {
+  right: 4px !important;
+  width: 28px !important;
+  height: 28px !important;
+  min-height: 28px !important;
+  border-radius: 9px !important;
+}
+
+.role-dashboard--admin .dashboard-sidebar--collapsed nav,
+.role-dashboard--secretary .dashboard-sidebar--collapsed nav {
+  justify-items: center !important;
+  overflow-x: hidden !important;
+  padding-inline: 0 !important;
+}
+
+.role-dashboard--admin .dashboard-sidebar--collapsed .dashboard-sidebar-item,
+.role-dashboard--secretary .dashboard-sidebar--collapsed .dashboard-sidebar-item,
+.role-dashboard--admin .dashboard-sidebar--collapsed nav a,
+.role-dashboard--secretary .dashboard-sidebar--collapsed nav a {
+  width: 64px !important;
+  min-width: 64px !important;
+  height: var(--nx-sidebar-row) !important;
+  min-height: var(--nx-sidebar-row) !important;
+  justify-content: center !important;
+  gap: 0 !important;
+  padding: 0 !important;
+  border-radius: 18px !important;
+}
+
+.role-dashboard--admin .dashboard-sidebar--collapsed .dashboard-sidebar-nav-icon,
+.role-dashboard--secretary .dashboard-sidebar--collapsed .dashboard-sidebar-nav-icon {
+  width: 44px !important;
+  min-width: 44px !important;
+  height: 44px !important;
+  margin: 0 !important;
+  border-radius: 15px !important;
+}
+
+.role-dashboard--admin .dashboard-sidebar--collapsed nav a.is-active,
+.role-dashboard--admin .dashboard-sidebar--collapsed nav a[aria-current="page"],
+.role-dashboard--secretary .dashboard-sidebar--collapsed nav a.is-active,
+.role-dashboard--secretary .dashboard-sidebar--collapsed nav a[aria-current="page"] {
+  border-color: color-mix(in srgb, var(--chairman-accent) 46%, transparent) !important;
+  background:
+    linear-gradient(135deg, rgba(124, 58, 237, 0.18), rgba(37, 99, 235, 0.14)) !important;
+  box-shadow:
+    0 14px 32px rgba(37, 99, 235, 0.18),
+    inset 2px 0 0 color-mix(in srgb, var(--chairman-accent) 92%, #ffffff 8%) !important;
+}
+
+.role-dashboard--admin .dashboard-sidebar--collapsed nav a.is-active .dashboard-sidebar-nav-icon,
+.role-dashboard--admin .dashboard-sidebar--collapsed nav a[aria-current="page"] .dashboard-sidebar-nav-icon,
+.role-dashboard--secretary .dashboard-sidebar--collapsed nav a.is-active .dashboard-sidebar-nav-icon,
+.role-dashboard--secretary .dashboard-sidebar--collapsed nav a[aria-current="page"] .dashboard-sidebar-nav-icon {
+  background:
+    linear-gradient(135deg, rgba(124, 58, 237, 0.96), rgba(37, 99, 235, 0.96)) !important;
+  color: #ffffff !important;
+  box-shadow: 0 12px 28px rgba(37, 99, 235, 0.28) !important;
+}
+
+.role-dashboard--admin .dashboard-sidebar--collapsed .dashboard-sidebar-item::after,
+.role-dashboard--secretary .dashboard-sidebar--collapsed .dashboard-sidebar-item::after {
+  content: attr(data-tooltip);
+  position: fixed !important;
+  left: calc(var(--nx-sidebar-collapsed) + 14px) !important;
+  z-index: 999 !important;
+  width: max-content !important;
+  max-width: 240px !important;
+  padding: 9px 11px !important;
+  border: 1px solid color-mix(in srgb, var(--chairman-border) 78%, transparent) !important;
+  border-radius: 12px !important;
+  background: color-mix(in srgb, var(--chairman-card) 96%, #ffffff 4%) !important;
+  color: var(--chairman-text) !important;
+  box-shadow: 0 18px 42px rgba(15, 23, 42, 0.18) !important;
+  font-size: 0.8rem !important;
+  font-weight: 850 !important;
+  line-height: 1.2 !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transform: translate(8px, 0) !important;
+  transition: opacity 160ms ease, transform 160ms ease !important;
+}
+
+.role-dashboard--admin .dashboard-sidebar--collapsed .dashboard-sidebar-item:hover::after,
+.role-dashboard--admin .dashboard-sidebar--collapsed .dashboard-sidebar-item:focus-visible::after,
+.role-dashboard--secretary .dashboard-sidebar--collapsed .dashboard-sidebar-item:hover::after,
+.role-dashboard--secretary .dashboard-sidebar--collapsed .dashboard-sidebar-item:focus-visible::after {
+  opacity: 1 !important;
+  transform: translate(0, 0) !important;
+}
+
+@media (max-width: 767px) {
+  .role-dashboard--admin .dashboard-sidebar,
+  .role-dashboard--secretary .dashboard-sidebar {
+    width: min(292px, calc(100vw - 28px)) !important;
+    min-width: min(292px, calc(100vw - 28px)) !important;
+    overflow-x: hidden !important;
+  }
+
+  .role-dashboard--admin .dashboard-sidebar--collapsed,
+  .role-dashboard--secretary .dashboard-sidebar--collapsed {
+    width: min(292px, calc(100vw - 28px)) !important;
+    min-width: min(292px, calc(100vw - 28px)) !important;
+  }
+}
+
+.premium-control-menu {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  z-index: 80;
+  min-width: 178px;
+  border: 1px solid color-mix(in srgb, var(--chairman-border) 72%, transparent);
+  border-radius: 16px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0.08)),
+    color-mix(in srgb, var(--chairman-card) 96%, transparent);
+  box-shadow:
+    0 24px 70px -34px rgba(15, 23, 42, 0.58),
+    inset 0 1px 0 rgba(255, 255, 255, 0.34);
+  padding: 7px;
+  backdrop-filter: blur(22px) saturate(160%);
+}
+
+html[data-theme="dark"] .premium-control-menu,
+body[data-theme="dark"] .premium-control-menu {
+  background:
+    linear-gradient(135deg, rgba(124, 58, 237, 0.1), rgba(37, 99, 235, 0.08)),
+    rgba(15, 23, 42, 0.96);
+  box-shadow:
+    0 26px 80px -36px rgba(0, 0, 0, 0.86),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.premium-menu-title {
+  padding: 6px 9px 7px;
+  color: var(--chairman-muted);
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.premium-control-menu button {
+  display: flex;
+  width: 100%;
+  min-height: 38px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border: 0;
+  border-radius: 11px;
+  background: transparent;
+  color: var(--chairman-text);
+  padding: 0 9px;
+  font-size: 0.82rem;
+  font-weight: 820;
+  text-align: left;
+  transition: background 150ms ease, color 150ms ease, transform 150ms ease;
+}
+
+.premium-control-menu button:hover {
+  background: color-mix(in srgb, var(--chairman-accent) 10%, transparent);
+  color: var(--chairman-accent);
+  transform: translateX(1px);
+}
+
+.premium-control-menu button.is-selected {
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.14), rgba(37, 99, 235, 0.12));
+  color: var(--chairman-accent);
+}
+
+.premium-menu-option-icon,
+.premium-menu-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.premium-menu-check {
+  width: 18px;
+  min-width: 18px;
+}
+
+.premium-menu-option-icon .premium-control-svg,
+.premium-menu-check .premium-control-svg {
+  width: 16px;
+  height: 16px;
+}
+
+.role-dashboard--admin :is(.dashboard-main, .dashboard-page-transition, .admin-dashboard-surface),
+.role-dashboard--secretary :is(.dashboard-main, .dashboard-page-transition, .secretary-dashboard-surface) {
+  color: var(--chairman-text) !important;
+}
+
+.role-dashboard--admin .admin-dashboard-surface :is([class*="bg-white"], [class*="bg-slate-50"], [class*="bg-slate-100"], [class*="bg-gray-50"]),
+.role-dashboard--secretary .secretary-dashboard-surface :is([class*="bg-white"], [class*="bg-slate-50"], [class*="bg-slate-100"], [class*="bg-gray-50"]) {
+  border-color: var(--chairman-border) !important;
+  background: var(--chairman-card) !important;
+}
+
+.role-dashboard--admin .admin-dashboard-surface :is([class*="text-slate-950"], [class*="text-slate-900"], [class*="text-slate-800"], [class*="text-gray-900"]),
+.role-dashboard--secretary .secretary-dashboard-surface :is([class*="text-slate-950"], [class*="text-slate-900"], [class*="text-slate-800"], [class*="text-gray-900"]) {
+  color: var(--chairman-text) !important;
+}
+
+.role-dashboard--admin .admin-dashboard-surface :is([class*="text-slate-700"], [class*="text-slate-600"], [class*="text-slate-500"], [class*="text-gray-700"], [class*="text-gray-600"], [class*="text-gray-500"]),
+.role-dashboard--secretary .secretary-dashboard-surface :is([class*="text-slate-700"], [class*="text-slate-600"], [class*="text-slate-500"], [class*="text-gray-700"], [class*="text-gray-600"], [class*="text-gray-500"]) {
+  color: var(--chairman-muted) !important;
+}
+
+.role-dashboard--admin .admin-dashboard-surface :is(input, select, textarea),
+.role-dashboard--secretary .secretary-dashboard-surface :is(input, select, textarea) {
+  border-color: var(--chairman-border) !important;
+  background: var(--chairman-input) !important;
+  color: var(--chairman-text) !important;
+}
+
+.role-dashboard--admin .admin-dashboard-surface :is(input, textarea)::placeholder,
+.role-dashboard--secretary .secretary-dashboard-surface :is(input, textarea)::placeholder {
+  color: var(--chairman-input-placeholder) !important;
+  opacity: 1 !important;
+}
+
+.role-dashboard--admin .admin-dashboard-surface option,
+.role-dashboard--secretary .secretary-dashboard-surface option {
+  background: var(--chairman-card) !important;
+  color: var(--chairman-text) !important;
+}
+
+.role-dashboard--admin :is(.chairman-page, .secretary-page),
+.role-dashboard--secretary :is(.chairman-page, .secretary-page) {
+  color: var(--chairman-text) !important;
+}
+
+.role-dashboard--admin :is(.chairman-page, .secretary-page) :is(section, article, .surface-card, .glass-card, .theme-surface, .theme-card, .table-wrapper, [class*="bg-white"], [class*="bg-slate-50"], [class*="bg-slate-100"]),
+.role-dashboard--secretary :is(.chairman-page, .secretary-page) :is(section, article, .surface-card, .glass-card, .theme-surface, .theme-card, .table-wrapper, [class*="bg-white"], [class*="bg-slate-50"], [class*="bg-slate-100"]) {
+  border-color: var(--chairman-border) !important;
+  background: var(--chairman-card) !important;
+  color: var(--chairman-text) !important;
+}
+
+.role-dashboard--admin :is(.chairman-page, .secretary-page) :is(h1, h2, h3, h4, h5, h6, strong, b, .font-bold, .font-semibold),
+.role-dashboard--secretary :is(.chairman-page, .secretary-page) :is(h1, h2, h3, h4, h5, h6, strong, b, .font-bold, .font-semibold) {
+  color: var(--chairman-text) !important;
+  opacity: 1 !important;
+}
+
+.role-dashboard--admin :is(.chairman-page, .secretary-page) :is(p, li, label, td, th, small, span),
+.role-dashboard--secretary :is(.chairman-page, .secretary-page) :is(p, li, label, td, th, small, span) {
+  color: var(--chairman-text-secondary) !important;
+  opacity: 1 !important;
+}
+
+.role-dashboard--admin :is(.chairman-page, .secretary-page) :is(.text-slate-900, .text-slate-950, .text-gray-900),
+.role-dashboard--secretary :is(.chairman-page, .secretary-page) :is(.text-slate-900, .text-slate-950, .text-gray-900) {
+  color: var(--chairman-text) !important;
+}
+
+.role-dashboard--admin :is(.chairman-page, .secretary-page) :is(.text-slate-500, .text-slate-600, .text-slate-700, .text-gray-500, .text-gray-600, .text-gray-700),
+.role-dashboard--secretary :is(.chairman-page, .secretary-page) :is(.text-slate-500, .text-slate-600, .text-slate-700, .text-gray-500, .text-gray-600, .text-gray-700) {
+  color: var(--chairman-muted) !important;
+}
+
+.role-dashboard--admin :is(.chairman-page, .secretary-page) :is(input, select, textarea, .ui-input),
+.role-dashboard--secretary :is(.chairman-page, .secretary-page) :is(input, select, textarea, .ui-input),
+.role-dashboard--admin :is(.dashboard-global-search, .enterprise-select, .society-switcher__search),
+.role-dashboard--secretary :is(.dashboard-global-search, .enterprise-select, .society-switcher__search) {
+  border-color: var(--chairman-border) !important;
+  background: var(--chairman-input) !important;
+  color: var(--chairman-text) !important;
+}
+
+.role-dashboard--admin :is(.chairman-page, .secretary-page) :is(input, textarea)::placeholder,
+.role-dashboard--secretary :is(.chairman-page, .secretary-page) :is(input, textarea)::placeholder,
+.role-dashboard--admin .dashboard-global-search input::placeholder,
+.role-dashboard--secretary .dashboard-global-search input::placeholder {
+  color: var(--chairman-input-placeholder) !important;
+  opacity: 1 !important;
+}
+
+.role-dashboard--admin :is(.chairman-page, .secretary-page) option,
+.role-dashboard--secretary :is(.chairman-page, .secretary-page) option {
+  background: var(--chairman-card) !important;
+  color: var(--chairman-text) !important;
+}
+
+.role-dashboard--admin :is(.chairman-page, .secretary-page) :is(table, thead, tbody, tr, th, td),
+.role-dashboard--secretary :is(.chairman-page, .secretary-page) :is(table, thead, tbody, tr, th, td) {
+  border-color: var(--chairman-border) !important;
+}
+
+.role-dashboard--admin :is(.chairman-page, .secretary-page) thead,
+.role-dashboard--admin :is(.chairman-page, .secretary-page) th,
+.role-dashboard--secretary :is(.chairman-page, .secretary-page) thead,
+.role-dashboard--secretary :is(.chairman-page, .secretary-page) th {
+  background: color-mix(in srgb, var(--chairman-muted) 10%, var(--chairman-card)) !important;
+  color: var(--chairman-text-secondary) !important;
+}
+
+.role-dashboard--admin :is(.chairman-page, .secretary-page) tbody tr,
+.role-dashboard--secretary :is(.chairman-page, .secretary-page) tbody tr {
+  background: var(--chairman-card) !important;
+}
+
+.role-dashboard--admin :is(.chairman-page, .secretary-page) tbody tr:hover,
+.role-dashboard--secretary :is(.chairman-page, .secretary-page) tbody tr:hover {
+  background: color-mix(in srgb, var(--chairman-accent) 8%, var(--chairman-card)) !important;
+}
+
+.role-dashboard--admin :is(.chairman-page, .secretary-page) :is(.button--primary, .btn-primary, button[type="submit"], .is-active),
+.role-dashboard--secretary :is(.chairman-page, .secretary-page) :is(.button--primary, .btn-primary, button[type="submit"], .is-active) {
+  background: var(--chairman-active) !important;
+  color: #ffffff !important;
+  border-color: transparent !important;
+}
+
+.role-dashboard--admin :is(.chairman-page, .secretary-page) :is(.button--primary, .btn-primary, button[type="submit"], .is-active) *,
+.role-dashboard--secretary :is(.chairman-page, .secretary-page) :is(.button--primary, .btn-primary, button[type="submit"], .is-active) * {
+  color: #ffffff !important;
+}
+
+.role-dashboard--admin :is(.chairman-page, .secretary-page) :is(button, .button--ghost, .button--muted, a[class*="rounded"]),
+.role-dashboard--secretary :is(.chairman-page, .secretary-page) :is(button, .button--ghost, .button--muted, a[class*="rounded"]) {
+  border-color: var(--chairman-border) !important;
+}
+
+.role-dashboard--admin :is(.chairman-page, .secretary-page) :is(.bg-violet-600, .bg-indigo-600, .bg-blue-600, .bg-slate-950, .bg-emerald-600, .bg-rose-600, .text-white),
+.role-dashboard--secretary :is(.chairman-page, .secretary-page) :is(.bg-violet-600, .bg-indigo-600, .bg-blue-600, .bg-slate-950, .bg-emerald-600, .bg-rose-600, .text-white) {
+  color: #ffffff !important;
+}
+
+.role-dashboard--admin :is(.chairman-page, .secretary-page) :is(.bg-white, .bg-slate-50, .bg-slate-100),
+.role-dashboard--secretary :is(.chairman-page, .secretary-page) :is(.bg-white, .bg-slate-50, .bg-slate-100) {
+  color: var(--chairman-text) !important;
+}
+
+.role-dashboard--admin .enterprise-segmented button.is-active,
+.role-dashboard--secretary .enterprise-segmented button.is-active {
+  background: var(--chairman-active) !important;
+  color: #ffffff !important;
+}
+
+@media (max-width: 767px) {
+  .role-dashboard--admin .dashboard-sidebar,
+  .role-dashboard--secretary .dashboard-sidebar,
+  .role-dashboard--admin .dashboard-sidebar--collapsed,
+  .role-dashboard--secretary .dashboard-sidebar--collapsed {
+    width: min(86vw, 300px) !important;
+    min-width: 0 !important;
+  }
+
+  .role-dashboard--admin .dashboard-sidebar--collapsed .dashboard-sidebar-label,
+  .role-dashboard--secretary .dashboard-sidebar--collapsed .dashboard-sidebar-label,
+  .role-dashboard--admin .dashboard-sidebar--collapsed .dashboard-sidebar-text,
+  .role-dashboard--secretary .dashboard-sidebar--collapsed .dashboard-sidebar-text {
+    display: revert !important;
+  }
+}
+
+/* Chairman profile/settings modal: viewport-centered and internally scrollable. */
+.chairman-modal-backdrop {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 9999 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100vw !important;
+  height: 100dvh !important;
+  padding: clamp(16px, 4vh, 36px) !important;
+  overflow: hidden !important;
+  background: rgba(2, 6, 23, 0.58) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(1.16);
+  backdrop-filter: blur(16px) saturate(1.16);
+  animation: chairmanModalBackdropIn 220ms ease both;
+}
+
+.chairman-modal {
+  position: relative !important;
+  display: grid !important;
+  grid-template-rows: auto minmax(0, 1fr) auto !important;
+  width: min(820px, calc(100vw - 32px)) !important;
+  max-width: 820px !important;
+  max-height: min(86dvh, 780px) !important;
+  overflow: hidden !important;
+  border: 1px solid color-mix(in srgb, var(--chairman-border, rgba(226, 232, 240, 0.16)) 80%, transparent) !important;
+  border-radius: 24px !important;
+  background:
+    linear-gradient(145deg, color-mix(in srgb, var(--chairman-card, #ffffff) 92%, transparent), color-mix(in srgb, var(--chairman-surface, #ffffff) 78%, transparent)),
+    radial-gradient(circle at top left, rgba(109, 94, 246, 0.16), transparent 36%) !important;
+  color: var(--chairman-text, var(--text)) !important;
+  box-shadow: 0 34px 90px rgba(2, 6, 23, 0.36), 0 8px 24px rgba(2, 6, 23, 0.2) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(1.25);
+  backdrop-filter: blur(28px) saturate(1.25);
+  transform-origin: center center;
+  animation: chairmanModalIn 230ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.chairman-modal-head {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 2 !important;
+  display: flex !important;
+  align-items: flex-start !important;
+  justify-content: space-between !important;
+  gap: 18px !important;
+  border-bottom: 1px solid var(--chairman-border, var(--border)) !important;
+  background: color-mix(in srgb, var(--chairman-card, #ffffff) 88%, transparent) !important;
+  padding: 22px 24px 18px !important;
+}
+
+.chairman-modal-head h2 {
+  margin: 0 !important;
+  color: var(--chairman-text, var(--text)) !important;
+  font-size: clamp(1.15rem, 1.7vw, 1.45rem) !important;
+  font-weight: 900 !important;
+  letter-spacing: 0 !important;
+  line-height: 1.15 !important;
+}
+
+.chairman-modal-title-icon {
+  display: inline-grid;
+  width: 34px;
+  height: 34px;
+  margin-right: 10px;
+  place-items: center;
+  border-radius: 12px;
+  background:
+    linear-gradient(135deg, rgba(109, 94, 246, 0.18), rgba(37, 99, 235, 0.18)),
+    var(--chairman-card, #ffffff);
+  vertical-align: middle;
+}
+
+.chairman-modal-title-icon svg {
+  width: 18px;
+  height: 18px;
+  color: var(--chairman-accent, #6d5ef6);
+}
+
+.chairman-modal-head p {
+  margin: 7px 0 0 44px !important;
+  color: var(--chairman-muted, var(--text-muted)) !important;
+  font-size: 0.88rem !important;
+  line-height: 1.45 !important;
+}
+
+.chairman-modal-head button {
+  display: grid !important;
+  width: 38px !important;
+  height: 38px !important;
+  min-width: 38px !important;
+  place-items: center !important;
+  border: 1px solid var(--chairman-border, var(--border)) !important;
+  border-radius: 14px !important;
+  background: color-mix(in srgb, var(--chairman-card, #ffffff) 82%, var(--chairman-muted, #64748b) 8%) !important;
+  color: var(--chairman-text, var(--text)) !important;
+  padding: 0 !important;
+  font-size: 1rem !important;
+  font-weight: 900 !important;
+  line-height: 1 !important;
+}
+
+.chairman-modal-body {
+  min-height: 0 !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  padding: 22px 24px !important;
+  scrollbar-gutter: stable;
+}
+
+.chairman-profile-editor {
+  display: grid !important;
+  grid-template-columns: 190px minmax(0, 1fr) !important;
+  gap: 22px !important;
+  margin: 0 !important;
+}
+
+.chairman-avatar-upload {
+  min-height: 230px !important;
+  border: 1px dashed color-mix(in srgb, var(--chairman-accent, #6d5ef6) 36%, var(--chairman-border, #e2e8f0)) !important;
+  border-radius: 20px !important;
+  background:
+    linear-gradient(145deg, color-mix(in srgb, var(--chairman-accent, #6d5ef6) 8%, transparent), color-mix(in srgb, var(--chairman-card, #ffffff) 82%, transparent)) !important;
+  color: var(--chairman-muted, var(--text-muted)) !important;
+}
+
+.chairman-avatar-upload span {
+  width: 86px !important;
+  height: 86px !important;
+  border-radius: 24px !important;
+  background: var(--chairman-active, linear-gradient(135deg, #6d5ef6, #2563eb)) !important;
+  color: #ffffff !important;
+  box-shadow: 0 18px 42px rgba(79, 70, 229, 0.28);
+}
+
+.chairman-avatar-upload small {
+  margin-top: 12px !important;
+  color: var(--chairman-muted, var(--text-muted)) !important;
+  font-weight: 800 !important;
+}
+
+.chairman-form-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 14px !important;
+}
+
+.chairman-form-grid label {
+  display: grid !important;
+  gap: 7px !important;
+  color: var(--chairman-text-secondary, var(--text-secondary)) !important;
+  font-size: 0.76rem !important;
+  font-weight: 900 !important;
+}
+
+.chairman-form-grid input,
+.chairman-security-grid input {
+  min-width: 0 !important;
+  min-height: 44px !important;
+  border: 1px solid var(--chairman-border, var(--border)) !important;
+  border-radius: 14px !important;
+  background: var(--chairman-input, var(--input-bg)) !important;
+  color: var(--chairman-text, var(--text)) !important;
+  padding: 0 13px !important;
+  font-size: 0.92rem !important;
+}
+
+.chairman-security-grid {
+  margin: 0 !important;
+}
+
+.chairman-dialog-copy {
+  color: var(--chairman-muted, var(--text-muted)) !important;
+  font-size: 0.95rem !important;
+  line-height: 1.6 !important;
+}
+
+.chairman-modal-footer {
+  position: sticky !important;
+  bottom: 0 !important;
+  z-index: 2 !important;
+  display: flex !important;
+  justify-content: flex-end !important;
+  gap: 10px !important;
+  border-top: 1px solid var(--chairman-border, var(--border)) !important;
+  background: color-mix(in srgb, var(--chairman-card, #ffffff) 90%, transparent) !important;
+  padding: 16px 24px !important;
+}
+
+.chairman-modal-button {
+  display: inline-flex !important;
+  min-height: 42px !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 14px !important;
+  padding: 0 16px !important;
+  font-size: 0.88rem !important;
+  font-weight: 900 !important;
+}
+
+.chairman-modal-button--ghost {
+  border: 1px solid var(--chairman-border, var(--border)) !important;
+  background: color-mix(in srgb, var(--chairman-card, #ffffff) 88%, transparent) !important;
+  color: var(--chairman-text, var(--text)) !important;
+}
+
+.chairman-modal-button--primary {
+  border: 0 !important;
+  background: var(--chairman-active, linear-gradient(135deg, #6d5ef6, #2563eb)) !important;
+  color: #ffffff !important;
+  box-shadow: 0 14px 30px rgba(79, 70, 229, 0.28) !important;
+}
+
+@keyframes chairmanModalBackdropIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes chairmanModalIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (max-width: 760px) {
+  .chairman-modal-backdrop {
+    align-items: stretch !important;
+    padding: 0 !important;
+  }
+
+  .chairman-modal {
+    width: 100vw !important;
+    max-width: none !important;
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    border-radius: 0 !important;
+    border-inline: 0 !important;
+  }
+
+  .chairman-modal-head {
+    padding: 18px 16px 14px !important;
+  }
+
+  .chairman-modal-head p {
+    margin-left: 0 !important;
+  }
+
+  .chairman-modal-title-icon {
+    width: 30px;
+    height: 30px;
+    margin-right: 8px;
+    border-radius: 10px;
+  }
+
+  .chairman-modal-body {
+    padding: 18px 16px !important;
+  }
+
+  .chairman-profile-editor,
+  .chairman-form-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .chairman-avatar-upload {
+    min-height: 180px !important;
+  }
+
+  .chairman-modal-footer {
+    padding: 14px 16px calc(14px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  .chairman-modal-button {
+    flex: 1 1 0;
+  }
+}

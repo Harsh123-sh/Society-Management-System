@@ -4,6 +4,8 @@ const app = require("./App");
 const { initChatSocket } = require("./sockets/chatSocket");
 const archiveModel = require("./models/archiveModel");
 const { validateSchema } = require("./utils/schemaValidator");
+const { warnMissingOAuthConfig } = require("./utils/oauthConfig");
+const db = require("./config/db");
 
 let ensureSchema = null;
 try {
@@ -13,17 +15,27 @@ try {
 }
 
 const PORT = process.env.PORT || 5000;
+const allowServerWithoutDb = process.env.ALLOW_SERVER_WITHOUT_DB === "true";
+const requireDatabaseOnStartup = process.env.REQUIRE_DATABASE_ON_STARTUP === "true" ||
+  (process.env.NODE_ENV === "production" && !allowServerWithoutDb);
 
-const placeholderPattern = /<[^>]+>|YOUR_[A-Z_]+|RENDER_DB/;
-const requiredEnv = ["JWT_SECRET", "DATABASE_URL"];
+const placeholderPattern = /<[^>]+>|YOUR_[A-Z_]+|RENDER_DB|SUPABASE_[A-Z_]+/;
+const hasDatabaseConfig = Boolean(process.env.DATABASE_URL || (process.env.DB_HOST && process.env.DB_NAME));
+const requiredEnv = ["JWT_SECRET"];
 const missingEnv = requiredEnv.filter((key) => !process.env[key] || placeholderPattern.test(process.env[key]));
+
+if (!hasDatabaseConfig) {
+  missingEnv.push("DATABASE_URL or DB_HOST/DB_NAME");
+}
+
+warnMissingOAuthConfig();
 
 if (missingEnv.length) {
   console.error(
     `Missing or placeholder environment variables: ${[...new Set(missingEnv)].join(", ")}`
   );
   console.error(
-    "For Render deployment, set DATABASE_URL to Render PostgreSQL Internal Database URL and JWT_SECRET to a secure value."
+    "Set DATABASE_URL for Supabase PostgreSQL or DB_HOST/DB_PORT/DB_USER/DB_PASSWORD/DB_NAME for local PostgreSQL, and provide JWT_SECRET."
   );
   process.exit(1);
 }
@@ -48,12 +60,26 @@ async function initializeSchema() {
 
 (async () => {
   try {
-    // Start schema initialization in background
-    await initializeSchema();
+    const databaseReady = await db.testConnection();
+    if (!databaseReady) {
+      const message = "Database is not reachable. DB-backed API routes will return errors until the connection is restored.";
+      if (requireDatabaseOnStartup) {
+        console.error("Startup stopped because the database is not reachable.");
+        process.exit(1);
+      }
+      console.warn(message);
+      console.warn("Continuing because ALLOW_SERVER_WITHOUT_DB=true or NODE_ENV is not production.");
+    }
 
-    await archiveModel.runArchiveMaintenance().catch((error) => {
-      console.warn(`Archive maintenance skipped on startup: ${error.message}`);
-    });
+    if (databaseReady) {
+      await initializeSchema();
+
+      await archiveModel.runArchiveMaintenance().catch((error) => {
+        console.warn(`Archive maintenance skipped on startup: ${error.message}`);
+      });
+    } else {
+      console.warn("Schema initialization and archive maintenance skipped because the database is offline.");
+    }
 
     const server = http.createServer(app);
     initChatSocket(server);
@@ -67,15 +93,17 @@ async function initializeSchema() {
       process.exit(1);
     });
 
-    server.listen(PORT, "0.0.0.0", () => {
+    server.listen(PORT, () => {
       console.log(`✓ Server running on port ${PORT}`);
     });
 
-    setInterval(() => {
-      archiveModel.runArchiveMaintenance().catch((error) => {
-        console.warn(`Archive maintenance failed: ${error.message}`);
-      });
-    }, Number(process.env.ARCHIVE_MAINTENANCE_INTERVAL_MS || 60 * 60 * 1000));
+    if (databaseReady) {
+      setInterval(() => {
+        archiveModel.runArchiveMaintenance().catch((error) => {
+          console.warn(`Archive maintenance failed: ${error.message}`);
+        });
+      }, Number(process.env.ARCHIVE_MAINTENANCE_INTERVAL_MS || 60 * 60 * 1000));
+    }
   } catch (error) {
     console.error("Fatal startup error:", error.message);
     process.exit(1);

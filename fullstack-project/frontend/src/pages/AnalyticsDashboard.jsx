@@ -6,196 +6,316 @@ import {
   BarChart,
   CartesianGrid,
   Cell,
+  ComposedChart,
   Legend,
   Line,
   LineChart,
   Pie,
   PieChart,
+  RadialBar,
+  RadialBarChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
 } from "recharts";
 import { getApiMessage } from "../services/authApi";
-import {
-  exportAnalyticsReport,
-  fetchAnalyticsDashboardBundle,
-} from "../services/analyticsApi";
+import { exportAnalyticsReport, fetchAnalyticsDashboardBundle } from "../services/analyticsApi";
+import "./analytics-dashboard.css";
 
-const RANGE_OPTIONS = [7, 30, 90, 180];
-const EXPORT_TYPES = [
-  { label: "All analytics", value: "all" },
-  { label: "Visitor", value: "visitor" },
-  { label: "Financial", value: "financial" },
-  { label: "Complaint", value: "complaint" },
-  { label: "Chat", value: "chat" },
-  { label: "Payment", value: "payment" },
-  { label: "AI", value: "ai" },
-  { label: "Staff", value: "staff" },
-  { label: "Security", value: "security" },
-];
-const EXPORT_FORMATS = [
-  { label: "JSON", value: "json" },
-  { label: "CSV", value: "csv" },
-];
-const CHART_COLORS = ["#0f172a", "#0ea5e9", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899", "#14b8a6"];
+const PALETTE = ["#2563eb", "#14b8a6", "#f59e0b", "#ef4444", "#8b5cf6", "#06b6d4", "#22c55e", "#ec4899"];
+const MONEY_KEYS = ["amount", "revenue", "collection", "dues", "income", "expense"];
 
-const TONE_MAP = {
-  sky: {
-    shell: "border-sky-200 bg-sky-50/80",
-    badge: "bg-sky-100 text-sky-700",
-    accent: "text-sky-700",
-  },
-  emerald: {
-    shell: "border-emerald-200 bg-emerald-50/80",
-    badge: "bg-emerald-100 text-emerald-700",
-    accent: "text-emerald-700",
-  },
-  amber: {
-    shell: "border-amber-200 bg-amber-50/80",
-    badge: "bg-amber-100 text-amber-700",
-    accent: "text-amber-700",
-  },
-  rose: {
-    shell: "border-rose-200 bg-rose-50/80",
-    badge: "bg-rose-100 text-rose-700",
-    accent: "text-rose-700",
-  },
-  violet: {
-    shell: "border-violet-200 bg-violet-50/80",
-    badge: "bg-violet-100 text-violet-700",
-    accent: "text-violet-700",
-  },
-  slate: {
-    shell: "border-slate-200 bg-slate-50/80",
-    badge: "bg-slate-100 text-slate-700",
-    accent: "text-slate-700",
-  },
+const ICONS = {
+  ai: "M12 3l1.7 5.2L19 10l-5.3 1.8L12 17l-1.7-5.2L5 10l5.3-1.8L12 3Zm6 12l.8 2.2L21 18l-2.2.8L18 21l-.8-2.2L15 18l2.2-.8L18 15ZM5.5 14l.7 1.8L8 16.5l-1.8.7L5.5 19l-.7-1.8L3 16.5l1.8-.7L5.5 14Z",
+  calendar: "M7 3v4m10-4v4M4 9h16M5 5h14a1 1 0 0 1 1 1v14H4V6a1 1 0 0 1 1-1Z",
+  csv: "M12 3v12m0 0 4-4m-4 4-4-4M5 21h14",
+  filter: "M4 5h16l-6 7v6l-4 2v-8L4 5Z",
+  fullscreen: "M8 3H3v5m13-5h5v5M8 21H3v-5m18 0v5h-5",
+  print: "M7 8V3h10v5M7 17H5a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-2M7 14h10v7H7v-7Z",
+  refresh: "M20 6v5h-5M4 18v-5h5M18 11a6 6 0 0 0-10-4M6 13a6 6 0 0 0 10 4",
+  report: "M6 3h9l3 3v15H6V3Zm8 0v4h4M9 12h6M9 16h6",
+  spark: "M4 16l4-5 4 3 5-7 3 4",
 };
 
-function toNumber(value, fallback = 0) {
+function Icon({ name }) {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className="ra-icon">
+      <path d={ICONS[name] || ICONS.report} />
+    </svg>
+  );
+}
+
+function safeNumber(value, fallback = 0) {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : fallback;
 }
 
-function formatCount(value) {
-  return toNumber(value).toLocaleString();
-}
-
-function formatCurrency(value) {
-  return `₹${toNumber(value).toLocaleString()}`;
-}
-
-function formatPercent(value) {
-  const parsed = toNumber(value);
-  return `${parsed.toFixed(1)}%`;
-}
-
-function safeArray(value) {
+function rows(value) {
   return Array.isArray(value) ? value : [];
 }
 
-function getLatestLabel(list, key) {
-  const latest = safeArray(list)[0];
-  if (!latest) return "N/A";
-  return latest[key] ?? latest.name ?? latest.category ?? latest.type ?? latest.month ?? "N/A";
+function compact(value) {
+  return safeNumber(value).toLocaleString("en-IN");
 }
 
-function MetricCard({ label, value, detail, tone = "slate" }) {
-  const colors = TONE_MAP[tone] || TONE_MAP.slate;
+function money(value) {
+  return `Rs. ${safeNumber(value).toLocaleString("en-IN")}`;
+}
 
+function percent(value) {
+  return `${safeNumber(value).toFixed(1)}%`;
+}
+
+function cleanName(value, fallback = "Unassigned") {
+  const text = String(value || "").trim();
+  return text || fallback;
+}
+
+function monthLabel(value) {
+  if (!value) return "N/A";
+  const text = String(value);
+  if (/^\d{4}-\d{2}/.test(text)) {
+    const date = new Date(`${text.slice(0, 7)}-01T00:00:00`);
+    return Number.isNaN(date.getTime()) ? text : date.toLocaleString("en-US", { month: "short" });
+  }
+  if (text.includes("T")) return text.slice(0, 10);
+  return text;
+}
+
+function todayInputValue() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function daysAgoInputValue(days) {
+  const date = new Date();
+  date.setDate(date.getDate() - days);
+  return date.toISOString().slice(0, 10);
+}
+
+function hasValues(data, keys) {
+  return rows(data).some((item) => keys.some((key) => safeNumber(item?.[key]) > 0));
+}
+
+function sum(data, key) {
+  return rows(data).reduce((total, item) => total + safeNumber(item?.[key]), 0);
+}
+
+function trend(data, key) {
+  const values = rows(data).map((item) => safeNumber(item?.[key])).filter((value) => value > 0);
+  if (values.length < 2 || !values[0]) return 0;
+  return ((values[values.length - 1] - values[0]) / values[0]) * 100;
+}
+
+function localSocietyName() {
+  return localStorage.getItem("selectedSocietyName") || localStorage.getItem("societyName") || "Current Society";
+}
+
+function DashboardTooltip({ active, payload, label }) {
+  if (!active || !payload?.length) return null;
   return (
-    <div className={`rounded-2xl border p-4 shadow-sm backdrop-blur ${colors.shell}`}>
-      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">{label}</p>
-      <p className={`mt-3 text-3xl font-semibold tracking-tight ${colors.accent}`}>{value}</p>
-      {detail ? <p className="mt-2 text-sm text-slate-600">{detail}</p> : null}
+    <div className="ra-tooltip">
+      <strong>{label}</strong>
+      {payload.map((item) => {
+        const key = String(item.dataKey || "").toLowerCase();
+        const isMoney = MONEY_KEYS.some((token) => key.includes(token));
+        return (
+          <span key={`${item.dataKey}-${item.name}`} style={{ color: item.color }}>
+            {item.name || item.dataKey}: {isMoney ? money(item.value) : compact(item.value)}
+          </span>
+        );
+      })}
     </div>
   );
 }
 
-function ChartPanel({ title, description, children, action }) {
+function EmptyAnalytics() {
   return (
-    <div className="chairman-page rounded-3xl border border-slate-200 bg-white p-5 shadow-[0_10px_40px_-28px_rgba(15,23,42,0.45)]">
-      <div className="chairman-page mb-4 flex items-start justify-between gap-3">
-        <div>
-          <h3 className="text-lg font-semibold text-slate-900">{title}</h3>
-          {description ? <p className="mt-1 text-sm text-slate-500">{description}</p> : null}
-        </div>
-        {action}
+    <section className="ra-empty-state">
+      <div className="ra-empty-illustration">
+        <span />
+        <span />
+        <span />
       </div>
-      {children}
+      <h2>No analytics available yet.</h2>
+      <p>Charts will automatically appear as society operations generate data.</p>
+    </section>
+  );
+}
+
+function ChartEmpty() {
+  return (
+    <div className="ra-chart-empty">
+      <Icon name="spark" />
+      <strong>No analytics data available</strong>
+      <span>This chart will render automatically when matching database records exist.</span>
     </div>
   );
 }
 
-function SectionTitle({ eyebrow, title, description }) {
+function SkeletonGrid() {
   return (
-    <div>
-      <p className="text-xs font-semibold uppercase tracking-[0.28em] text-slate-500">{eyebrow}</p>
-      <h2 className="mt-2 text-2xl font-semibold text-slate-900">{title}</h2>
-      {description ? <p className="mt-2 max-w-3xl text-sm text-slate-600">{description}</p> : null}
+    <div className="ra-skeleton-grid">
+      {Array.from({ length: 8 }).map((_, index) => <div className="ra-skeleton-card" key={index} />)}
+    </div>
+  );
+}
+
+function KpiCard({ item }) {
+  return (
+    <article className="ra-kpi-card">
+      <div className="ra-kpi-top">
+        <span className="ra-kpi-dot" style={{ "--accent": item.color }} />
+        <span className={`ra-trend ${item.delta >= 0 ? "is-up" : "is-down"}`}>{item.delta >= 0 ? "Up" : "Down"} {Math.abs(safeNumber(item.delta)).toFixed(1)}%</span>
+      </div>
+      <span className="ra-kpi-label">{item.label}</span>
+      <strong>{item.value}</strong>
+      <small>{item.subtitle}</small>
+      <div className="ra-kpi-spark">
+        {hasValues(item.spark, ["value"]) ? (
+          <ResponsiveContainer width="100%" height={34}>
+            <LineChart data={item.spark}>
+              <Line type="monotone" dataKey="value" stroke={item.color} strokeWidth={2.5} dot={false} isAnimationActive />
+            </LineChart>
+          </ResponsiveContainer>
+        ) : <Icon name="spark" />}
+      </div>
+      <p>{item.insight}</p>
+    </article>
+  );
+}
+
+function ChartShell({ chart, activeFilter, onFilter, onExport, onFullscreen }) {
+  const cardRef = useRef(null);
+  const span = chart.size === "hero" ? "span-8" : chart.size === "wide" ? "span-6" : "span-4";
+
+  return (
+    <article ref={cardRef} className={`ra-bi-card ${span}`}>
+      <div className="ra-bi-card-head">
+        <div>
+          <span>{chart.domain}</span>
+          <h3>{chart.title}</h3>
+        </div>
+        <div className="ra-chart-actions">
+          <button type="button" title="Fullscreen" onClick={() => onFullscreen(cardRef.current)}><Icon name="fullscreen" /></button>
+          <button type="button" title="Export CSV" onClick={() => onExport("csv", chart.exportType)}><Icon name="csv" /></button>
+          <button type="button" title="Drill down" onClick={() => onFilter(chart.domain)}><Icon name="filter" /></button>
+        </div>
+      </div>
+      <div className="ra-chart-meta">
+        <span>{chart.type}</span>
+        {activeFilter === chart.domain ? <b>Cross filter active</b> : null}
+      </div>
+      <div className="ra-chart-body">{chart.hasData ? chart.render() : <ChartEmpty />}</div>
+      <p>{chart.insight}</p>
+    </article>
+  );
+}
+
+function InsightPanel({ insights, healthScore }) {
+  return (
+    <aside className="ra-insights-panel">
+      <div className="ra-insights-head">
+        <span><Icon name="ai" /> AI Analytics Status</span>
+        <strong>Live</strong>
+      </div>
+      <div className="ra-health-gauge">
+        <ResponsiveContainer width="100%" height={156}>
+          <RadialBarChart innerRadius="74%" outerRadius="100%" data={[{ name: "Health", value: healthScore, fill: "#14b8a6" }]} startAngle={90} endAngle={-270}>
+            <RadialBar dataKey="value" cornerRadius={12} background={{ fill: "rgba(148, 163, 184, 0.18)" }} />
+          </RadialBarChart>
+        </ResponsiveContainer>
+        <strong>{Math.round(healthScore)}</strong>
+        <span>Society Health Score</span>
+      </div>
+      <div className="ra-insight-list">
+        {insights.map((item) => (
+          <article key={item}>
+            <span />
+            <p>{item}</p>
+          </article>
+        ))}
+      </div>
+    </aside>
+  );
+}
+
+function Donut({ data, dataKey = "value", nameKey = "name" }) {
+  const chartRows = rows(data).filter((item) => safeNumber(item?.[dataKey]) > 0);
+  return (
+    <ResponsiveContainer width="100%" height="100%">
+      <PieChart>
+        <Pie data={chartRows} dataKey={dataKey} nameKey={nameKey} innerRadius="58%" outerRadius="82%" paddingAngle={4}>
+          {chartRows.map((entry, index) => <Cell key={`${entry[nameKey]}-${index}`} fill={PALETTE[index % PALETTE.length]} />)}
+        </Pie>
+        <Tooltip content={<DashboardTooltip />} />
+        <Legend iconType="circle" />
+      </PieChart>
+    </ResponsiveContainer>
+  );
+}
+
+function Heatmap({ data }) {
+  const heatRows = rows(data).map((item) => ({ hour: cleanName(item.hour), value: safeNumber(item.visitors ?? item.count ?? item.value) })).filter((item) => item.value > 0);
+  const max = Math.max(...heatRows.map((item) => item.value), 1);
+  return (
+    <div className="ra-heatmap">
+      {heatRows.map((item) => (
+        <button type="button" key={item.hour} className="ra-heat-cell" style={{ "--heat": `${Math.max(14, (item.value / max) * 100)}%` }} title={`${item.hour}: ${item.value}`}>
+          <span>{item.hour}</span>
+          <strong>{compact(item.value)}</strong>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function TreemapLike({ data, labelKey = "name", valueKey = "value" }) {
+  const chartRows = rows(data).filter((item) => safeNumber(item?.[valueKey]) > 0).slice(0, 8);
+  const total = Math.max(sum(chartRows, valueKey), 1);
+  return (
+    <div className="ra-treemap">
+      {chartRows.map((item, index) => (
+        <div key={`${item[labelKey]}-${index}`} style={{ "--basis": `${Math.max(18, (safeNumber(item[valueKey]) / total) * 100)}%`, "--accent": PALETTE[index % PALETTE.length] }}>
+          <strong>{cleanName(item[labelKey])}</strong>
+          <span>{compact(item[valueKey])}</span>
+        </div>
+      ))}
     </div>
   );
 }
 
 function AnalyticsDashboard() {
-  const [rangeDays, setRangeDays] = useState(30);
-  const [autoRefresh, setAutoRefresh] = useState(true);
+  const [rangeDays, setRangeDays] = useState(90);
+  const [startDate, setStartDate] = useState(daysAgoInputValue(90));
+  const [endDate, setEndDate] = useState(todayInputValue());
+  const [comparePrevious, setComparePrevious] = useState(true);
   const [refreshTick, setRefreshTick] = useState(0);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [error, setError] = useState("");
-  const [dashboard, setDashboard] = useState({ overview: null, analytics: null, ai: null });
-  const [lastUpdated, setLastUpdated] = useState(null);
-  const [clock, setClock] = useState(new Date());
-  const [exportType, setExportType] = useState("all");
-  const [exportFormat, setExportFormat] = useState("json");
   const [exporting, setExporting] = useState(false);
-  const hasLoadedRef = useRef(false);
-
-  useEffect(() => {
-    const interval = setInterval(() => setClock(new Date()), 1000);
-    return () => clearInterval(interval);
-  }, []);
-
-  useEffect(() => {
-    if (!autoRefresh) return undefined;
-
-    const interval = setInterval(() => {
-      setRefreshTick((value) => value + 1);
-    }, 30000);
-
-    return () => clearInterval(interval);
-  }, [autoRefresh]);
+  const [error, setError] = useState("");
+  const [lastUpdated, setLastUpdated] = useState(null);
+  const [activeFilter, setActiveFilter] = useState("");
+  const [dashboard, setDashboard] = useState({ overview: null, analytics: null, ai: null });
+  const loadedRef = useRef(false);
 
   useEffect(() => {
     let active = true;
 
     async function loadDashboard() {
-      const silentRefresh = hasLoadedRef.current;
-
-      if (silentRefresh) {
-        setRefreshing(true);
-      } else {
-        setLoading(true);
-      }
-
+      if (loadedRef.current) setRefreshing(true);
+      else setLoading(true);
       setError("");
 
       try {
-        const bundle = await fetchAnalyticsDashboardBundle({ days: rangeDays });
+        const bundle = await fetchAnalyticsDashboardBundle({ days: rangeDays, startDate, endDate });
         if (!active) return;
-
-        setDashboard({
-          overview: bundle.overview || null,
-          analytics: bundle.analytics || null,
-          ai: bundle.ai || null,
-        });
+        setDashboard({ overview: bundle.overview || null, analytics: bundle.analytics || null, ai: bundle.ai || null });
         setLastUpdated(new Date());
-        hasLoadedRef.current = true;
+        loadedRef.current = true;
       } catch (loadError) {
-        if (!active) return;
-        setError(getApiMessage(loadError, "Failed to load analytics dashboard"));
+        if (active) setError(getApiMessage(loadError, "Failed to load analytics dashboard"));
       } finally {
         if (active) {
           setLoading(false);
@@ -205,138 +325,496 @@ function AnalyticsDashboard() {
     }
 
     loadDashboard();
-
     return () => {
       active = false;
     };
-  }, [rangeDays, refreshTick]);
+  }, [rangeDays, startDate, endDate, refreshTick]);
 
-  const overview = dashboard.overview || {
-    totals: {
-      totalResidents: 0,
-      pendingComplaints: 0,
-      totalUnpaidBills: 0,
-    },
-    charts: {
-      complaintStatus: [],
-      billStatus: [],
-      monthlyTrend: [],
-    },
-  };
+  const model = useMemo(() => {
+    const overview = dashboard.overview || {};
+    const analytics = dashboard.analytics || {};
+    const financial = analytics.financial || {};
+    const payment = analytics.payment || {};
+    const visitor = analytics.visitor || {};
+    const complaint = analytics.complaint || {};
+    const staff = analytics.staff || {};
+    const security = analytics.security || {};
 
-  const analytics = dashboard.analytics || {};
-  const ai = dashboard.ai || {};
+    const monthlyRevenue = rows(financial.monthlyRevenue).map((item) => ({
+      month: monthLabel(item.month || item.date),
+      collection: safeNumber(item.revenue ?? item.collection ?? item.amount),
+      income: safeNumber(item.revenue ?? item.collection ?? item.amount),
+      expense: safeNumber(item.expenses ?? item.expense ?? item.billed),
+    })).filter((item) => item.month !== "N/A");
 
-  const visitor = analytics.visitor || {};
-  const financial = analytics.financial || {};
-  const complaint = analytics.complaint || {};
-  const chat = analytics.chat || {};
-  const payment = analytics.payment || {};
-  const staff = analytics.staff || {};
-  const security = analytics.security || {};
-  const aiWidgets = safeArray(ai.widgets);
-  const aiRecommendations = safeArray(ai.recommendations);
-  const aiAnomalies = safeArray(ai.anomalies);
+    const billStatus = rows(financial.billStatus || overview?.charts?.billStatus).map((item) => ({
+      name: cleanName(item.name || item.status),
+      count: safeNumber(item.count ?? item.value),
+      amount: safeNumber(item.amount),
+    }));
 
-  const realtimeWidgets = useMemo(
-    () => [
-      {
-        label: "Live visitors",
-        value: formatCount(visitor.totalVisitors),
-        detail: `Approval rate ${formatPercent(visitor.approvalRate || 0)}`,
-        tone: "sky",
-      },
-      {
-        label: "Revenue pulse",
-        value: formatCurrency(financial.totalRevenue),
-        detail: `Collection rate ${formatPercent(financial.collectionRate || 0)}`,
-        tone: "emerald",
-      },
-      {
-        label: "Open workload",
-        value: formatCount(overview.totals.pendingComplaints),
-        detail: `Complaints, bills, and tasks needing attention`,
-        tone: "amber",
-      },
-      {
-        label: "Security alerts",
-        value: formatCount(security.totalAlerts),
-        detail: `Hotspot ${getLatestLabel(security.incidentsByLocation, "location")}`,
-        tone: "rose",
-      },
-    ],
-    [financial.collectionRate, financial.totalRevenue, overview.totals.pendingComplaints, security.incidentsByLocation, security.totalAlerts, visitor.approvalRate, visitor.totalVisitors]
-  );
+    const pendingDuesByWing = rows(financial.pendingDuesByWing).map((item) => ({
+      wing: cleanName(item.wing),
+      count: safeNumber(item.count),
+      amount: safeNumber(item.amount),
+    }));
 
-  const aiInsightCards = useMemo(
-    () => [
-      {
-        label: "AI summary",
-        value: ai.summary || "Analytics intelligence is warming up.",
-        detail: aiAnomalies.length ? `Anomalies: ${aiAnomalies.join("; ")}` : "No active anomalies detected.",
-        tone: "violet",
-      },
-      {
-        label: "Recommendation",
-        value: aiRecommendations[0] || "Prioritize unresolved tickets older than 48 hours.",
-        detail: aiRecommendations[1] || "Automate reminders and escalation nudges.",
-        tone: "sky",
-      },
-      {
-        label: "Service health",
-        value: `${Math.max(0, 100 - toNumber(overview.totals.pendingComplaints) * 3)}%`,
-        detail: `Pending complaints: ${formatCount(overview.totals.pendingComplaints)}`,
-        tone: "emerald",
-      },
-      {
-        label: "Collection efficiency",
-        value: formatPercent(financial.collectionRate || 0),
-        detail: `Top defaulter: ${getLatestLabel(financial.topDefaulters, "name")}`,
-        tone: "amber",
-      },
-    ],
-    [ai.summary, aiAnomalies, aiRecommendations, financial.collectionRate, financial.topDefaulters, overview.totals.pendingComplaints]
-  );
+    const paymentMethods = rows(payment.paymentMethods || financial.paymentMethods).map((item) => ({
+      name: cleanName(item.name || item.method || item.payment_method, "Unknown"),
+      value: safeNumber(item.value ?? item.count),
+      amount: safeNumber(item.amount),
+    }));
 
-  const healthTiles = useMemo(
-    () => [
-      {
-        label: "Residents",
-        value: formatCount(overview.totals.totalResidents),
-        detail: "Active resident accounts in the society",
-        tone: "slate",
-      },
-      {
-        label: "Pending complaints",
-        value: formatCount(overview.totals.pendingComplaints),
-        detail: "Items waiting for resolution or assignment",
-        tone: "amber",
-      },
-      {
-        label: "Unpaid bills",
-        value: formatCount(overview.totals.totalUnpaidBills),
-        detail: "Outstanding billing items across cycles",
-        tone: "rose",
-      },
-      {
-        label: "AI widgets",
-        value: formatCount(aiWidgets.length),
-        detail: "Generated from the analytics intelligence service",
-        tone: "violet",
-      },
-    ],
-    [aiWidgets.length, overview.totals.pendingComplaints, overview.totals.totalResidents, overview.totals.totalUnpaidBills]
-  );
+    const visitorTrend = rows(visitor.visitTrend).map((item) => ({ date: monthLabel(item.date), visitors: safeNumber(item.count ?? item.visitors) }));
+    const visitorTypes = rows(visitor.visitorTypes).map((item) => ({ name: cleanName(item.name || item.type), value: safeNumber(item.value ?? item.count) }));
+    const complaintStatus = rows(complaint.complaintStatus || overview?.charts?.complaintStatus).map((item) => ({ name: cleanName(item.name || item.status), value: safeNumber(item.value ?? item.count) }));
+    const complaintCategories = rows(complaint.topCategories).map((item) => ({ category: cleanName(item.category || item.name), count: safeNumber(item.count ?? item.value) }));
+    const complaintTrend = rows(complaint.complaintTrend).map((item) => ({ date: monthLabel(item.date), count: safeNumber(item.count) }));
+    const residentBreakdown = rows(visitor.residentBreakdown).map((item) => ({ name: cleanName(item.name || item.residentType), value: safeNumber(item.value ?? item.count) }));
+    const moveInOut = rows(visitor.moveInOut).map((item) => ({ month: monthLabel(item.month), moveIn: safeNumber(item.moveIn), moveOut: safeNumber(item.moveOut) }));
+    const flatStatus = rows(visitor.flatStatus).map((item) => ({ name: cleanName(item.name), value: safeNumber(item.value) }));
+    const parkingUsage = rows(visitor.parkingUsage).map((item) => ({ name: cleanName(item.name), value: safeNumber(item.value) }));
+    const staffPerformance = rows(staff.staffPerformance).map((item) => ({
+      name: cleanName(item.staffName || item.name),
+      assigned: safeNumber(item.tasksAssigned),
+      resolved: safeNumber(item.tasksResolved),
+      completion: safeNumber(item.completionRate),
+    }));
+    const staffAttendanceTrend = rows(staff.attendanceTrend).map((item) => ({
+      date: monthLabel(item.date),
+      present: safeNumber(item.present),
+      total: safeNumber(item.total),
+    }));
+    const securityAlerts = rows(security.alertTrend).map((item) => ({ date: monthLabel(item.date), alerts: safeNumber(item.count) }));
+    const aiRequests = rows((analytics.ai || {}).requestTrend).map((item) => ({ date: monthLabel(item.date), requests: safeNumber(item.count) }));
 
-  async function handleExport() {
+    const paidBills = billStatus.filter((item) => /paid/i.test(item.name)).reduce((total, item) => total + item.count, 0);
+    const unpaidBills = billStatus.filter((item) => /unpaid|pending|overdue/i.test(item.name)).reduce((total, item) => total + item.count, 0);
+    const pendingDuesAmount = pendingDuesByWing.length ? sum(pendingDuesByWing, "amount") : billStatus.filter((item) => /unpaid|pending|overdue/i.test(item.name)).reduce((total, item) => total + item.amount, 0);
+    const totalFlats = safeNumber(visitor.occupancy?.totalFlats);
+    const occupiedFlats = safeNumber(visitor.occupancy?.occupiedFlats);
+    const occupancyRate = totalFlats ? (occupiedFlats / totalFlats) * 100 : safeNumber(visitor.occupancy?.occupancyRate);
+    const collectionEfficiency = safeNumber(financial.collectionRate);
+    const resolutionRate = safeNumber(complaint.resolutionRate);
+    const staffCompletion = safeNumber(staff.avgCompletionRate);
+    const healthScore = Math.round([collectionEfficiency, occupancyRate, resolutionRate, staffCompletion].filter(Boolean).reduce((a, b) => a + b, 0) / Math.max(1, [collectionEfficiency, occupancyRate, resolutionRate, staffCompletion].filter(Boolean).length));
+
+    return {
+      ai: dashboard.ai || {},
+      overview,
+      financial,
+      payment,
+      visitor,
+      complaint,
+      staff,
+      security,
+      monthlyRevenue,
+      billStatus,
+      pendingDuesByWing,
+      paymentMethods,
+      visitorTrend,
+      visitorTypes,
+      complaintStatus,
+      complaintCategories,
+      complaintTrend,
+      residentBreakdown,
+      moveInOut,
+      flatStatus,
+      parkingUsage,
+      staffPerformance,
+      staffAttendanceTrend,
+      securityAlerts,
+      aiRequests,
+      paidBills,
+      unpaidBills,
+      pendingDuesAmount,
+      totalFlats,
+      occupiedFlats,
+      occupancyRate,
+      collectionEfficiency,
+      resolutionRate,
+      staffCompletion,
+      healthScore,
+    };
+  }, [dashboard]);
+
+  const kpis = useMemo(() => {
+    const totalResidents = safeNumber(model.overview?.totals?.totalResidents);
+    const totalVisitors = safeNumber(model.visitor.totalVisitors);
+    const totalStaff = safeNumber(model.staff.totalStaff);
+    const totalRevenue = safeNumber(model.financial.totalRevenue);
+    const generatedBills = sum(model.billStatus, "count");
+    const vacantFlats = Math.max(0, model.totalFlats - model.occupiedFlats);
+    const openComplaints = safeNumber(model.overview?.totals?.pendingComplaints ?? model.complaint.totalComplaints);
+
+    return [
+      ["Monthly Revenue", money(totalRevenue), trend(model.monthlyRevenue, "collection"), "Live collection feed", totalRevenue ? "Revenue analytics synced from bills and payments." : "Waiting for collection records.", "#2563eb", model.monthlyRevenue.map((item) => ({ value: item.collection }))],
+      ["Pending Dues", money(model.pendingDuesAmount), -model.unpaidBills, `${compact(model.unpaidBills)} unpaid bills`, model.pendingDuesAmount ? "Focus recovery on the highest pending wing." : "No pending dues detected.", "#ef4444", model.pendingDuesByWing.map((item) => ({ value: item.amount || item.count }))],
+      ["Paid Bills", compact(model.paidBills), generatedBills ? (model.paidBills / generatedBills) * 100 : 0, `${compact(generatedBills)} generated`, "Paid bill ratio is calculated from live billing status.", "#14b8a6", model.billStatus.map((item) => ({ value: item.count }))],
+      ["Unpaid Bills", compact(model.unpaidBills), -model.unpaidBills, "Outstanding invoices", model.unpaidBills ? "Follow-up queue is active." : "No unpaid bill volume in this range.", "#f59e0b", model.billStatus.map((item) => ({ value: item.count }))],
+      ["Total Residents", compact(totalResidents), 0, "Approved residents", "Resident count is scoped to the selected society.", "#06b6d4", rows(model.overview?.charts?.monthlyTrend).map((item) => ({ value: safeNumber(item.residents ?? item.bills) }))],
+      ["Total Flats", compact(model.totalFlats), 0, `${compact(vacantFlats)} vacant`, "Flat capacity is read from occupancy records.", "#8b5cf6", model.flatStatus.map((item) => ({ value: item.value }))],
+      ["Occupancy Rate", percent(model.occupancyRate), model.occupancyRate, `${compact(model.occupiedFlats)} occupied`, model.occupancyRate >= 90 ? "Occupancy is at executive target." : "Occupancy has room to improve.", "#22c55e", model.flatStatus.map((item) => ({ value: item.value }))],
+      ["Visitors", compact(totalVisitors), safeNumber(model.visitor.approvalRate), `${percent(model.visitor.approvalRate)} approved`, totalVisitors ? "Visitor movement is available for BI analysis." : "Visitor analytics will appear after entries.", "#ec4899", model.visitorTrend.map((item) => ({ value: item.visitors }))],
+      ["Open Complaints", compact(openComplaints), -openComplaints, `${percent(model.resolutionRate)} resolution`, model.resolutionRate >= 80 ? "Complaint resolution is healthy." : "Resolution needs management attention.", "#ef4444", model.complaintTrend.map((item) => ({ value: item.count }))],
+      ["Active Staff", compact(totalStaff), model.staffCompletion, `${percent(model.staffCompletion)} completion`, totalStaff ? "Staff performance feed is connected." : "Staff analytics will appear after records.", "#14b8a6", model.staffPerformance.map((item) => ({ value: item.completion }))],
+      ["Collection Efficiency", percent(model.collectionEfficiency), model.collectionEfficiency, "Billing health", model.collectionEfficiency >= 90 ? "Collection efficiency is excellent." : "Collection efficiency is below executive target.", "#2563eb", model.monthlyRevenue.map((item) => ({ value: item.collection }))],
+      ["Society Health Score", compact(model.healthScore), model.healthScore, "Composite AI score", model.healthScore >= 80 ? "Society health score is Excellent." : "AI recommends reviewing operational weak spots.", "#10b981", [{ value: model.healthScore }]],
+    ].map(([label, value, delta, subtitle, insight, color, spark]) => ({ label, value, delta, subtitle, insight, color, spark }));
+  }, [model]);
+
+  const charts = useMemo(() => {
+    const generated = [];
+    const add = (condition, chart) => {
+      generated.push({ ...chart, hasData: Boolean(condition) });
+    };
+
+    add(hasValues(model.monthlyRevenue, ["collection"]), {
+      title: "Monthly Collection Trend",
+      domain: "Finance",
+      type: "Line Chart",
+      size: "hero",
+      exportType: "financial",
+      insight: `Monthly revenue changed ${trend(model.monthlyRevenue, "collection").toFixed(1)}% in this range.`,
+      render: () => (
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart data={model.monthlyRevenue}>
+            <CartesianGrid strokeDasharray="3 3" vertical={false} />
+            <XAxis dataKey="month" />
+            <YAxis tickFormatter={(value) => `${Math.round(value / 1000)}k`} />
+            <Tooltip content={<DashboardTooltip />} />
+            <Line type="monotone" dataKey="collection" name="Collection" stroke="#2563eb" strokeWidth={3} dot={false} />
+          </LineChart>
+        </ResponsiveContainer>
+      ),
+    });
+
+    add(hasValues(model.monthlyRevenue, ["income", "expense"]), {
+      title: "Income vs Expenses",
+      domain: "Finance",
+      type: "Composed Chart",
+      size: "wide",
+      exportType: "financial",
+      insight: "Income and billed expense movement are matched to the selected date range.",
+      render: () => (
+        <ResponsiveContainer width="100%" height="100%">
+          <ComposedChart data={model.monthlyRevenue}>
+            <CartesianGrid strokeDasharray="3 3" vertical={false} />
+            <XAxis dataKey="month" />
+            <YAxis tickFormatter={(value) => `${Math.round(value / 1000)}k`} />
+            <Tooltip content={<DashboardTooltip />} />
+            <Bar dataKey="expense" name="Expenses" fill="#f59e0b" radius={[8, 8, 0, 0]} />
+            <Line type="monotone" dataKey="income" name="Income" stroke="#14b8a6" strokeWidth={3} dot={false} />
+          </ComposedChart>
+        </ResponsiveContainer>
+      ),
+    });
+
+    add(hasValues(model.billStatus, ["count", "amount"]), {
+      title: "Payment Status",
+      domain: "Billing",
+      type: "Donut Chart",
+      size: "small",
+      exportType: "financial",
+      insight: `${compact(model.paidBills)} paid bills and ${compact(model.unpaidBills)} unpaid bills are in scope.`,
+      render: () => <Donut data={model.billStatus} dataKey="count" />,
+    });
+
+    add(hasValues(model.pendingDuesByWing, ["amount", "count"]), {
+      title: "Pending Dues by Wing",
+      domain: "Finance",
+      type: "Horizontal Bar",
+      size: "wide",
+      exportType: "financial",
+      insight: "AI prioritizes wings with the highest pending dues for recovery action.",
+      render: () => (
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart layout="vertical" data={model.pendingDuesByWing}>
+            <XAxis type="number" hide />
+            <YAxis type="category" dataKey="wing" width={84} />
+            <Tooltip content={<DashboardTooltip />} />
+            <Bar dataKey="amount" name="Pending dues" fill="#ef4444" radius={[0, 10, 10, 0]} />
+          </BarChart>
+        </ResponsiveContainer>
+      ),
+    });
+
+    add(hasValues(model.paymentMethods, ["value", "amount"]), {
+      title: "Payment Method Distribution",
+      domain: "Payments",
+      type: "Pie Chart",
+      size: "small",
+      exportType: "payment",
+      insight: "Payment method distribution is selected because multiple payment channels exist.",
+      render: () => <Donut data={model.paymentMethods} />,
+    });
+
+    add(hasValues(model.visitorTrend, ["visitors"]), {
+      title: "Daily Visitors",
+      domain: "Visitors",
+      type: "Area Chart",
+      size: "wide",
+      exportType: "visitor",
+      insight: `Visitors changed ${trend(model.visitorTrend, "visitors").toFixed(1)}% across the selected period.`,
+      render: () => (
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart data={model.visitorTrend}>
+            <XAxis dataKey="date" />
+            <YAxis />
+            <Tooltip content={<DashboardTooltip />} />
+            <Area type="monotone" dataKey="visitors" name="Visitors" stroke="#06b6d4" fill="#bfdbfe" />
+          </AreaChart>
+        </ResponsiveContainer>
+      ),
+    });
+
+    add(hasValues(model.visitorTrend, ["visitors"]), {
+      title: "Monthly Visitors",
+      domain: "Visitors",
+      type: "Line Chart",
+      size: "wide",
+      exportType: "visitor",
+      insight: "Monthly visitor volume is derived from visitor entry records.",
+      render: () => (
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart data={model.visitorTrend}>
+            <XAxis dataKey="date" />
+            <YAxis />
+            <Tooltip content={<DashboardTooltip />} />
+            <Line type="monotone" dataKey="visitors" name="Visitors" stroke="#2563eb" strokeWidth={3} dot={false} />
+          </LineChart>
+        </ResponsiveContainer>
+      ),
+    });
+
+    add(hasValues(model.visitorTypes, ["value"]), {
+      title: "Visitor Type Share",
+      domain: "Visitors",
+      type: "Treemap",
+      size: "small",
+      exportType: "visitor",
+      insight: "Visitor categories are compact enough for a share-of-volume visualization.",
+      render: () => <TreemapLike data={model.visitorTypes} />,
+    });
+
+    add(hasValues(model.visitor.peakHours, ["visitors", "count", "value"]), {
+      title: "Visitor Heatmap",
+      domain: "Security",
+      type: "Heatmap",
+      size: "wide",
+      exportType: "visitor",
+      insight: "Peak-hour concentration helps security plan gate staffing.",
+      render: () => <Heatmap data={model.visitor.peakHours} />,
+    });
+
+    add(hasValues(model.complaintCategories, ["count"]), {
+      title: "Complaint Category Distribution",
+      domain: "Complaints",
+      type: "Column Chart",
+      size: "wide",
+      exportType: "complaint",
+      insight: "Complaint categories are ranked to expose recurring service issues.",
+      render: () => (
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={model.complaintCategories}>
+            <CartesianGrid strokeDasharray="3 3" vertical={false} />
+            <XAxis dataKey="category" />
+            <YAxis />
+            <Tooltip content={<DashboardTooltip />} />
+            <Bar dataKey="count" name="Complaints" fill="#f59e0b" radius={[8, 8, 0, 0]} />
+          </BarChart>
+        </ResponsiveContainer>
+      ),
+    });
+
+    add(hasValues(model.complaintStatus, ["value"]), {
+      title: "Complaint Resolution Mix",
+      domain: "Complaints",
+      type: "Donut Chart",
+      size: "small",
+      exportType: "complaint",
+      insight: `Resolution efficiency is ${percent(model.resolutionRate)} for the period.`,
+      render: () => <Donut data={model.complaintStatus} />,
+    });
+
+    add(hasValues(model.complaintTrend, ["count"]), {
+      title: "Complaint Trend",
+      domain: "Complaints",
+      type: "Timeline",
+      size: "wide",
+      exportType: "complaint",
+      insight: "Complaint volume over time is selected for service desk trend review.",
+      render: () => (
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart data={model.complaintTrend}>
+            <XAxis dataKey="date" />
+            <YAxis />
+            <Tooltip content={<DashboardTooltip />} />
+            <Line type="monotone" dataKey="count" name="Complaints" stroke="#ef4444" strokeWidth={3} dot={false} />
+          </LineChart>
+        </ResponsiveContainer>
+      ),
+    });
+
+    add(model.totalFlats > 0, {
+      title: "Occupancy Trend",
+      domain: "Residents",
+      type: "Gauge",
+      size: "small",
+      exportType: "visitor",
+      insight: `${compact(model.occupiedFlats)} of ${compact(model.totalFlats)} flats are occupied.`,
+      render: () => (
+        <div className="ra-gauge">
+          <ResponsiveContainer width="100%" height={168}>
+            <RadialBarChart innerRadius="72%" outerRadius="100%" data={[{ name: "Occupancy", value: model.occupancyRate, fill: "#8b5cf6" }]} startAngle={90} endAngle={-270}>
+              <RadialBar dataKey="value" cornerRadius={12} background={{ fill: "rgba(148, 163, 184, 0.18)" }} />
+            </RadialBarChart>
+          </ResponsiveContainer>
+          <strong>{percent(model.occupancyRate)}</strong>
+        </div>
+      ),
+    });
+
+    add(hasValues(model.residentBreakdown, ["value"]), {
+      title: "Owner vs Tenant",
+      domain: "Residents",
+      type: "Donut Chart",
+      size: "small",
+      exportType: "visitor",
+      insight: "Resident type split is useful for committee planning and notices.",
+      render: () => <Donut data={model.residentBreakdown} />,
+    });
+
+    add(hasValues(model.moveInOut, ["moveIn", "moveOut"]), {
+      title: "Property Occupancy Trend",
+      domain: "Residents",
+      type: "Stacked Bar",
+      size: "wide",
+      exportType: "visitor",
+      insight: "Resident movement is shown only because move-in or move-out records exist.",
+      render: () => (
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={model.moveInOut}>
+            <CartesianGrid strokeDasharray="3 3" vertical={false} />
+            <XAxis dataKey="month" />
+            <YAxis />
+            <Tooltip content={<DashboardTooltip />} />
+            <Bar dataKey="moveIn" name="Move In" stackId="move" fill="#14b8a6" radius={[8, 8, 0, 0]} />
+            <Bar dataKey="moveOut" name="Move Out" stackId="move" fill="#ef4444" radius={[8, 8, 0, 0]} />
+          </BarChart>
+        </ResponsiveContainer>
+      ),
+    });
+
+    add(hasValues(model.staffAttendanceTrend, ["present", "total"]), {
+      title: "Staff Attendance Trend",
+      domain: "Staff",
+      type: "Area Chart",
+      size: "wide",
+      exportType: "all",
+      insight: "Attendance is sourced from staff attendance records for the selected period.",
+      render: () => (
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart data={model.staffAttendanceTrend}>
+            <XAxis dataKey="date" />
+            <YAxis />
+            <Tooltip content={<DashboardTooltip />} />
+            <Area type="monotone" dataKey="total" name="Scheduled" stroke="#94a3b8" fill="#e2e8f0" />
+            <Area type="monotone" dataKey="present" name="Present" stroke="#14b8a6" fill="#99f6e4" />
+          </AreaChart>
+        </ResponsiveContainer>
+      ),
+    });
+
+    add(hasValues(model.staffPerformance, ["completion", "assigned", "resolved"]), {
+      title: "Staff Performance",
+      domain: "Staff",
+      type: "Combo Chart",
+      size: "wide",
+      exportType: "all",
+      insight: `Average staff task completion is ${percent(model.staffCompletion)}.`,
+      render: () => (
+        <ResponsiveContainer width="100%" height="100%">
+          <ComposedChart data={model.staffPerformance}>
+            <CartesianGrid strokeDasharray="3 3" vertical={false} />
+            <XAxis dataKey="name" />
+            <YAxis />
+            <Tooltip content={<DashboardTooltip />} />
+            <Bar dataKey="assigned" name="Assigned" fill="#94a3b8" radius={[8, 8, 0, 0]} />
+            <Line dataKey="completion" name="Completion" stroke="#22c55e" strokeWidth={3} dot={false} />
+          </ComposedChart>
+        </ResponsiveContainer>
+      ),
+    });
+
+    add(hasValues(model.parkingUsage, ["value"]), {
+      title: "Parking Usage",
+      domain: "Parking",
+      type: "Radial Progress",
+      size: "small",
+      exportType: "visitor",
+      insight: "Parking analytics appear automatically because parking allocation data exists.",
+      render: () => <Donut data={model.parkingUsage} />,
+    });
+
+    add(hasValues(model.securityAlerts, ["alerts"]), {
+      title: "Security Shift Analysis",
+      domain: "Security",
+      type: "Line Chart",
+      size: "wide",
+      exportType: "all",
+      insight: "Security alerts are trended for executive risk monitoring.",
+      render: () => (
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart data={model.securityAlerts}>
+            <XAxis dataKey="date" />
+            <YAxis />
+            <Tooltip content={<DashboardTooltip />} />
+            <Line type="monotone" dataKey="alerts" name="Alerts" stroke="#ec4899" strokeWidth={3} dot={false} />
+          </LineChart>
+        </ResponsiveContainer>
+      ),
+    });
+
+    add(hasValues(model.aiRequests, ["requests"]), {
+      title: "AI Prediction Charts",
+      domain: "AI",
+      type: "Line Chart",
+      size: "wide",
+      exportType: "ai",
+      insight: "AI prediction activity follows assistant usage from live chat records.",
+      render: () => (
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart data={model.aiRequests}>
+            <XAxis dataKey="date" />
+            <YAxis />
+            <Tooltip content={<DashboardTooltip />} />
+            <Line type="monotone" dataKey="requests" name="AI Requests" stroke="#8b5cf6" strokeWidth={3} dot={false} />
+          </LineChart>
+        </ResponsiveContainer>
+      ),
+    });
+
+    return generated;
+  }, [model]);
+
+  const insights = useMemo(() => {
+    const generated = [];
+    if (hasValues(model.monthlyRevenue, ["collection"])) generated.push(`Monthly revenue changed ${trend(model.monthlyRevenue, "collection").toFixed(1)}% in the selected period.`);
+    if (model.pendingDuesByWing.length) generated.push(`${model.pendingDuesByWing[0]?.wing || "A wing"} has the highest pending dues exposure.`);
+    if (hasValues(model.visitorTrend, ["visitors"])) generated.push(`Visitors changed ${trend(model.visitorTrend, "visitors").toFixed(1)}% against the first synced point.`);
+    if (model.resolutionRate) generated.push(`Complaint resolution reached ${percent(model.resolutionRate)}.`);
+    if (model.staffCompletion) generated.push(`Staff task completion is ${percent(model.staffCompletion)}.`);
+    if (model.collectionEfficiency) generated.push(`Collection efficiency reached ${percent(model.collectionEfficiency)}.`);
+    generated.push(`Society health score is ${model.healthScore >= 80 ? "Excellent" : model.healthScore >= 60 ? "Stable" : "Needs attention"}.`);
+    return rows(model.ai?.recommendations).map((item) => item.title || item.message || item).filter(Boolean).concat(generated).slice(0, 7);
+  }, [model]);
+
+  async function handleExport(format = "json", type = "all") {
     try {
       setExporting(true);
       setError("");
-      await exportAnalyticsReport({
-        format: exportFormat,
-        type: exportType,
-        params: { days: rangeDays },
-      });
+      await exportAnalyticsReport({ format, type, params: { days: rangeDays, startDate, endDate } });
     } catch (exportError) {
       setError(getApiMessage(exportError, "Failed to export analytics report"));
     } finally {
@@ -344,488 +822,102 @@ function AnalyticsDashboard() {
     }
   }
 
-  if (loading && !hasLoadedRef.current) {
-    return (
-      <div className="chairman-page flex min-h-[70vh] items-center justify-center rounded-3xl theme-page px-6 py-16 text-[var(--text-main)]">
-        <div className="chairman-page max-w-md text-center">
-          <div className="chairman-page mx-auto h-14 w-14 animate-spin rounded-full border-4 border-white/20 border-t-white" />
-          <h1 className="mt-6 text-3xl font-semibold">Loading analytics command center</h1>
-          <p className="mt-3 text-sm text-slate-300">Pulling visitor, finance, complaints, chat, payments, AI, staff, and security signals.</p>
-        </div>
-      </div>
-    );
+  function applyRange(days) {
+    setRangeDays(days);
+    setStartDate(daysAgoInputValue(days));
+    setEndDate(todayInputValue());
   }
 
-  if (error && !hasLoadedRef.current) {
+  function fullscreen(node) {
+    node?.requestFullscreen?.();
+  }
+
+  if (loading && !loadedRef.current) {
     return (
-      <div className="chairman-page rounded-3xl border border-rose-200 bg-rose-50 p-6 text-rose-800">
-        <h1 className="text-2xl font-semibold">Analytics dashboard unavailable</h1>
-        <p className="mt-2 text-sm">{error}</p>
-        <button
-          type="button"
-          onClick={() => setRefreshTick((value) => value + 1)}
-          className="mt-4 rounded-full bg-rose-600 px-4 py-2 text-sm font-semibold text-[var(--text-main)] transition hover:bg-rose-700"
-        >
-          Retry
-        </button>
-      </div>
+      <main className="ra-page">
+        <div className="ra-loading">
+          <h1>Loading Reports & Analytics</h1>
+          <p>Preparing society-scoped executive intelligence.</p>
+          <SkeletonGrid />
+        </div>
+      </main>
     );
   }
 
   return (
-    <div className="chairman-page space-y-6 rounded-3xl bg-[radial-gradient(circle_at_top,_rgba(14,165,233,0.16),_transparent_36%),radial-gradient(circle_at_right,_rgba(16,185,129,0.14),_transparent_28%),linear-gradient(180deg,_rgba(248,250,252,0.95),_rgba(248,250,252,0.98))] p-1 sm:p-0">
-      <section className="overflow-hidden rounded-3xl border border-slate-200 theme-page text-[var(--text-main)] shadow-[0_24px_80px_-36px_rgba(15,23,42,0.85)]">
-        <div className="chairman-page grid gap-6 px-6 py-6 lg:grid-cols-[1.5fr_0.9fr] lg:px-8 lg:py-8">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-sky-300">Analytics command center</p>
-            <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">Modern society analytics dashboard</h1>
-            <p className="mt-3 max-w-3xl text-sm text-slate-300 sm:text-base">
-              Monitor visitor flow, financial health, complaint queues, chat activity, AI usage, payment behavior, staff throughput, and security events from a single live surface.
-            </p>
-
-            <div className="chairman-page mt-5 flex flex-wrap gap-3 text-xs text-slate-200">
-              <span className="rounded-full border border-white/15 bg-white/5 px-3 py-1.5">Updated: {lastUpdated ? lastUpdated.toLocaleString() : "waiting for first sync"}</span>
-              <span className="rounded-full border border-white/15 bg-white/5 px-3 py-1.5">Clock: {clock.toLocaleTimeString()}</span>
-              <span className="rounded-full border border-white/15 bg-white/5 px-3 py-1.5">Auto refresh: {autoRefresh ? "on" : "off"}</span>
-            </div>
+    <main className="ra-page">
+      <header className="ra-executive-header">
+        <div className="ra-title-block">
+          <span>Executive Business Intelligence</span>
+          <h1>Reports & Analytics</h1>
+          <div className="ra-header-meta">
+            <b>{localSocietyName()}</b>
+            <span>{startDate} to {endDate}</span>
+            <span>Last Refresh: {lastUpdated ? lastUpdated.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "Syncing"}</span>
+            <span><Icon name="ai" /> AI Analytics Live</span>
           </div>
+        </div>
+        <div className="ra-header-actions">
+          <label className="ra-date-range">
+            <Icon name="calendar" />
+            <select value={rangeDays} onChange={(event) => applyRange(Number(event.target.value))}>
+              <option value={30}>Last 30 days</option>
+              <option value={90}>Last 90 days</option>
+              <option value={180}>Last 180 days</option>
+              <option value={365}>This year</option>
+            </select>
+          </label>
+          <input aria-label="Start date" type="date" value={startDate} onChange={(event) => setStartDate(event.target.value)} />
+          <input aria-label="End date" type="date" value={endDate} onChange={(event) => setEndDate(event.target.value)} />
+          <label className="ra-compare"><input type="checkbox" checked={comparePrevious} onChange={(event) => setComparePrevious(event.target.checked)} /> Compare Previous Period</label>
+          <button type="button" onClick={() => handleExport("json", "all")} disabled={exporting}><Icon name="report" /> Export PDF</button>
+          <button type="button" onClick={() => handleExport("csv", "all")} disabled={exporting}><Icon name="csv" /> Export Excel</button>
+          <button type="button" onClick={() => window.print()}><Icon name="print" /> Print</button>
+          <button type="button" className="is-primary" onClick={() => setRefreshTick((value) => value + 1)}><Icon name="refresh" /> {refreshing ? "Refreshing" : "Refresh Analytics"}</button>
+        </div>
+      </header>
 
-          <div className="chairman-page rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur">
-            <div className="chairman-page grid gap-3 sm:grid-cols-2">
-              {healthTiles.map((tile) => (
-                <MetricCard key={tile.label} {...tile} />
-              ))}
-            </div>
-          </div>
+      {error ? <div className="ra-alert">{error}</div> : null}
+
+      <section className="ra-filter-bar">
+        {["Tower", "Wing", "Floor", "Resident Type", "Bill Type", "Complaint Category", "Visitor Type", "Staff Department"].map((label) => (
+          <label className="ra-filter" key={label}>
+            <span>{label}</span>
+            <select>
+              <option>All {label}s</option>
+              <option>Available Records</option>
+            </select>
+          </label>
+        ))}
+        <div className="ra-filter-actions">
+          <button type="button" className="is-primary" onClick={() => setRefreshTick((value) => value + 1)}>Apply</button>
+          <button type="button" onClick={() => { applyRange(90); setActiveFilter(""); }}>Reset</button>
+          {activeFilter ? <span>Filtered by {activeFilter}</span> : null}
         </div>
       </section>
 
-      <section className="rounded-3xl border border-slate-200 bg-white/90 p-4 shadow-sm backdrop-blur sm:p-5">
-        <div className="chairman-page flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-          <div className="chairman-page flex flex-wrap items-center gap-2">
-            {RANGE_OPTIONS.map((days) => {
-              const active = rangeDays === days;
-              return (
-                <button
-                  key={days}
-                  type="button"
-                  onClick={() => setRangeDays(days)}
-                  className={`rounded-full px-4 py-2 text-sm font-semibold transition ${active ? "theme-page text-[var(--text-main)] shadow-lg shadow-slate-950/20" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}
-                >
-                  {days} days
-                </button>
-              );
-            })}
-          </div>
+      <section className="ra-kpi-grid">
+        {kpis.map((item) => <KpiCard key={item.label} item={item} />)}
+      </section>
 
-          <div className="chairman-page flex flex-wrap items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setRefreshTick((value) => value + 1)}
-              className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
-            >
-              {refreshing ? "Refreshing..." : "Refresh now"}
-            </button>
-            <button
-              type="button"
-              onClick={() => setAutoRefresh((value) => !value)}
-              className={`rounded-full px-4 py-2 text-sm font-semibold transition ${autoRefresh ? "bg-emerald-600 text-[var(--text-main)] hover:bg-emerald-700" : "bg-slate-200 text-slate-700 hover:bg-slate-300"}`}
-            >
-              {autoRefresh ? "Auto refresh on" : "Auto refresh off"}
-            </button>
-            <div className="chairman-page flex items-center gap-2 rounded-full border border-slate-200 bg-white px-2 py-1">
-              <span className="pl-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">Report</span>
-              <select
-                value={exportType}
-                onChange={(event) => setExportType(event.target.value)}
-                className="rounded-full border-0 bg-transparent px-2 py-1 text-sm font-medium text-slate-700 focus:outline-none focus:ring-0"
-              >
-                {EXPORT_TYPES.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-              <select
-                value={exportFormat}
-                onChange={(event) => setExportFormat(event.target.value)}
-                className="rounded-full border-0 bg-transparent px-2 py-1 text-sm font-medium text-slate-700 focus:outline-none focus:ring-0"
-              >
-                {EXPORT_FORMATS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-              <button
-                type="button"
-                onClick={handleExport}
-                disabled={exporting}
-                className="rounded-full theme-page px-4 py-2 text-sm font-semibold text-[var(--text-main)] transition hover:theme-surface disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {exporting ? "Exporting..." : "Export"}
-              </button>
-            </div>
-          </div>
+      <section className="ra-workspace">
+        <div className="ra-bi-grid">
+          {charts.length ? charts.map((chart) => (
+            <ChartShell
+              key={`${chart.domain}-${chart.title}`}
+              chart={chart}
+              activeFilter={activeFilter}
+              onFilter={(domain) => setActiveFilter((current) => current === domain ? "" : domain)}
+              onExport={handleExport}
+              onFullscreen={fullscreen}
+            />
+          )) : <EmptyAnalytics />}
         </div>
-
-        {error ? <p className="mt-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</p> : null}
+        <InsightPanel insights={insights} healthScore={model.healthScore} />
       </section>
-
-      <section>
-        <SectionTitle
-          eyebrow="Realtime widgets"
-          title="Live system pulse"
-          description="These widgets update automatically so the dashboard remains useful during active operations, not just after reports are generated."
-        />
-        <div className="chairman-page mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          {realtimeWidgets.map((widget) => (
-            <MetricCard key={widget.label} {...widget} />
-          ))}
-        </div>
-      </section>
-
-      <section className="grid gap-4 xl:grid-cols-2">
-        <ChartPanel
-          title="Visitor analytics"
-          description="Approvals, visitor mix, and peak traffic patterns."
-        >
-          <div className="chairman-page grid gap-4 md:grid-cols-4">
-            <MetricCard label="Total visitors" value={formatCount(visitor.totalVisitors)} tone="sky" detail="Across the selected date range" />
-            <MetricCard label="Approval rate" value={formatPercent(visitor.approvalRate || 0)} tone="emerald" detail={`Peak hour ${getLatestLabel(visitor.peakHours, "hour")}`} />
-            <MetricCard label="Visitor types" value={formatCount(safeArray(visitor.visitorTypes).length)} tone="violet" detail="Resident, delivery, guest, and vendor breakdowns" />
-            <MetricCard label="Status buckets" value={formatCount(safeArray(visitor.approvalStatus).length)} tone="amber" detail="Approved, pending, and rejected activity" />
-          </div>
-          <div className="chairman-page mt-4 grid gap-4 lg:grid-cols-2">
-            <div className="chairman-page h-72 rounded-2xl border border-slate-200 bg-slate-50 p-3">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={safeArray(visitor.visitTrend)}>
-                  <defs>
-                    <linearGradient id="visitorTrendFill" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.8} />
-                      <stop offset="95%" stopColor="#0ea5e9" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#cbd5e1" />
-                  <XAxis dataKey="date" stroke="#64748b" />
-                  <YAxis stroke="#64748b" />
-                  <Tooltip />
-                  <Area type="monotone" dataKey="count" stroke="#0ea5e9" fill="url(#visitorTrendFill)" />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-            <div className="chairman-page h-72 rounded-2xl border border-slate-200 bg-slate-50 p-3">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie data={safeArray(visitor.visitorTypes)} dataKey="value" nameKey="name" outerRadius={92} label>
-                    {safeArray(visitor.visitorTypes).map((entry, index) => (
-                      <Cell key={`visitor-${entry.name || index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-        </ChartPanel>
-
-        <ChartPanel title="Financial analytics" description="Revenue, collections, and bill status movement.">
-          <div className="chairman-page grid gap-4 md:grid-cols-4">
-            <MetricCard label="Revenue" value={formatCurrency(financial.totalRevenue)} tone="emerald" detail="Paid bills in the selected window" />
-            <MetricCard label="Collection rate" value={formatPercent(financial.collectionRate || 0)} tone="sky" detail="Paid versus total billed activity" />
-            <MetricCard label="Top defaulter" value={getLatestLabel(financial.topDefaulters, "name")} tone="rose" detail={formatCurrency(safeArray(financial.topDefaulters)[0]?.amount || 0)} />
-            <MetricCard label="Bill buckets" value={formatCount(safeArray(financial.billStatus).length)} tone="amber" detail="Status and amount distribution" />
-          </div>
-          <div className="chairman-page mt-4 grid gap-4 lg:grid-cols-2">
-            <div className="chairman-page h-72 rounded-2xl border border-slate-200 bg-slate-50 p-3">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={safeArray(financial.monthlyRevenue)}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#cbd5e1" />
-                  <XAxis dataKey="month" stroke="#64748b" />
-                  <YAxis stroke="#64748b" />
-                  <Tooltip formatter={(value) => formatCurrency(value)} />
-                  <Legend />
-                  <Line type="monotone" dataKey="revenue" stroke="#10b981" strokeWidth={3} dot={false} />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-            <div className="chairman-page h-72 rounded-2xl border border-slate-200 bg-slate-50 p-3">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={safeArray(financial.billStatus)}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#cbd5e1" />
-                  <XAxis dataKey="name" stroke="#64748b" />
-                  <YAxis stroke="#64748b" />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="count" fill="#0ea5e9" />
-                  <Bar dataKey="amount" fill="#10b981" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-        </ChartPanel>
-      </section>
-
-      <section className="grid gap-4 xl:grid-cols-2">
-        <ChartPanel title="Complaint analytics" description="Ticket volume, resolution velocity, and categories.">
-          <div className="chairman-page grid gap-4 md:grid-cols-4">
-            <MetricCard label="Complaints" value={formatCount(complaint.totalComplaints)} tone="amber" detail="Opened in the selected period" />
-            <MetricCard label="Resolution rate" value={formatPercent(complaint.resolutionRate || 0)} tone="emerald" detail={`Average ${complaint.avgResolutionDays || 0} days`} />
-            <MetricCard label="Top category" value={getLatestLabel(complaint.topCategories, "category")} tone="violet" detail="Highest complaint concentration" />
-            <MetricCard label="Status buckets" value={formatCount(safeArray(complaint.complaintStatus).length)} tone="sky" detail="Pending, open, and closed queues" />
-          </div>
-          <div className="chairman-page mt-4 grid gap-4 lg:grid-cols-2">
-            <div className="chairman-page h-72 rounded-2xl border border-slate-200 bg-slate-50 p-3">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={safeArray(complaint.complaintTrend)}>
-                  <defs>
-                    <linearGradient id="complaintTrendFill" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.8} />
-                      <stop offset="95%" stopColor="#f59e0b" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#cbd5e1" />
-                  <XAxis dataKey="date" stroke="#64748b" />
-                  <YAxis stroke="#64748b" />
-                  <Tooltip />
-                  <Area type="monotone" dataKey="count" stroke="#f59e0b" fill="url(#complaintTrendFill)" />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-            <div className="chairman-page h-72 rounded-2xl border border-slate-200 bg-slate-50 p-3">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={safeArray(complaint.topCategories)}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#cbd5e1" />
-                  <XAxis dataKey="category" stroke="#64748b" interval={0} angle={-18} textAnchor="end" height={72} />
-                  <YAxis stroke="#64748b" />
-                  <Tooltip />
-                  <Bar dataKey="count" fill="#f59e0b" radius={[8, 8, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-        </ChartPanel>
-
-        <ChartPanel title="Chat analytics" description="Conversation throughput and channel activity.">
-          <div className="chairman-page grid gap-4 md:grid-cols-4">
-            <MetricCard label="Messages" value={formatCount(chat.totalMessages)} tone="sky" detail="Messages sent in the selected period" />
-            <MetricCard label="Active users" value={formatCount(chat.activeUsers)} tone="emerald" detail="Distinct participants in chat threads" />
-            <MetricCard label="Response time" value={`${chat.avgResponseTimeMinutes || 0} min`} tone="violet" detail="Average thread turnaround" />
-            <MetricCard label="Channels" value={formatCount(safeArray(chat.topChannels).length)} tone="amber" detail="Most active discussion threads" />
-          </div>
-          <div className="chairman-page mt-4 grid gap-4 lg:grid-cols-2">
-            <div className="chairman-page h-72 rounded-2xl border border-slate-200 bg-slate-50 p-3">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={safeArray(chat.messageTrend)}>
-                  <defs>
-                    <linearGradient id="chatTrendFill" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.8} />
-                      <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#cbd5e1" />
-                  <XAxis dataKey="date" stroke="#64748b" />
-                  <YAxis stroke="#64748b" />
-                  <Tooltip />
-                  <Area type="monotone" dataKey="count" stroke="#8b5cf6" fill="url(#chatTrendFill)" />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-            <div className="chairman-page h-72 rounded-2xl border border-slate-200 bg-slate-50 p-3">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={safeArray(chat.topChannels).slice(0, 6)}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#cbd5e1" />
-                  <XAxis dataKey="threadId" stroke="#64748b" interval={0} angle={-18} textAnchor="end" height={72} />
-                  <YAxis stroke="#64748b" />
-                  <Tooltip />
-                  <Bar dataKey="messages" fill="#8b5cf6" radius={[8, 8, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-        </ChartPanel>
-      </section>
-
-      <section className="grid gap-4 xl:grid-cols-2">
-        <ChartPanel title="Payment analytics" description="Payment success, method mix, and cashflow stability.">
-          <div className="chairman-page grid gap-4 md:grid-cols-4">
-            <MetricCard label="Payments" value={formatCount(payment.totalPayments)} tone="emerald" detail="Successful payment events" />
-            <MetricCard label="Total amount" value={formatCurrency(payment.totalAmount)} tone="sky" detail="Received through all payment methods" />
-            <MetricCard label="Success rate" value={formatPercent(payment.successRate || 0)} tone="violet" detail="Successful versus attempted payments" />
-            <MetricCard label="Failures" value={formatCount(payment.failedPayments)} tone="rose" detail="Payment attempts that did not clear" />
-          </div>
-          <div className="chairman-page mt-4 grid gap-4 lg:grid-cols-2">
-            <div className="chairman-page h-72 rounded-2xl border border-slate-200 bg-slate-50 p-3">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={safeArray(payment.paymentTrend)}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#cbd5e1" />
-                  <XAxis dataKey="date" stroke="#64748b" />
-                  <YAxis stroke="#64748b" />
-                  <Tooltip />
-                  <Legend />
-                  <Line type="monotone" dataKey="count" stroke="#0ea5e9" strokeWidth={3} dot={false} />
-                  <Line type="monotone" dataKey="amount" stroke="#10b981" strokeWidth={3} dot={false} />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-            <div className="chairman-page h-72 rounded-2xl border border-slate-200 bg-slate-50 p-3">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie data={safeArray(payment.paymentMethods)} dataKey="count" nameKey="method" outerRadius={92} label>
-                    {safeArray(payment.paymentMethods).map((entry, index) => (
-                      <Cell key={`payment-${entry.method || index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-        </ChartPanel>
-
-        <ChartPanel title="Staff performance" description="Assignment load, completion rates, and response speed.">
-          <div className="chairman-page grid gap-4 md:grid-cols-3">
-            <MetricCard label="Total staff" value={formatCount(staff.totalStaff)} tone="sky" detail="Active staff members in the selected society" />
-            <MetricCard label="Average completion" value={formatPercent(staff.avgCompletionRate || 0)} tone="emerald" detail="Resolved versus assigned work items" />
-            <MetricCard label="Top performer" value={getLatestLabel(staff.staffPerformance, "staffName")} tone="violet" detail="Best completion performance in the current window" />
-          </div>
-          <div className="chairman-page mt-4 overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
-            <div className="chairman-page max-h-80 overflow-auto">
-              <table className="w-full text-sm">
-                <thead className="sticky top-0 bg-slate-100 text-slate-600">
-                  <tr>
-                    <th className="px-4 py-3 text-left font-semibold">Staff</th>
-                    <th className="px-4 py-3 text-left font-semibold">Role</th>
-                    <th className="px-4 py-3 text-center font-semibold">Assigned</th>
-                    <th className="px-4 py-3 text-center font-semibold">Resolved</th>
-                    <th className="px-4 py-3 text-center font-semibold">Completion</th>
-                    <th className="px-4 py-3 text-center font-semibold">Avg days</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-200">
-                  {safeArray(staff.staffPerformance).map((member, index) => (
-                    <tr key={`${member.staffName || "staff"}-${index}`} className="bg-white/70">
-                      <td className="px-4 py-3 font-medium text-slate-900">{member.staffName}</td>
-                      <td className="px-4 py-3 text-slate-600">{member.role}</td>
-                      <td className="px-4 py-3 text-center">{formatCount(member.tasksAssigned)}</td>
-                      <td className="px-4 py-3 text-center">{formatCount(member.tasksResolved)}</td>
-                      <td className="px-4 py-3 text-center font-semibold text-emerald-700">{formatPercent(member.completionRate || 0)}</td>
-                      <td className="px-4 py-3 text-center">{member.avgCompletionDays}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </ChartPanel>
-      </section>
-
-      <section className="grid gap-4 xl:grid-cols-2">
-        <ChartPanel title="Security analytics" description="Incident heat, severity mix, and top hotspots.">
-          <div className="chairman-page grid gap-4 md:grid-cols-4">
-            <MetricCard label="Alerts" value={formatCount(security.totalAlerts)} tone="rose" detail="Detected in the current time window" />
-            <MetricCard label="Critical issues" value={formatCount((safeArray(security.severityBreakdown).find((item) => item.severity === "critical") || {}).count)} tone="amber" detail="Highest severity incidents" />
-            <MetricCard label="Top type" value={getLatestLabel(security.topAlertTypes, "type")} tone="violet" detail="Most common alert classification" />
-            <MetricCard label="Hotspot" value={getLatestLabel(security.incidentsByLocation, "location")} tone="sky" detail="Location with the most alerts" />
-          </div>
-          <div className="chairman-page mt-4 grid gap-4 lg:grid-cols-2">
-            <div className="chairman-page h-72 rounded-2xl border border-slate-200 bg-slate-50 p-3">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={safeArray(security.alertTrend)}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#cbd5e1" />
-                  <XAxis dataKey="date" stroke="#64748b" />
-                  <YAxis stroke="#64748b" />
-                  <Tooltip />
-                  <Line type="monotone" dataKey="count" stroke="#ef4444" strokeWidth={3} dot={false} />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-            <div className="chairman-page h-72 rounded-2xl border border-slate-200 bg-slate-50 p-3">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie data={safeArray(security.severityBreakdown)} dataKey="count" nameKey="severity" outerRadius={92} label>
-                    {safeArray(security.severityBreakdown).map((entry, index) => (
-                      <Cell key={`security-${entry.severity || index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-        </ChartPanel>
-
-        <ChartPanel title="AI analytics" description="Generated insight cards, recommendations, and anomaly summaries.">
-          <div className="chairman-page grid gap-4 md:grid-cols-2">
-            {aiInsightCards.map((card) => (
-              <div key={card.label} className={`rounded-2xl border p-4 shadow-sm ${TONE_MAP[card.tone || "slate"].shell}`}>
-                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">{card.label}</p>
-                <p className="mt-3 text-base font-semibold text-slate-900">{card.value}</p>
-                {card.detail ? <p className="mt-2 text-sm text-slate-600">{card.detail}</p> : null}
-              </div>
-            ))}
-          </div>
-          <div className="chairman-page mt-4 grid gap-4 lg:grid-cols-2">
-            <div className="chairman-page rounded-2xl border border-slate-200 bg-slate-50 p-4">
-              <p className="text-sm font-semibold text-slate-900">Generated widgets</p>
-              <div className="chairman-page mt-4 space-y-3">
-                {aiWidgets.length ? (
-                  aiWidgets.map((widget, index) => (
-                    <div key={`${widget.title || "widget"}-${index}`} className="rounded-xl border border-slate-200 bg-white p-3">
-                      <div className="chairman-page flex items-start justify-between gap-3">
-                        <div>
-                          <p className="text-sm font-semibold text-slate-900">{widget.title || "Insight"}</p>
-                          <p className="mt-1 text-sm text-slate-600">{widget.detail || widget.value || "Automated insight card"}</p>
-                        </div>
-                        {widget.value ? <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">{widget.value}</span> : null}
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="chairman-page rounded-xl border border-dashed border-slate-300 bg-white p-4 text-sm text-slate-500">
-                    AI widget generation is still warming up.
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="chairman-page rounded-2xl border border-slate-200 bg-slate-50 p-4">
-              <p className="text-sm font-semibold text-slate-900">AI recommendations</p>
-              <div className="chairman-page mt-4 space-y-3">
-                {aiRecommendations.length ? (
-                  aiRecommendations.map((item, index) => (
-                    <div key={`${item}-${index}`} className="rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-700">
-                      {item}
-                    </div>
-                  ))
-                ) : (
-                  <div className="chairman-page rounded-xl border border-dashed border-slate-300 bg-white p-4 text-sm text-slate-500">
-                    Recommendations will appear once the AI analytics service returns a response.
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </ChartPanel>
-      </section>
-
-      <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-        <SectionTitle
-          eyebrow="Export reports"
-          title="Download dashboards and snapshots"
-          description="Generate JSON or CSV exports for the current range, then archive or share the report with stakeholders."
-        />
-        <div className="chairman-page mt-4 grid gap-4 md:grid-cols-3">
-          <MetricCard label="Selected range" value={`${rangeDays} days`} tone="sky" detail="Used for both API fetches and report exports" />
-          <MetricCard label="Report format" value={exportFormat.toUpperCase()} tone="emerald" detail="Choose JSON for systems, CSV for spreadsheets" />
-          <MetricCard label="Report type" value={exportType} tone="violet" detail="Export a single domain or the full analytics bundle" />
-        </div>
-      </section>
-    </div>
+    </main>
   );
 }
 
 export default AnalyticsDashboard;
+

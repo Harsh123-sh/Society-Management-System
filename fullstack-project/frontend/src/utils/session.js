@@ -1,5 +1,5 @@
 export function getCurrentUserFromToken() {
-  const token = localStorage.getItem("token");
+  const token = localStorage.getItem("accessToken") || localStorage.getItem("token");
   if (!isValidAuthToken(token)) return null;
 
   try {
@@ -28,7 +28,6 @@ export function getCurrentUserFromToken() {
 }
 
 export function normalizeRole(role) {
-  if (role === "chairman") return "admin";
   if (role === "user" || role === "owner" || role === "tenant") return "resident";
   return role || "resident";
 }
@@ -61,15 +60,15 @@ export function getRoleHomePath(role) {
   switch (normalizedRole) {
     case "super_admin":
       return "/super-admin/dashboard";
-    case "admin":
     case "chairman":
-      return "/chairman/dashboard";
+    case "admin":
+      return "/admin/dashboard";
     case "secretary":
       return "/secretary/dashboard";
     case "resident":
       return "/resident";
     case "staff":
-      return "/staff";
+      return "/staff/dashboard";
     case "security":
       return "/security-dashboard";
     default:
@@ -77,9 +76,13 @@ export function getRoleHomePath(role) {
   }
 }
 
-export function saveSelectedSociety({ id, name }) {
+export function saveSelectedSociety({ id, name, code, societyCode }) {
   if (!id) return;
   localStorage.setItem("selectedSocietyId", id);
+  const resolvedCode = code || societyCode || id;
+  if (resolvedCode) {
+    localStorage.setItem("selectedSocietyCode", String(resolvedCode).trim().toUpperCase());
+  }
   if (name) {
     localStorage.setItem("selectedSocietyName", name);
   }
@@ -87,14 +90,21 @@ export function saveSelectedSociety({ id, name }) {
 
 export function clearSelectedSociety() {
   localStorage.removeItem("selectedSocietyId");
+  localStorage.removeItem("selectedSocietyCode");
   localStorage.removeItem("selectedSocietyName");
 }
 
 export function getSelectedSociety() {
   const id = localStorage.getItem("selectedSocietyId") || localStorage.getItem("societyId");
   if (!id) return null;
+  const code =
+    localStorage.getItem("selectedSocietyCode") ||
+    localStorage.getItem("societyCode") ||
+    id;
   return {
     id,
+    code,
+    societyCode: code,
     name:
       localStorage.getItem("selectedSocietyName") ||
       localStorage.getItem("societyName") ||
@@ -102,9 +112,21 @@ export function getSelectedSociety() {
   };
 }
 
-export function saveAuthSession({ token, user, societyId, societyName }) {
-  if (token) {
-    localStorage.setItem("token", token);
+export function saveAuthSession({ token, accessToken, refreshToken, user, societyId, societyName }) {
+  ["societyId", "societyCode", "societyName", "selectedSocietyId", "selectedSocietyCode", "selectedSocietyName"].forEach((key) => {
+    localStorage.removeItem(key);
+    sessionStorage.removeItem(key);
+  });
+
+  const resolvedAccessToken = accessToken || token;
+
+  if (resolvedAccessToken) {
+    localStorage.setItem("accessToken", resolvedAccessToken);
+    localStorage.setItem("token", resolvedAccessToken);
+  }
+
+  if (refreshToken) {
+    localStorage.setItem("refreshToken", refreshToken);
   }
 
   const normalizedUser = user
@@ -130,10 +152,15 @@ export function saveAuthSession({ token, user, societyId, societyName }) {
 
   const resolvedSocietyId = societyId || normalizedUser?.societyId || normalizedUser?.society_id;
   const resolvedSocietyName = societyName || normalizedUser?.societyName || normalizedUser?.society_name;
+  const resolvedSocietyCode = normalizedUser?.societyCode || normalizedUser?.society_code || null;
 
   if (resolvedSocietyId) {
     localStorage.setItem("societyId", resolvedSocietyId);
     localStorage.setItem("selectedSocietyId", resolvedSocietyId);
+  }
+  if (resolvedSocietyCode) {
+    localStorage.setItem("societyCode", resolvedSocietyCode);
+    localStorage.setItem("selectedSocietyCode", resolvedSocietyCode);
   }
   if (resolvedSocietyName) {
     localStorage.setItem("societyName", resolvedSocietyName);
@@ -200,20 +227,28 @@ export function getStoredSuperAdminToken() {
 export function clearAuthSession() {
   [
     "token",
+    "accessToken",
+    "refreshToken",
     "user",
     "userId",
-    "role",
     "userEmail",
+    "role",
     "societyId",
+    "society_code",
+    "societyCode",
     "societyName",
+    "selectedSocietyId",
+    "selectedSocietyCode",
+    "selectedSocietyName",
     "userName",
-    "refreshToken",
     "permissions",
+    "otpSocietyCode",
+    "loginErrorMessage",
+    "loginSuccessMessage",
   ].forEach((key) => {
     localStorage.removeItem(key);
     sessionStorage.removeItem(key);
   });
-  clearSelectedSociety();
 }
 
 export function getStoredUser() {
@@ -232,12 +267,20 @@ export function getStoredUser() {
       society_id: parsed?.society_id || parsed?.societyId || localStorage.getItem("societyId") || null,
       societyName: parsed?.societyName || parsed?.society_name || localStorage.getItem("societyName") || null,
       society_name: parsed?.society_name || parsed?.societyName || localStorage.getItem("societyName") || null,
+      societyCode: parsed?.societyCode || parsed?.society_code || localStorage.getItem("societyCode") || null,
+      society_code: parsed?.society_code || parsed?.societyCode || localStorage.getItem("societyCode") || null,
       status: parsed?.status || null,
       role: normalizeRole(parsed?.role),
     };
   } catch {
     return getCurrentUserFromToken();
   }
+}
+
+export function hasRequiredSocietyContext(user = getStoredUser()) {
+  const role = normalizeRole(user?.role);
+  if (role === "super_admin") return true;
+  return Boolean(user?.societyId || user?.society_id) && Boolean(user?.societyCode || user?.society_code);
 }
 
 export function getStoredRole() {

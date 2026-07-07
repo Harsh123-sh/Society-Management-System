@@ -1,9 +1,9 @@
 {
-  "name": "Society Mobile",
-  "displayName": "Society Mobile",
+  "name": "NEXORA",
+  "displayName": "NEXORA",
   "expo": {
-    "name": "Society Mobile",
-    "slug": "society-mobile",
+    "name": "NEXORA",
+    "slug": "NEXORA",
     "platforms": ["android", "ios"],
     "jsEngine": "hermes"
   }

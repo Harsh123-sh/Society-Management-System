@@ -1,0 +1,86 @@
+{
+  "common": {
+    "language": "மொழி",
+    "menu": "மெனு",
+    "soon": "விரைவில்",
+    "live": "நேரலை",
+    "backToHome": "முகப்புக்கு திரும்பு",
+    "selectedSociety": "தேர்ந்தெடுத்த சங்கம்",
+    "code": "குறியீடு",
+    "chooseDifferentSociety": "வேறு சங்கத்தைத் தேர்வு செய்",
+    "rememberMe": "என்னை நினைவில் கொள்ளவும்",
+    "forgotPassword": "கடவுச்சொல் மறந்துவிட்டதா?",
+    "role": "பங்கு",
+    "mode": "முறை",
+    "signingIn": "உள்நுழைகிறது...",
+    "loading": "ஏற்றுகிறது",
+    "search": "தேடு",
+    "settings": "அமைப்புகள்",
+    "save": "சேமி",
+    "cancel": "ரத்து"
+  },
+  "brand": { "eyebrow": "பல-சங்க SaaS", "title": "NEXORA" },
+  "actions": {
+    "lightMode": "ஒளி முறை",
+    "darkMode": "இருள் முறை",
+    "systemMode": "சிஸ்டம் முறை",
+    "signIn": "உள்நுழை",
+    "startFreeTrial": "இலவச சோதனையை தொடங்கு",
+    "createAccount": "கணக்கு உருவாக்கு",
+    "openPortal": "போர்டலைத் திற"
+  },
+  "nav": {
+    "dashboard": "டாஷ்போர்டு",
+    "billing": "பில்லிங்",
+    "maintenance": "பராமரிப்பு",
+    "complaints": "புகார்கள்",
+    "visitors": "வருகையாளர்கள்",
+    "documents": "ஆவணங்கள்",
+    "analytics": "பகுப்பாய்வு",
+    "settings": "அமைப்புகள்",
+    "aiAssistant": "AI உதவியாளர்",
+    "messages": "செய்திகள்"
+  },
+  "role": {
+    "admin": "தலைவர்",
+    "secretary": "செயலாளர்",
+    "super_admin": "சூப்பர் அட்மின்",
+    "resident": "வசிப்பவர்",
+    "staff": "பணியாளர்",
+    "security": "பாதுகாப்பு"
+  },
+  "dashboard": { "title": "{{role}} டாஷ்போர்டு" },
+  "society": {
+    "switcher": "சங்க மாற்றி",
+    "searchPlaceholder": "சங்க பெயர் அல்லது குறியீடு தேடு",
+    "recent": "சமீபத்திய சங்கங்கள்",
+    "favorites": "பிடித்த சங்கங்கள்",
+    "allSocieties": "அனைத்து சங்கங்கள்",
+    "switchSociety": "சங்கத்தை மாற்று",
+    "openSociety": "சங்கத்தைத் திற",
+    "viewAnalytics": "பகுப்பாய்வு காண்",
+    "manageSociety": "சங்கத்தை நிர்வகி",
+    "residentCount": "வசிப்பவர்கள்",
+    "occupancyRate": "நிரப்பு விகிதம்",
+    "pendingComplaints": "நிலுவை புகார்கள்",
+    "monthlyCollections": "மாதாந்திர வசூல்",
+    "dataIsolation": "தரவு இந்த சங்கத்திற்குள் மட்டுமே உள்ளது"
+  },
+  "theme": { "title": "தீம்", "light": "ஒளி", "dark": "இருள்", "system": "சிஸ்டம்" },
+  "language": { "title": "மொழி", "subtitle": "முழு இணையதள மொழியை மாற்று" },
+  "auth": {
+    "welcomeBack": "மீண்டும் வரவேற்கிறோம்",
+    "login": "உள்நுழை",
+    "register": "பதிவு",
+    "email": "மின்னஞ்சல்",
+    "password": "கடவுச்சொல்",
+    "societyCode": "சங்க குறியீடு",
+    "verifyOtp": "OTP சரிபார்"
+  },
+  "messages": {
+    "maintenancePayment": "பராமரிப்பு கட்டணம்",
+    "success": "வெற்றி",
+    "error": "பிழை",
+    "empty": "தரவு இல்லை"
+  }
+}

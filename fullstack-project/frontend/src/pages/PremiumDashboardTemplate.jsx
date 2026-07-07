@@ -297,7 +297,7 @@ const PremiumDashboardTemplate: React.FC<DashboardProps> = ({
         onCollapsedChange={setSidebarCollapsed}
         footer={
           <div className="text-xs text-text-secondary text-center py-2">
-            <p>Society Management System</p>
+            <p>NEXORA</p>
             <p>© 2024 - v1.0</p>
           </div>
         }

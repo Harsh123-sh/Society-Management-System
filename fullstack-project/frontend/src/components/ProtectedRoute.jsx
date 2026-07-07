@@ -1,6 +1,6 @@
 import { Link, Navigate, Outlet, useLocation } from "react-router-dom";
 import AccessDeniedPage from "../pages/AccessDeniedPage";
-import { clearAuthSession, getStoredRole, getStoredUser, isValidAuthToken } from "../utils/session";
+import { clearAuthSession, getStoredRole, getStoredUser, hasRequiredSocietyContext, isValidAuthToken } from "../utils/session";
 
 function AuthFallback() {
   return (
@@ -27,7 +27,7 @@ function PendingApprovalMessage() {
       <div className="w-full max-w-md rounded-xl border border-amber-200 bg-amber-50 p-6 text-center shadow-sm">
         <h2 className="text-xl font-semibold text-amber-900">Your account is pending approval.</h2>
         <p className="mt-2 text-sm text-amber-800">
-          Please wait for the chairman or super admin to approve your access before signing in.
+          Please wait for an admin or super admin to approve your access before signing in.
         </p>
         <Link
           to="/login"
@@ -86,6 +86,17 @@ function ProtectedRoute({ allowedRoles = [] }) {
       path: location.pathname,
     });
     return <AccessDeniedPage />;
+  }
+
+  if (role === "staff" && !hasRequiredSocietyContext(user)) {
+    clearAuthSession();
+    return (
+      <Navigate
+        to="/login"
+        replace
+        state={{ from: location, message: "Society access not found. Please login again." }}
+      />
+    );
   }
 
   return <Outlet />;

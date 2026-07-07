@@ -1,0 +1,100 @@
+.module-page-shell {
+  display: grid;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.module-page-shell--actions-only {
+  margin-bottom: 12px;
+}
+
+.module-page-title {
+  min-width: 0;
+}
+
+.module-page-title h1 {
+  margin: 0;
+  color: var(--text, #0f172a);
+  font-size: clamp(1.85rem, 2.2vw, 2.45rem);
+  font-weight: 900;
+  letter-spacing: 0;
+  line-height: 1.04;
+}
+
+.module-page-title p {
+  margin: 7px 0 0;
+  color: var(--text-muted, #64748b);
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.module-page-title p strong {
+  color: #6d5ef6;
+}
+
+.module-action-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid color-mix(in srgb, var(--border-color, #e4e8f0) 70%, transparent);
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--surface, #fff) 78%, transparent);
+  padding: 12px;
+  box-shadow: 0 18px 42px -38px rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(18px);
+}
+
+.module-action-bar :is(input, select) {
+  min-height: 40px;
+  border: 1px solid var(--border-color, #e4e8f0);
+  border-radius: 13px;
+  background: var(--surface, #fff);
+  color: var(--text, #0f172a);
+  padding: 0 12px;
+  font-size: 0.84rem;
+  font-weight: 750;
+  outline: 0;
+}
+
+.module-action-bar label {
+  display: inline-flex;
+  min-height: 40px;
+  min-width: min(100%, 280px);
+  flex: 1 1 280px;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--border-color, #e4e8f0);
+  border-radius: 13px;
+  background: var(--surface, #fff);
+  color: var(--text-muted, #64748b);
+  padding: 0 12px;
+}
+
+.module-action-bar label input {
+  min-height: 0;
+  min-width: 0;
+  flex: 1;
+  border: 0;
+  background: transparent;
+  padding: 0;
+}
+
+.module-action-bar button {
+  min-height: 40px;
+}
+
+html[data-theme="dark"] .module-action-bar,
+body[data-theme="dark"] .module-action-bar {
+  box-shadow: 0 18px 42px -34px rgba(0, 0, 0, 0.85);
+}
+
+@media (max-width: 900px) {
+  .module-page-shell {
+    gap: 12px;
+  }
+
+  .module-action-bar > * {
+    flex: 1 1 180px;
+  }
+}

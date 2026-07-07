@@ -1,5 +1,4 @@
 const crypto = require("crypto");
-const QRCode = require("qrcode");
 const db = require("../config/db");
 
 function normalizeText(value) {
@@ -12,8 +11,10 @@ function normalizeLower(value) {
 
 async function safeRows(queryPromise, fallback = [], label = "visitor model query") {
   try {
-    const [rows] = await queryPromise;
-    return rows;
+    const result = await queryPromise;
+    if (Array.isArray(result)) return result[0] || fallback;
+    if (Array.isArray(result?.rows)) return result.rows;
+    return fallback;
   } catch (error) {
     console.error(`[visitorModel] ${label} failed`, error?.message || error);
     return fallback;
@@ -30,6 +31,95 @@ async function safeArray(queryPromise, fallback = [], label = "visitor model que
 }
 
 let flatTableColumnsCache = null;
+let visitorEmergencyAlertSchemaReady = null;
+let visitorEntrySchemaReady = null;
+
+async function ensureVisitorEntrySchema() {
+  if (!visitorEntrySchemaReady) {
+    visitorEntrySchemaReady = (async () => {
+      await db.query(`
+        CREATE TABLE IF NOT EXISTS visitor_entries (
+          id SERIAL PRIMARY KEY,
+          visitor_id VARCHAR(40) UNIQUE NOT NULL,
+          society_id INTEGER REFERENCES societies(id) ON DELETE CASCADE,
+          guard_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+          flat_id INTEGER REFERENCES flats(id) ON DELETE SET NULL,
+          resident_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+          visitor_name VARCHAR(150) NOT NULL,
+          phone VARCHAR(40) NOT NULL,
+          gender VARCHAR(30),
+          purpose VARCHAR(200) NOT NULL,
+          visitor_count INTEGER NOT NULL DEFAULT 1,
+          resident_name VARCHAR(150),
+          resident_phone VARCHAR(40),
+          visitor_email VARCHAR(180),
+          photo_url TEXT,
+          status VARCHAR(40) NOT NULL DEFAULT 'pending_approval',
+          approval_status VARCHAR(40) NOT NULL DEFAULT 'pending',
+          check_in_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          check_out_time TIMESTAMP,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+
+      await db.query(`
+        CREATE TABLE IF NOT EXISTS resident_approvals (
+          id SERIAL PRIMARY KEY,
+          visitor_entry_id INTEGER NOT NULL REFERENCES visitor_entries(id) ON DELETE CASCADE,
+          resident_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+          society_id INTEGER REFERENCES societies(id) ON DELETE CASCADE,
+          guard_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+          status VARCHAR(40) NOT NULL DEFAULT 'pending',
+          requested_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          responded_at TIMESTAMP,
+          notes TEXT
+        )
+      `);
+
+      await db.query(`CREATE INDEX IF NOT EXISTS idx_visitor_entries_society_status ON visitor_entries(society_id, status, check_in_time)`);
+      await db.query(`CREATE INDEX IF NOT EXISTS idx_visitor_entries_guard_time ON visitor_entries(guard_id, check_in_time)`);
+      await db.query(`CREATE INDEX IF NOT EXISTS idx_resident_approvals_society_status ON resident_approvals(society_id, status, requested_at)`);
+      await db.query(`ALTER TABLE visitor_entries ADD COLUMN IF NOT EXISTS visitor_email VARCHAR(180)`);
+    })().catch((error) => {
+      visitorEntrySchemaReady = null;
+      throw error;
+    });
+  }
+
+  return visitorEntrySchemaReady;
+}
+
+async function ensureVisitorEmergencyAlertSchema() {
+  if (!visitorEmergencyAlertSchemaReady) {
+    visitorEmergencyAlertSchemaReady = (async () => {
+      await db.query(`
+        CREATE TABLE IF NOT EXISTS visitor_emergency_alerts (
+          id SERIAL PRIMARY KEY,
+          triggered_by INT NULL,
+          alert_type VARCHAR(50) NOT NULL DEFAULT 'security',
+          severity VARCHAR(50) NOT NULL DEFAULT 'high',
+          message TEXT NOT NULL,
+          location VARCHAR(255) NULL,
+          status VARCHAR(50) NOT NULL DEFAULT 'active',
+          society_id INT NULL,
+          acknowledged_by INT NULL,
+          acknowledged_at TIMESTAMP NULL,
+          resolved_by INT NULL,
+          resolved_at TIMESTAMP NULL,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+      `);
+      await db.query(`ALTER TABLE visitor_emergency_alerts ADD COLUMN IF NOT EXISTS society_id INT NULL;`);
+      await db.query(`CREATE INDEX IF NOT EXISTS idx_visitor_emergency_alerts_society_status ON visitor_emergency_alerts(society_id, status, created_at);`);
+    })().catch((error) => {
+      visitorEmergencyAlertSchemaReady = null;
+      throw error;
+    });
+  }
+
+  return visitorEmergencyAlertSchemaReady;
+}
 
 async function getFlatTableColumns() {
   if (!flatTableColumnsCache) {
@@ -53,20 +143,6 @@ async function hasFlatColumn(columnName) {
 
 function createSignature(value) {
   return crypto.createHash("sha256").update(normalizeText(value)).digest("hex");
-}
-
-function randomNumericOtp(length = 6) {
-  const minimum = 10 ** (length - 1);
-  const maximum = 10 ** length - 1;
-  return String(Math.floor(minimum + Math.random() * (maximum - minimum)));
-}
-
-async function uploadQrData(payload) {
-  return QRCode.toDataURL(payload, {
-    errorCorrectionLevel: "M",
-    margin: 1,
-    width: 320,
-  });
 }
 
 async function getFlatByWingAndFlatNumber({ societyId, builderId, wingId, wing, flatNumber }) {
@@ -115,7 +191,7 @@ async function getFlatByWingAndFlatNumber({ societyId, builderId, wingId, wing, 
 
 async function getFlatOwnerByFlatId(flatId) {
   const { rows } = await db.query(
-    `SELECT u.id, u.name, u.email
+    `SELECT u.id, u.name, u.email, u.phone
      FROM owner_properties op
      JOIN users u ON u.id = op.user_id
      WHERE op.flat_id = ?
@@ -130,6 +206,83 @@ async function getFlatOwnerByFlatId(flatId) {
   return rows[0] || null;
 }
 
+async function createGuardVisitorEntry({
+  visitorName,
+  visitorEmail,
+  phone,
+  gender,
+  purpose,
+  visitorCount,
+  flatId,
+  residentId,
+  residentName,
+  residentPhone,
+  guardId,
+  societyId,
+  photoUrl,
+}) {
+  await ensureVisitorEntrySchema();
+  const visitorId = `VIS-${Date.now().toString(36).toUpperCase()}-${crypto.randomBytes(2).toString("hex").toUpperCase()}`;
+  const { rows: result } = await db.query(
+    `INSERT INTO visitor_entries (
+      visitor_id, society_id, guard_id, flat_id, resident_id, visitor_name, visitor_email, phone,
+      gender, purpose, visitor_count, resident_name, resident_phone, photo_url,
+      status, approval_status, check_in_time, created_at, updated_at
+     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending_approval', 'pending', NOW(), NOW(), NOW())`,
+    [
+      visitorId,
+      societyId,
+      guardId,
+      flatId,
+      residentId || null,
+      normalizeText(visitorName),
+      visitorEmail || null,
+      normalizeText(phone),
+      gender || null,
+      normalizeText(purpose),
+      Number(visitorCount) || 1,
+      residentName || null,
+      residentPhone || null,
+      photoUrl || null,
+    ]
+  );
+
+  const entryId = result.insertId;
+  await db.query(
+    `INSERT INTO resident_approvals (visitor_entry_id, resident_id, society_id, guard_id, status, notes)
+     VALUES (?, ?, ?, ?, 'pending', ?)`,
+    [entryId, residentId || null, societyId, guardId, "Awaiting resident approval"]
+  );
+
+  return getGuardVisitorEntryById(entryId, societyId);
+}
+
+async function getGuardVisitorEntryById(id, societyId) {
+  await ensureVisitorEntrySchema();
+  const params = [id];
+  let societyClause = "";
+  if (societyId) {
+    societyClause = "AND ve.society_id = ?";
+    params.push(societyId);
+  }
+
+  const { rows } = await db.query(
+    `SELECT ve.id, ve.visitor_id, ve.society_id, ve.guard_id, ve.flat_id, ve.resident_id,
+            ve.visitor_name, ve.visitor_email, ve.phone, ve.gender, ve.purpose, ve.visitor_count,
+            ve.resident_name, ve.resident_phone, ve.photo_url, ve.status, ve.approval_status,
+            ve.check_in_time AS entry_time, ve.check_out_time AS exit_time, ve.created_at, ve.updated_at,
+            f.building_name, f.wing, f.floor, f.flat_number, guard.name AS security_name
+     FROM visitor_entries ve
+     LEFT JOIN flats f ON f.id = ve.flat_id
+     LEFT JOIN users guard ON guard.id = ve.guard_id
+     WHERE ve.id = ? ${societyClause}
+     LIMIT 1`,
+    params
+  );
+
+  return rows[0] || null;
+}
+
 async function getVisitorById(visitorId) {
   const { rows } = await db.query(
     `SELECT v.id, v.visitor_name, v.visitor_email, v.phone, v.purpose, v.person_to_meet,
@@ -137,12 +290,10 @@ async function getVisitorById(visitorId) {
             v.security_id, v.flat_id, v.preapproval_id, v.photo_url, v.face_capture_url,
             v.face_match_confidence, v.qr_pass_id, v.otp_verified_at, v.blacklist_flag,
             u.name AS security_name, u.email AS security_email,
-            COALESCE(f.building_name, f.block) AS building_name, f.wing, f.flat_number,
-            vp.pass_token, vp.qr_code_url, vp.expires_at AS qr_expires_at
+            COALESCE(f.building_name, f.block) AS building_name, f.wing, f.flat_number
      FROM visitors v
      LEFT JOIN users u ON u.id = v.security_id
      LEFT JOIN flats f ON f.id = v.flat_id
-     LEFT JOIN visitor_qr_passes vp ON vp.id = v.qr_pass_id
      WHERE v.id = ?
      LIMIT 1`,
     [visitorId]
@@ -220,22 +371,33 @@ async function createVisitorEntry({
 }
 
 async function markVisitorExit(visitorId) {
-  const { rows: result } = await db.query(
-    `UPDATE visitors
-     SET exit_time = NOW(), status = 'exited'
-     WHERE id = ? AND status = 'in_premises'`,
+  await ensureVisitorEntrySchema();
+  let result = await db.query(
+    `UPDATE visitor_entries
+     SET check_out_time = NOW(), status = 'checked_out', updated_at = NOW()
+     WHERE id = ? AND status IN ('in_premises', 'pending_approval')`,
     [visitorId]
   );
+
+  if (!result.affectedRows) {
+    result = await db.query(
+      `UPDATE visitors
+       SET exit_time = NOW(), status = 'exited'
+       WHERE id = ? AND status = 'in_premises'`,
+      [visitorId]
+    );
+  }
 
   return result.affectedRows > 0;
 }
 
 async function getVisitorLogs({ wing, search, fromDate, toDate, status, societyId } = {}) {
+  await ensureVisitorEntrySchema();
   const params = [];
   const filters = [];
 
   if (societyId) {
-    filters.push("v.society_id = ?");
+    filters.push("ve.society_id = ?");
     params.push(societyId);
   }
 
@@ -245,42 +407,40 @@ async function getVisitorLogs({ wing, search, fromDate, toDate, status, societyI
   }
 
   if (normalizeText(search)) {
-    filters.push("(v.visitor_name LIKE ? OR v.phone LIKE ? OR v.vehicle_number LIKE ? OR f.flat_number LIKE ?)");
+    filters.push("(ve.visitor_name ILIKE ? OR ve.phone ILIKE ? OR ve.resident_name ILIKE ? OR f.flat_number ILIKE ?)");
     const like = `%${normalizeText(search)}%`;
     params.push(like, like, like, like);
   }
 
   if (normalizeText(fromDate)) {
-    filters.push("DATE(v.entry_time) >= ?");
+    filters.push("DATE(ve.check_in_time) >= ?");
     params.push(fromDate);
   }
 
   if (normalizeText(toDate)) {
-    filters.push("DATE(v.entry_time) <= ?");
+    filters.push("DATE(ve.check_in_time) <= ?");
     params.push(toDate);
   }
 
-  if (["in_premises", "exited"].includes(normalizeText(status))) {
-    filters.push("v.status = ?");
+  if (["pending_approval", "in_premises", "checked_out", "rejected", "exited"].includes(normalizeText(status))) {
+    filters.push("ve.status = ?");
     params.push(normalizeText(status));
   }
 
   const whereClause = filters.length ? `WHERE ${filters.join(" AND ")}` : "";
 
   const { rows } = await db.query(
-    `SELECT v.id, v.visitor_name, v.visitor_email, v.phone, v.purpose, v.person_to_meet,
-            v.vehicle_number, v.entry_time, v.exit_time, v.status, v.approval_status,
-            v.security_id, v.flat_id, v.preapproval_id, v.photo_url, v.face_capture_url,
-            v.face_match_confidence, v.blacklist_flag,
+    `SELECT ve.id, ve.visitor_id, ve.visitor_name, ve.visitor_email, ve.phone, ve.gender, ve.purpose,
+            ve.visitor_count, ve.resident_name, ve.resident_phone, ve.photo_url,
+            ve.check_in_time AS entry_time, ve.check_out_time AS exit_time,
+            ve.status, ve.approval_status, ve.guard_id AS security_id, ve.flat_id,
             u.name AS security_name, u.email AS security_email,
-            f.building_name, f.wing, f.flat_number,
-            vp.pass_token, vp.qr_code_url
-     FROM visitors v
-     LEFT JOIN users u ON u.id = v.security_id
-     LEFT JOIN flats f ON f.id = v.flat_id
-     LEFT JOIN visitor_qr_passes vp ON vp.id = v.qr_pass_id
+            f.building_name, f.wing, f.floor, f.flat_number
+     FROM visitor_entries ve
+     LEFT JOIN users u ON u.id = ve.guard_id
+     LEFT JOIN flats f ON f.id = ve.flat_id
      ${whereClause}
-     ORDER BY v.entry_time DESC`,
+     ORDER BY ve.check_in_time DESC`,
     params
   );
 
@@ -303,8 +463,8 @@ async function createVisitorPreapproval({
     `INSERT INTO visitor_preapprovals (
       owner_id, flat_id, visitor_name, phone, purpose, visit_date,
       expected_arrival_time, vehicle_number, notes, status, approved_at,
-      approval_token, qr_pass_token, otp_code_hash, otp_expires_at, resident_notes
-     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'approved', NOW(), ?, NULL, NULL, NULL, ?)` ,
+      approval_token, resident_notes
+     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'approved', NOW(), ?, ?)` ,
     [
       ownerId,
       flatId,
@@ -328,7 +488,6 @@ async function getVisitorPreapprovalById(preapprovalId) {
     `SELECT vp.id, vp.owner_id, vp.flat_id, vp.visitor_name, vp.phone, vp.purpose,
             vp.visit_date, vp.expected_arrival_time, vp.vehicle_number, vp.notes,
             vp.status, vp.approved_at, vp.created_at, vp.approval_token,
-            vp.qr_pass_token, vp.otp_code_hash, vp.otp_expires_at,
             f.building_name, f.wing, f.flat_number
      FROM visitor_preapprovals vp
      LEFT JOIN flats f ON f.id = vp.flat_id
@@ -365,7 +524,6 @@ async function listVisitorPreapprovals({ ownerId, status, societyId } = {}) {
     `SELECT vp.id, vp.owner_id, vp.flat_id, vp.visitor_name, vp.phone, vp.purpose,
             vp.visit_date, vp.expected_arrival_time, vp.vehicle_number, vp.notes,
             vp.status, vp.approved_at, vp.created_at, vp.approval_token,
-            vp.qr_pass_token, vp.otp_code_hash, vp.otp_expires_at,
             f.building_name, f.wing, f.flat_number
      FROM visitor_preapprovals vp
      LEFT JOIN flats f ON f.id = vp.flat_id
@@ -399,72 +557,20 @@ async function markPreapprovalVisited(preapprovalId) {
   return result.affectedRows > 0;
 }
 
-async function issueQrPass({ preapprovalId, issuedBy, deviceLabel }) {
-  const passToken = crypto.randomBytes(18).toString("hex").toUpperCase();
-  const qrPayload = JSON.stringify({ passToken, preapprovalId, deviceLabel: deviceLabel || null });
-  const qrCodeUrl = await uploadQrData(qrPayload);
-  const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 8);
-
-  const { rows: result } = await db.query(
-    `INSERT INTO visitor_qr_passes (
-      preapproval_id, pass_token, qr_payload, qr_code_url, status,
-      expires_at, issued_by, created_at
-     ) VALUES (?, ?, ?, ?, 'active', ?, ?, NOW())`,
-    [preapprovalId, passToken, qrPayload, qrCodeUrl, expiresAt, issuedBy || null]
-  );
-
-  await db.query(
-    `UPDATE visitor_preapprovals
-     SET qr_pass_token = ?, otp_code_hash = COALESCE(otp_code_hash, NULL), qr_pass_issued_at = NOW()
-     WHERE id = ?`,
-    [passToken, preapprovalId]
-  ).catch(() => {});
-
-  return { id: result.insertId, passToken, qrCodeUrl, expiresAt };
-}
-
-async function getQrPassByToken(passToken) {
-  const { rows } = await db.query(
-    `SELECT vp.id, vp.preapproval_id, vp.pass_token, vp.qr_payload, vp.qr_code_url,
-            vp.status, vp.expires_at, vp.scan_count, vp.last_scanned_at, vp.issued_by,
-            pre.id AS preapproval_id, pre.visitor_name, pre.phone, pre.purpose, pre.flat_id, pre.vehicle_number,
-            pre.owner_id, pre.status AS preapproval_status
-     FROM visitor_qr_passes vp
-     JOIN visitor_preapprovals pre ON pre.id = vp.preapproval_id
-     WHERE vp.pass_token = ?
-     LIMIT 1`,
-    [passToken]
-  );
-
-  return rows[0] || null;
-}
-
-async function markQrPassScanned({ passId, scannedBy }) {
-  const { rows: result } = await db.query(
-    `UPDATE visitor_qr_passes
-     SET scan_count = scan_count + 1, last_scanned_at = NOW(), scanned_by = ?, status = 'scanned'
-     WHERE id = ? AND status = 'active'`,
-    [scannedBy || null, passId]
-  );
-
-  return result.affectedRows > 0;
-}
-
 // Security actions: update preapproval status (used by security guards)
 async function updateVisitorPreapprovalStatusBySecurity({ id, status, updatedBy, societyId }) {
   const params = [status, status, id];
-  // Only allow updating preapproval if it belongs to the society (via flat)
   let sql = `UPDATE visitor_preapprovals vp
-     JOIN flats f ON f.id = vp.flat_id
-     SET vp.status = ?, vp.approved_at = CASE WHEN ? = 'approved' THEN NOW() ELSE vp.approved_at END
-     WHERE vp.id = ?`;
+     SET status = ?, approved_at = CASE WHEN ? = 'approved' THEN NOW() ELSE vp.approved_at END
+     FROM flats f
+     WHERE f.id = vp.flat_id AND vp.id = ?`;
   if (societyId) {
     sql += ` AND f.society_id = ?`;
     params.push(societyId);
   }
 
-  const { rows: result } = await db.query(sql, params).catch(() => [{}]);
-  return result && result.affectedRows > 0;
+  const result = await db.query(sql, params);
+  return result.affectedRows > 0;
 }
 
 async function createVisitorEntryFromPreapproval({ preapprovalId, securityId, entryMethod, societyId, photoBase64 }) {
@@ -506,60 +612,6 @@ async function markVisitorCheckOut(visitorId) {
   );
 
   return result.affectedRows > 0;
-}
-
-async function createVisitorOtp({ preapprovalId, issuedBy }) {
-  const otpCode = randomNumericOtp(6);
-  const otpHash = createSignature(otpCode);
-  const expiresAt = new Date(Date.now() + 1000 * 60 * 10);
-
-  const { rows: result } = await db.query(
-    `INSERT INTO visitor_otps (preapproval_id, otp_hash, otp_code_last4, expires_at, issued_by, status, created_at)
-     VALUES (?, ?, ?, ?, ?, 'active', NOW())`,
-    [preapprovalId, otpHash, otpCode.slice(-4), expiresAt, issuedBy || null]
-  );
-
-  return { id: result.insertId, otpCode, expiresAt };
-}
-
-async function verifyVisitorOtp({ preapprovalId, otpCode, verifiedBy }) {
-  const { rows } = await db.query(
-    `SELECT id, otp_hash, expires_at, status
-     FROM visitor_otps
-     WHERE preapproval_id = ?
-     ORDER BY id DESC
-     LIMIT 1`,
-    [preapprovalId]
-  );
-
-  const otpRow = rows[0];
-  if (!otpRow || otpRow.status !== "active") {
-    return { verified: false, reason: "OTP not found" };
-  }
-
-  if (new Date(otpRow.expires_at).getTime() < Date.now()) {
-    return { verified: false, reason: "OTP expired" };
-  }
-
-  if (createSignature(otpCode) !== otpRow.otp_hash) {
-    return { verified: false, reason: "OTP does not match" };
-  }
-
-  await db.query(
-    `UPDATE visitor_otps
-     SET status = 'verified', verified_at = NOW(), verified_by = ?
-     WHERE id = ?`,
-    [verifiedBy || null, otpRow.id]
-  );
-
-  await db.query(
-    `UPDATE visitor_preapprovals
-     SET otp_verified_at = NOW(), status = 'approved', approved_at = NOW()
-     WHERE id = ?`,
-    [preapprovalId]
-  ).catch(() => {});
-
-  return { verified: true, otpId: otpRow.id };
 }
 
 async function upsertVisitorFaceProfile({
@@ -648,51 +700,6 @@ async function recognizeVisitorFace({ faceCaptureUrl, faceSignature, phone, visi
     match: bestMatch,
     faceCaptureUrl: faceCaptureUrl || null,
   };
-}
-
-async function addBlacklistEntry({ visitorName, phone, reason, blockedBy, flatId, faceSignature, societyId }) {
-  const { rows: result } = await db.query(
-    `INSERT INTO visitor_blacklist_entries
-     (visitor_name, phone, reason, flat_id, face_signature, blocked_by, society_id, status, created_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, 'active', NOW())`,
-    [visitorName || null, phone || null, reason, flatId || null, faceSignature || null, blockedBy || null, societyId || null]
-  );
-
-  return result.insertId;
-}
-
-async function isBlacklisted({ visitorName, phone, faceSignature }) {
-  const params = [];
-  const filters = ["status = 'active'"];
-
-  if (normalizeText(visitorName)) {
-    filters.push("visitor_name = ?");
-    params.push(normalizeText(visitorName));
-  }
-
-  if (normalizeText(phone)) {
-    filters.push("phone = ?");
-    params.push(normalizeText(phone));
-  }
-
-  if (normalizeText(faceSignature)) {
-    filters.push("face_signature = ?");
-    params.push(normalizeText(faceSignature));
-  }
-
-  if (!params.length) {
-    return { blacklisted: false, record: null };
-  }
-
-  const { rows } = await db.query(
-    `SELECT id, visitor_name, phone, reason, flat_id, face_signature, status, created_at
-     FROM visitor_blacklist_entries
-     WHERE (${filters.join(" OR ")})
-     LIMIT 1`,
-    params
-  );
-
-  return { blacklisted: Boolean(rows[0]), record: rows[0] || null };
 }
 
 async function createVehicleEntry({
@@ -846,37 +853,10 @@ async function createVisitorAnalyticsSnapshot({ societyId } = {}) {
 }
 
 async function getVisitorDashboard({ wing, societyId } = {}) {
-  const [analyticsSnapshot, recentVisitors, pendingApprovals, activePasses, blacklists, deliveries, vehicles] = await Promise.all([
+  const [analyticsSnapshot, recentVisitors, pendingApprovals, deliveries, vehicles] = await Promise.all([
     createVisitorAnalyticsSnapshot({ societyId }),
     safeArray(getVisitorLogs({ wing, societyId }), [], "recent visitors"),
     safeArray(listVisitorPreapprovals({ status: "approved", societyId }), [], "pending approvals"),
-    safeRows(
-      db.query(
-        `SELECT qp.id, qp.preapproval_id, qp.pass_token, qp.qr_code_url, qp.status, qp.expires_at,
-                pre.visitor_name, pre.phone, pre.purpose, pre.visit_date, f.wing, f.flat_number
-         FROM visitor_qr_passes qp
-         JOIN visitor_preapprovals pre ON pre.id = qp.preapproval_id
-         LEFT JOIN flats f ON f.id = pre.flat_id
-         ${societyId ? "WHERE f.society_id = ? AND qp.status = 'active'" : "WHERE qp.status = 'active'"}
-         ORDER BY qp.created_at DESC`,
-        societyId ? [societyId] : []
-      ),
-      [],
-      "active passes"
-    ),
-    safeRows(
-      db.query(
-        `SELECT b.id, b.visitor_name, b.phone, b.reason, b.flat_id, b.status, b.created_at
-         FROM visitor_blacklist_entries b
-         LEFT JOIN flats f ON f.id = b.flat_id
-         ${societyId ? "WHERE f.society_id = ? AND b.status = 'active'" : "WHERE b.status = 'active'"}
-         ORDER BY b.created_at DESC
-         LIMIT 20`,
-        societyId ? [societyId] : []
-      ),
-      [],
-      "blacklist entries"
-    ),
     safeArray(listDeliveryEntries({ societyId }), [], "deliveries"),
     safeArray(listVehicleEntries({ societyId }), [], "vehicles"),
   ]);
@@ -887,25 +867,27 @@ async function getVisitorDashboard({ wing, societyId } = {}) {
     byPurpose: analyticsSnapshot.byPurpose,
     recentVisitors: recentVisitors.slice(0, 20),
     pendingApprovals: pendingApprovals.slice(0, 20),
-    activePasses: activePasses.slice(0, 20),
-    blacklistEntries: blacklists.slice(0, 20),
     deliveries: deliveries.slice(0, 20),
     vehicles: vehicles.slice(0, 20),
   };
 }
 
 async function createEmergencyAlert({ triggeredBy, alertType, severity, message, location, societyId }) {
-  const { rows: result } = await db.query(
+  await ensureVisitorEmergencyAlertSchema();
+
+  const result = await db.query(
     `INSERT INTO visitor_emergency_alerts
      (triggered_by, alert_type, severity, message, location, status, society_id, created_at)
      VALUES (?, ?, ?, ?, ?, 'active', ?, NOW())`,
     [triggeredBy, alertType || "security", severity || "high", normalizeText(message), location || null, societyId || null]
   );
 
-  return result.insertId;
+  return result.insertId || result.rows?.[0]?.id || null;
 }
 
 async function listEmergencyAlerts({ status, societyId } = {}) {
+  await ensureVisitorEmergencyAlertSchema();
+
   const params = [];
   const filters = [];
 
@@ -932,7 +914,9 @@ async function listEmergencyAlerts({ status, societyId } = {}) {
 }
 
 async function acknowledgeEmergencyAlert({ id, userId }) {
-  const { rows: result } = await db.query(
+  await ensureVisitorEmergencyAlertSchema();
+
+  const result = await db.query(
     `UPDATE visitor_emergency_alerts
      SET status = 'acknowledged', acknowledged_by = ?, acknowledged_at = NOW()
      WHERE id = ? AND status = 'active'`,
@@ -943,7 +927,9 @@ async function acknowledgeEmergencyAlert({ id, userId }) {
 }
 
 async function resolveEmergencyAlert({ id, userId }) {
-  const { rows: result } = await db.query(
+  await ensureVisitorEmergencyAlertSchema();
+
+  const result = await db.query(
     `UPDATE visitor_emergency_alerts
      SET status = 'resolved', resolved_by = ?, resolved_at = NOW()
      WHERE id = ? AND status IN ('active', 'acknowledged')`,
@@ -957,10 +943,10 @@ module.exports = {
   normalizeText,
   normalizeLower,
   createSignature,
-  randomNumericOtp,
-  uploadQrData,
   getFlatByWingAndFlatNumber,
   getFlatOwnerByFlatId,
+  createGuardVisitorEntry,
+  getGuardVisitorEntryById,
   getVisitorById,
   createVisitorEntry,
   markVisitorExit,
@@ -970,15 +956,8 @@ module.exports = {
   listVisitorPreapprovals,
   updateVisitorPreapprovalStatus,
   markPreapprovalVisited,
-  issueQrPass,
-  getQrPassByToken,
-  markQrPassScanned,
-  createVisitorOtp,
-  verifyVisitorOtp,
   upsertVisitorFaceProfile,
   recognizeVisitorFace,
-  addBlacklistEntry,
-  isBlacklisted,
   createVehicleEntry,
   listVehicleEntries,
   createDeliveryEntry,

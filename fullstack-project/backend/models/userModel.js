@@ -1,7 +1,7 @@
 const db = require("../config/db");
 const ALLOWED_ROLES = ["super_admin", "admin", "chairman", "secretary", "resident", "staff", "security"];
 const RESIDENT_TYPES = ["owner", "tenant"];
-const ACCOUNT_STATUSES = ["pending", "active", "rejected", "inactive"];
+const ACCOUNT_STATUSES = ["pending", "pending_approval", "active", "rejected", "inactive"];
 let userTableColumnsCache = null;
 
 async function getUserTableColumns() {
@@ -20,6 +20,16 @@ async function getUserTableColumns() {
   }
 
   return userTableColumnsCache;
+}
+
+async function ensureChairmanRegistrationColumns() {
+  await db.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT 'pending_approval'`);
+  await db.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS is_verified BOOLEAN DEFAULT false`);
+  await db.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS mobile VARCHAR(20)`);
+  await db.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS phone VARCHAR(40)`);
+  await db.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS resident_type VARCHAR(30)`);
+  await db.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP NULL`);
+  userTableColumnsCache = null;
 }
 
 let existingTablesCache = null;
@@ -118,7 +128,7 @@ async function getAllUsers({ search, status, role, societyId } = {}) {
 }
 
 async function getDeletedUsers({ search, societyId } = {}) {
-  const conditions = ["u.status = 'inactive'"];
+  const conditions = ["u.deleted_at IS NOT NULL", "u.permanently_deleted_at IS NULL"];
   const params = [];
 
   if (societyId) {
@@ -173,7 +183,14 @@ async function createUser({
   flatId,
   flatNumber,
   phone,
+  mobile,
   address,
+  authProvider,
+  providerId,
+  profilePhoto,
+  emailVerified,
+  department,
+  designation,
 }) {
   const selectedRole = ALLOWED_ROLES.includes(role) ? role : "resident";
   const selectedResidentType = RESIDENT_TYPES.includes(residentType)
@@ -189,9 +206,11 @@ async function createUser({
   const selectedVerificationState =
     typeof isVerified === "boolean"
       ? Number(isVerified)
-      : selectedRole === "resident"
-        ? 0
-        : 1;
+      : typeof emailVerified === "boolean"
+        ? Number(emailVerified)
+        : selectedRole === "resident"
+          ? 0
+          : 1;
 
   const userColumns = await getUserTableColumns();
   const fields = ["name", "email", "password", "role", "resident_type", "status", "is_verified", "society_id", "flat_id", "flat_number"];
@@ -213,9 +232,46 @@ async function createUser({
     values.push(phone || null);
   }
 
+  if (userColumns.has("mobile")) {
+    fields.push("mobile");
+    values.push(mobile || phone || null);
+  }
+
   if (userColumns.has("address")) {
     fields.push("address");
     values.push(address || null);
+  }
+  if (userColumns.has("auth_provider")) {
+    fields.push("auth_provider");
+    values.push(authProvider || "password");
+  }
+  if (userColumns.has("provider_id")) {
+    fields.push("provider_id");
+    values.push(providerId || null);
+  }
+  if (userColumns.has("profile_photo")) {
+    fields.push("profile_photo");
+    values.push(profilePhoto || null);
+  }
+  if (userColumns.has("profile_photo_url")) {
+    fields.push("profile_photo_url");
+    values.push(profilePhoto || null);
+  }
+  if (userColumns.has("email_verified")) {
+    fields.push("email_verified");
+    values.push(typeof emailVerified === "boolean" ? emailVerified : Boolean(selectedVerificationState));
+  }
+  if (userColumns.has("account_status")) {
+    fields.push("account_status");
+    values.push(selectedStatus);
+  }
+  if (userColumns.has("department")) {
+    fields.push("department");
+    values.push(department || null);
+  }
+  if (userColumns.has("designation")) {
+    fields.push("designation");
+    values.push(designation || null);
   }
 
   const { rows: result } = await db.query(
@@ -235,8 +291,48 @@ async function createUser({
     flat_id: flatId || null,
     flat_number: flatNumber || null,
     phone: phone || null,
+    mobile: mobile || phone || null,
     address: address || null,
+    auth_provider: authProvider || "password",
+    provider_id: providerId || null,
+    profile_photo: profilePhoto || null,
   };
+}
+
+async function ensureOAuthColumns() {
+  await db.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS auth_provider VARCHAR(40) DEFAULT 'password'`);
+  await db.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS provider_id VARCHAR(180)`);
+  await db.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_photo TEXT`);
+  await db.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verified BOOLEAN DEFAULT FALSE`);
+  await db.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS account_status VARCHAR(30)`);
+  await db.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS department VARCHAR(120)`);
+  await db.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS designation VARCHAR(120)`);
+  userTableColumnsCache = null;
+}
+
+async function findUsersByEmail(email) {
+  const { rows } = await db.query(
+    `SELECT u.*, s.code AS society_code, s.name AS society_name
+     FROM users u
+     LEFT JOIN societies s ON s.id = u.society_id
+     WHERE LOWER(TRIM(u.email)) = LOWER(TRIM(?))
+       AND u.deleted_at IS NULL
+     ORDER BY u.id ASC`,
+    [email]
+  );
+  return rows;
+}
+
+async function linkOAuthProvider({ userId, provider, providerId, profilePhoto, emailVerified = true }) {
+  await ensureOAuthColumns();
+  await db.query(
+    `UPDATE users
+     SET auth_provider = ?, provider_id = ?, profile_photo = COALESCE(?, profile_photo),
+         email_verified = ?, is_verified = TRUE, updated_at = NOW()
+     WHERE id = ?`,
+    [provider, providerId, profilePhoto || null, Boolean(emailVerified), userId]
+  );
+  return getUserById(userId);
 }
 
 async function countUsersByRoleAndSociety(role, societyId) {
@@ -245,7 +341,7 @@ async function countUsersByRoleAndSociety(role, societyId) {
      FROM users
      WHERE society_id = ?
        AND role = ?
-       AND status IN ('pending', 'active')`,
+       AND status IN ('pending', 'pending_approval', 'active')`,
     [societyId, role]
   );
 
@@ -281,6 +377,19 @@ async function getUserCountsByRolesAndStatus({ societyId, roles = [], statuses =
   );
 
   return rows[0] || { count: 0 };
+}
+
+async function countBlockingChairmenBySociety(societyId) {
+  const { rows } = await db.query(
+    `SELECT COUNT(*) AS count
+     FROM users
+     WHERE role = 'chairman'
+       AND society_id = $1
+       AND status IN ('active', 'pending_approval')
+       AND deleted_at IS NULL`,
+    [societyId]
+  );
+  return Number(rows[0]?.count || 0);
 }
 
 async function getFlatByWingAndNumber({ societyId, wingId, wing, flatNumber }) {
@@ -403,7 +512,7 @@ async function updateUserStatusById(id, status) {
   return getUserById(id);
 }
 
-async function updateUserById(id, { name, email, phone, profilePhotoUrl, familyMembers }) {
+async function updateUserById(id, { name, email, phone, department, designation, profilePhotoUrl, familyMembers }) {
   const fields = [];
   const params = [];
   const userColumns = await getUserTableColumns();
@@ -419,6 +528,14 @@ async function updateUserById(id, { name, email, phone, profilePhotoUrl, familyM
   if (phone !== undefined && userColumns.has("phone")) {
     fields.push("phone = ?");
     params.push(phone);
+  }
+  if (department !== undefined && userColumns.has("department")) {
+    fields.push("department = ?");
+    params.push(department);
+  }
+  if (designation !== undefined && userColumns.has("designation")) {
+    fields.push("designation = ?");
+    params.push(designation);
   }
   if (profilePhotoUrl !== undefined && userColumns.has("profile_photo_url")) {
     fields.push("profile_photo_url = ?");
@@ -518,8 +635,68 @@ async function getUserByEmail(email, societyId = null) {
   return user;
 }
 
+async function getUserByLoginIdentifier(identifier, societyId = null) {
+  const normalizedIdentifier = String(identifier || "").trim();
+  const baseQuery = `SELECT
+       u.id,
+       u.name,
+       u.full_name,
+       u.email,
+       u.password,
+       u.phone,
+       u.role,
+       u.status,
+       u.is_verified,
+       u.resident_type,
+       u.society_id,
+       u.flat_id,
+       u.flat_number,
+       s.code AS society_code,
+       s.slug AS society_slug,
+       s.subdomain AS society_subdomain,
+       s.name AS society_name,
+       s.builder_id,
+       u.created_at,
+       u.updated_at
+     FROM users u
+     LEFT JOIN societies s ON s.id = u.society_id
+     WHERE (
+        LOWER(TRIM(u.email)) = LOWER(TRIM(?))
+        OR TRIM(COALESCE(u.phone, '')) = TRIM(?)
+     )
+       AND u.deleted_at IS NULL`;
+
+  const query = societyId
+    ? `${baseQuery} AND u.society_id = ? LIMIT 1`
+    : `${baseQuery} LIMIT 1`;
+  const params = societyId
+    ? [normalizedIdentifier, normalizedIdentifier, societyId]
+    : [normalizedIdentifier, normalizedIdentifier];
+
+  const { rows } = await db.query(query, params);
+  const user = rows[0] || null;
+
+  if (user) {
+    console.log("[userModel.getUserByLoginIdentifier] fetched user record", {
+      id: user.id,
+      email: user.email,
+      phone: user.phone || null,
+      role: user.role,
+      status: user.status,
+      is_verified: user.is_verified,
+      society_id: user.society_id,
+    });
+  } else {
+    console.log("[userModel.getUserByLoginIdentifier] no user found for identifier", normalizedIdentifier, {
+      societyId: societyId || "all",
+    });
+  }
+
+  return user;
+}
+
 async function verifyUserById(id) {
-  await db.query("UPDATE users SET is_verified = TRUE WHERE id = ?", [id]);
+  await db.query("UPDATE users SET is_verified = TRUE WHERE id = $1", [id]);
 }
 
 async function verifyUserByEmail(email, societyId = null) {
@@ -629,6 +806,7 @@ async function getUserById(id) {
      FROM users u
      LEFT JOIN societies s ON s.id = u.society_id
      WHERE u.id = $1
+       AND u.deleted_at IS NULL
      LIMIT 1`,
     [id]
   );
@@ -761,7 +939,7 @@ async function softDeleteUserById({ userId, deletedBy, deleteReason }) {
     await connection.beginTransaction();
 
     const [userRows] = await connection.query(
-      `SELECT id, email, role, status
+      `SELECT id, email, role, status, deleted_at
        FROM users
        WHERE id = ?
        LIMIT 1
@@ -775,7 +953,7 @@ async function softDeleteUserById({ userId, deletedBy, deleteReason }) {
       return null;
     }
 
-    if (user.status === "inactive") {
+    if (user.deleted_at) {
       await connection.rollback();
       return { alreadyInactive: true };
     }
@@ -818,6 +996,7 @@ async function softDeleteUserById({ userId, deletedBy, deleteReason }) {
        SET email = ?,
            original_email = COALESCE(original_email, email),
            status = 'inactive',
+           is_deleted = TRUE,
            deleted_at = NOW(),
            deleted_by = ?,
            delete_reason = ?
@@ -906,6 +1085,7 @@ async function restoreUserById({ userId, restoredBy }) {
       `UPDATE users
        SET email = ?,
            status = 'active',
+           is_deleted = FALSE,
            deleted_at = NULL,
            deleted_by = NULL,
            delete_reason = NULL,
@@ -1166,7 +1346,7 @@ async function getUserDirectory({
   const normalizedRole = String(role || "").trim().toLowerCase();
   if (normalizedRole && normalizedRole !== "all") {
     if (normalizedRole === "chairman") {
-      whereClauses.push("u.role = 'admin'");
+      whereClauses.push("u.role IN ('chairman', 'admin')");
     } else if (normalizedRole === "owner" || normalizedRole === "tenant") {
       whereClauses.push("u.role = 'resident'");
       whereClauses.push("u.resident_type = ?");
@@ -1303,10 +1483,16 @@ module.exports = {
   getAllUsers,
   getDeletedUsers,
   createUser,
+  ensureOAuthColumns,
+  ensureChairmanRegistrationColumns,
+  findUsersByEmail,
+  linkOAuthProvider,
   getUserByEmail,
+  getUserByLoginIdentifier,
   getUserByEmailAndSociety,
   getSuperAdminByEmail,
   getUserById,
+  verifyUserById,
   updateUserRoleById,
   updateUserStatusById,
   verifyUserByEmail,
@@ -1321,6 +1507,7 @@ module.exports = {
   getFlatByWingAndNumber,
   countUsersByRoleAndSociety,
   getUserCountsByRolesAndStatus,
+  countBlockingChairmenBySociety,
   countActiveAdmins,
   softDeleteUserById,
   restoreUserById,

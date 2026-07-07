@@ -1,0 +1,4 @@
+Gemini AI module unavailable: optional dependency missing
+GOOGLE_GEMINI_API_KEY not configured, AI theme generation disabled.
+[OAuth] google login is not enabled. Missing: GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET
+[OAuth] microsoft login is not enabled. Missing: MICROSOFT_CLIENT_ID, MICROSOFT_CLIENT_SECRET

@@ -295,7 +295,37 @@
     "emergencySos": "એમર્જન્સી એસઓએસ",
     "maintenance": "મેઇન્ટેનન્સ",
     "residentPortal": "રહેવાસી પોર્ટલ",
-    "securityOps": "સિક્યુરિટી ઓપ્સ"
+    "securityOps": "સિક્યુરિટી ઓપ્સ",
+    "residents": "રહેવાસીઓ",
+    "property": "પ્રોપર્ટી",
+    "security": "મુલાકાતીઓ અને સુરક્ષા",
+    "analyticsAi": "એનલિટિક્સ અને AI"
+  },
+  "society": {
+    "switcher": "સોસાયટી સ્વિચર",
+    "searchPlaceholder": "સોસાયટીનું નામ અથવા કોડ શોધો",
+    "recent": "તાજેતરની સોસાયટીઓ",
+    "favorites": "મનપસંદ સોસાયટીઓ",
+    "allSocieties": "બધી સોસાયટીઓ",
+    "switchSociety": "સોસાયટી બદલો",
+    "openSociety": "સોસાયટી ખોલો",
+    "viewAnalytics": "એનલિટિક્સ જુઓ",
+    "manageSociety": "સોસાયટી મેનેજ કરો",
+    "residentCount": "રહેવાસીઓ",
+    "occupancyRate": "ઓક્યુપન્સી દર",
+    "pendingComplaints": "બાકી ફરિયાદો",
+    "monthlyCollections": "માસિક વસૂલાત",
+    "dataIsolation": "ડેટા પસંદ કરેલી સોસાયટી સુધી મર્યાદિત છે"
+  },
+  "theme": {
+    "title": "થીમ",
+    "light": "લાઇટ",
+    "dark": "ડાર્ક",
+    "system": "સિસ્ટમ"
+  },
+  "language": {
+    "title": "ભાષા",
+    "subtitle": "સમગ્ર વેબસાઇટની ભાષા બદલો"
   },
   "sidebar": {
     "tenantWorkspace": "કરાયોવાળો વર્કસ્પેસ",

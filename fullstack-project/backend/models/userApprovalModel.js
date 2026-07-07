@@ -5,7 +5,31 @@
 
 const db = require("../config/db");
 
+let approvalColumnsEnsured = false;
+
+async function ensureApprovalColumns() {
+  if (approvalColumnsEnsured) return;
+  await db.query(`CREATE TABLE IF NOT EXISTS user_approvals (id SERIAL PRIMARY KEY)`);
+  await db.query(`ALTER TABLE user_approvals ADD COLUMN IF NOT EXISTS user_id INT NULL`);
+  await db.query(`ALTER TABLE user_approvals ADD COLUMN IF NOT EXISTS society_id INT NULL`);
+  await db.query(`ALTER TABLE user_approvals ADD COLUMN IF NOT EXISTS approval_type VARCHAR(80) DEFAULT 'registration'`);
+  await db.query(`ALTER TABLE user_approvals ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT 'pending'`);
+  await db.query(`ALTER TABLE user_approvals ADD COLUMN IF NOT EXISTS documents_json JSONB NULL`);
+  await db.query(`ALTER TABLE user_approvals ADD COLUMN IF NOT EXISTS requested_by INT NULL`);
+  await db.query(`ALTER TABLE user_approvals ADD COLUMN IF NOT EXISTS approved_by INT NULL`);
+  await db.query(`ALTER TABLE user_approvals ADD COLUMN IF NOT EXISTS approved_at TIMESTAMP NULL`);
+  await db.query(`ALTER TABLE user_approvals ADD COLUMN IF NOT EXISTS approval_comments TEXT`);
+  await db.query(`ALTER TABLE user_approvals ADD COLUMN IF NOT EXISTS rejection_reason TEXT`);
+  await db.query(`ALTER TABLE user_approvals ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP`);
+  await db.query(`ALTER TABLE user_approvals ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP`);
+  approvalColumnsEnsured = true;
+}
+
 class UserApprovalModel {
+  static async ensureSchema() {
+    await ensureApprovalColumns();
+  }
+
   // Create approval request
   static async createApprovalRequest({
     userId,
@@ -15,6 +39,7 @@ class UserApprovalModel {
     documents = null
   }) {
     try {
+      await ensureApprovalColumns();
       const { rows: result } = await db.query(
         `INSERT INTO user_approvals (
           user_id, society_id, approval_type, requested_by, 
@@ -38,10 +63,11 @@ class UserApprovalModel {
   // Get approval by ID
   static async getApprovalById(approvalId) {
     try {
+      await ensureApprovalColumns();
       const { rows } = await db.query(
         `SELECT id, user_id, society_id, approval_type, status,
                 requested_by, approved_by, approval_comments,
-                documents_json, created_at, approved_at, updated_at
+                rejection_reason, documents_json, created_at, approved_at, updated_at
          FROM user_approvals
          WHERE id = $1`,
         [approvalId]
@@ -51,10 +77,14 @@ class UserApprovalModel {
 
       const approval = rows[0];
       if (approval.documents_json) {
-        try {
-          approval.documents = JSON.parse(approval.documents_json);
-        } catch (e) {
-          approval.documents = null;
+        if (typeof approval.documents_json === "string") {
+          try {
+            approval.documents = JSON.parse(approval.documents_json);
+          } catch {
+            approval.documents = null;
+          }
+        } else {
+          approval.documents = approval.documents_json;
         }
       }
 
@@ -67,6 +97,7 @@ class UserApprovalModel {
   // Get pending approvals for a society
   static async getPendingApprovals(societyId, filter = {}) {
     try {
+      await ensureApprovalColumns();
       const params = [societyId];
       const conditions = [
         `ua.society_id = $${params.length}`,
@@ -143,7 +174,7 @@ class UserApprovalModel {
       await db.query(
         `UPDATE user_approvals 
          SET status = 'rejected', approved_by = $1, 
-             approval_comments = $2, approved_at = CURRENT_TIMESTAMP,
+             approval_comments = $2, rejection_reason = $2, approved_at = CURRENT_TIMESTAMP,
              updated_at = CURRENT_TIMESTAMP
          WHERE id = $3`,
         [rejectedBy, reason, approvalId]

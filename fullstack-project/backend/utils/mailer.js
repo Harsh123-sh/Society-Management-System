@@ -20,6 +20,34 @@ const transporter = nodemailer.createTransport({
   socketTimeout: 30000,
 });
 
+const BRAND_NAME = "NEXORA";
+const BRAND_TAGLINE = "Smart Society Management Platform";
+const BRAND_COLOR = "#14B8A6";
+
+function brandedEmailShell({ title, preheader = "", body }) {
+  return `
+    <div style="margin:0;background:#f8fafc;padding:32px 16px;font-family:Inter,Arial,sans-serif;color:#0f172a;">
+      <div style="max-width:640px;margin:0 auto;overflow:hidden;border:1px solid #e2e8f0;border-radius:24px;background:#ffffff;box-shadow:0 24px 70px rgba(15,23,42,0.10);">
+        <div style="background:#020617;padding:28px 30px;color:#f8fafc;">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div style="width:48px;height:48px;border-radius:16px;background:linear-gradient(135deg,#0EA5E9,#14B8A6,#A7F36B);display:inline-block;"></div>
+            <div>
+              <div style="font-size:24px;font-weight:800;letter-spacing:0;">${BRAND_NAME}</div>
+              <div style="font-size:11px;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:#a7f3d0;">${BRAND_TAGLINE}</div>
+            </div>
+          </div>
+          ${preheader ? `<p style="margin:18px 0 0;color:#cbd5e1;">${preheader}</p>` : ""}
+        </div>
+        <div style="padding:30px;">
+          <h2 style="margin:0 0 16px;font-size:22px;color:#0f172a;">${title}</h2>
+          ${body}
+          <p style="margin:28px 0 0;color:#64748b;font-size:13px;">Sent securely by ${BRAND_NAME}.</p>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
 let transporterVerifyPromise = null;
 
 function getMailFromAddress() {
@@ -61,15 +89,16 @@ async function sendOtpEmail({ to, otp, purpose }) {
       ? "Your password reset OTP"
       : "Verify your account OTP";
 
-  const html = `
-    <div style="font-family: Arial, sans-serif; line-height: 1.6;">
-      <h2>${subject}</h2>
-      <p>Your OTP code is:</p>
-      <h1 style="letter-spacing: 4px;">${otp}</h1>
-      <p>This OTP is valid for 10 minutes.</p>
-      <p>If you did not request this, please ignore this email.</p>
-    </div>
-  `;
+  const html = brandedEmailShell({
+    title: subject,
+    preheader: "Use this code to continue your secure NEXORA workflow.",
+    body: `
+      <p style="line-height:1.6;color:#334155;">Your OTP code is:</p>
+      <div style="margin:18px 0;padding:18px 22px;border-radius:18px;background:#ecfeff;border:1px solid #99f6e4;font-size:34px;font-weight:900;letter-spacing:8px;color:#0f766e;text-align:center;">${otp}</div>
+      <p style="line-height:1.6;color:#334155;">This OTP is valid for 10 minutes.</p>
+      <p style="line-height:1.6;color:#64748b;">If you did not request this, please ignore this email.</p>
+    `,
+  });
 
   try {
     await verifyTransporter();
@@ -104,15 +133,15 @@ async function sendAccountDeletionEmail({ to, name, reason }) {
   const safeName = name || "User";
   const safeReason = reason || "No reason provided";
 
-  const html = `
-    <div style="font-family: Arial, sans-serif; line-height: 1.6;">
-      <h2>Account Deactivation Notice</h2>
-      <p>Hello ${safeName},</p>
-      <p>Your account has been deactivated by an administrator.</p>
-      <p><strong>Reason:</strong> ${safeReason}</p>
-      <p>If you believe this is incorrect, please contact society administration.</p>
-    </div>
-  `;
+  const html = brandedEmailShell({
+    title: "Account Deactivation Notice",
+    body: `
+      <p style="line-height:1.6;color:#334155;">Hello ${safeName},</p>
+      <p style="line-height:1.6;color:#334155;">Your NEXORA account has been deactivated by an administrator.</p>
+      <p style="line-height:1.6;color:#334155;"><strong>Reason:</strong> ${safeReason}</p>
+      <p style="line-height:1.6;color:#64748b;">If you believe this is incorrect, please contact your community administrator.</p>
+    `,
+  });
 
   try {
     await verifyTransporter();
@@ -149,27 +178,27 @@ async function sendVisitorArrivalEmails({
     }
   }
 
-  const ownerSubject = "Visitor arrived at your society gate";
-  const ownerHtml = `
-    <div style="font-family: Arial, sans-serif; line-height: 1.6;">
-      <h2>Visitor Arrival Alert</h2>
-      <p>Hello ${ownerName || "Resident"},</p>
-      <p><strong>${visitorName || "A visitor"}</strong> has arrived at the gate.</p>
-      <p>Flat: <strong>${flatNumber || "-"}</strong> | Wing: <strong>${wing || "-"}</strong></p>
-      <p>Please coordinate with security for confirmation.</p>
-    </div>
-  `;
+  const ownerSubject = "Visitor arrived at your community gate";
+  const ownerHtml = brandedEmailShell({
+    title: "Visitor Arrival Alert",
+    body: `
+      <p style="line-height:1.6;color:#334155;">Hello ${ownerName || "Resident"},</p>
+      <p style="line-height:1.6;color:#334155;"><strong>${visitorName || "A visitor"}</strong> has arrived at the gate.</p>
+      <p style="line-height:1.6;color:#334155;">Flat: <strong>${flatNumber || "-"}</strong> | Wing: <strong>${wing || "-"}</strong></p>
+      <p style="line-height:1.6;color:#64748b;">Please coordinate with security for confirmation.</p>
+    `,
+  });
 
-  const visitorSubject = "Your society visit entry is confirmed";
-  const visitorHtml = `
-    <div style="font-family: Arial, sans-serif; line-height: 1.6;">
-      <h2>Entry Confirmed</h2>
-      <p>Hello ${visitorName || "Visitor"},</p>
-      <p>Your entry has been recorded successfully.</p>
-      <p>Destination: Flat <strong>${flatNumber || "-"}</strong>, Wing <strong>${wing || "-"}</strong></p>
-      <p>Thank you for visiting.</p>
-    </div>
-  `;
+  const visitorSubject = "Your NEXORA visit entry is confirmed";
+  const visitorHtml = brandedEmailShell({
+    title: "Entry Confirmed",
+    body: `
+      <p style="line-height:1.6;color:#334155;">Hello ${visitorName || "Visitor"},</p>
+      <p style="line-height:1.6;color:#334155;">Your entry has been recorded successfully.</p>
+      <p style="line-height:1.6;color:#334155;">Destination: Flat <strong>${flatNumber || "-"}</strong>, Wing <strong>${wing || "-"}</strong></p>
+      <p style="line-height:1.6;color:#64748b;">Thank you for visiting.</p>
+    `,
+  });
 
   try {
     await verifyTransporter();

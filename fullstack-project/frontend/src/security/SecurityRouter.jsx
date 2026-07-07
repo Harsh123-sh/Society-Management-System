@@ -1,34 +1,24 @@
-import { Routes, Route } from "react-router-dom";
-import SecurityLayout from "./components/SecurityLayout";
-import SecurityDashboardPage from "../pages/SecurityDashboardPage";
-import VisitorEntryPage from "./pages/VisitorEntryPage";
-import {
-  AlertsPage,
-  DeliveriesPage,
-  GatePassPage,
-  PreApprovedPage,
-  ReportsPage,
-  SecuritySettingsPage,
-  StaffEntryPage,
-  VehiclesPage,
-} from "./pages/PremiumSecurityPages";
+import { Navigate, Route, Routes } from "react-router-dom";
+import SecurityCommandCenter from "./pages/SecurityCommandCenter";
 
 function SecurityRouter() {
   return (
-    <SecurityLayout>
-      <Routes>
-        <Route index element={<SecurityDashboardPage />} />
-        <Route path="visitors" element={<VisitorEntryPage />} />
-        <Route path="pre-approved" element={<PreApprovedPage />} />
-        <Route path="deliveries" element={<DeliveriesPage />} />
-        <Route path="vehicles" element={<VehiclesPage />} />
-        <Route path="gate-pass" element={<GatePassPage />} />
-        <Route path="staff-entry" element={<StaffEntryPage />} />
-        <Route path="alerts" element={<AlertsPage />} />
-        <Route path="reports" element={<ReportsPage />} />
-        <Route path="settings" element={<SecuritySettingsPage />} />
-      </Routes>
-    </SecurityLayout>
+    <Routes>
+      <Route index element={<SecurityCommandCenter />} />
+      <Route path="visitors" element={<Navigate to="/security-dashboard#visitors" replace />} />
+      <Route path="pre-approved" element={<Navigate to="/security-dashboard#visitors" replace />} />
+      <Route path="deliveries" element={<Navigate to="/security-dashboard#deliveries" replace />} />
+      <Route path="vehicles" element={<Navigate to="/security-dashboard#vehicles" replace />} />
+      <Route path="gate-pass" element={<Navigate to="/security-dashboard#visitors" replace />} />
+      <Route path="staff-entry" element={<Navigate to="/security-dashboard#staff" replace />} />
+      <Route path="attendance" element={<Navigate to="/security-dashboard#attendance" replace />} />
+      <Route path="alerts" element={<Navigate to="/security-dashboard#emergency" replace />} />
+      <Route path="notices" element={<Navigate to="/security-dashboard#notices" replace />} />
+      <Route path="shifts" element={<Navigate to="/security-dashboard#shifts" replace />} />
+      <Route path="profile" element={<Navigate to="/security-dashboard#profile" replace />} />
+      <Route path="settings" element={<Navigate to="/security-dashboard#profile" replace />} />
+      <Route path="*" element={<Navigate to="/security-dashboard" replace />} />
+    </Routes>
   );
 }
 

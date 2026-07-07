@@ -19,34 +19,34 @@ router.use(authenticateToken);
 
 router.get(
 	"/",
-	authorizeRoles("admin", "secretary"),
+	authorizeRoles("chairman", "admin", "secretary"),
 	userListQueryValidation,
 	validationMiddleware,
 	userController.getUsers
 );
 router.get(
 	"/trash",
-	authorizeRoles("admin"),
+	authorizeRoles("chairman", "admin"),
 	validationMiddleware,
 	userController.getDeletedUsers
 );
 router.get(
 	"/category/:category",
-	authorizeRoles("admin", "secretary"),
+	authorizeRoles("chairman", "admin", "secretary"),
 	userCategoryQueryValidation,
 	validationMiddleware,
 	userController.getUsersByCategory
 );
 router.post(
 	"/",
-	authorizeRoles("admin"),
+	authorizeRoles("chairman", "admin"),
 	userCreateValidation,
 	validationMiddleware,
 	userController.createUser
 );
 router.patch(
 	"/:id",
-	authorizeRoles("admin"),
+	authorizeRoles("chairman", "admin"),
 	idParamValidation,
 	validationMiddleware,
 	userController.updateUser
@@ -61,7 +61,7 @@ router.patch(
 );
 router.patch(
 	"/:id/status",
-	authorizeRoles("admin", "secretary"),
+	authorizeRoles("chairman", "admin", "secretary"),
 	idParamValidation,
 	updateUserStatusValidation,
 	validationMiddleware,
@@ -69,7 +69,7 @@ router.patch(
 );
 router.delete(
 	"/:id",
-	authorizeRoles("admin"),
+	authorizeRoles("chairman", "admin"),
 	idParamValidation,
 	deleteUserValidation,
 	validationMiddleware,
@@ -77,14 +77,14 @@ router.delete(
 );
 router.patch(
 	"/:id/restore",
-	authorizeRoles("admin"),
+	authorizeRoles("chairman", "admin"),
 	idParamValidation,
 	validationMiddleware,
 	userController.restoreUser
 );
 router.delete(
 	"/:id/permanent",
-	authorizeRoles("admin"),
+	authorizeRoles("chairman", "admin"),
 	idParamValidation,
 	validationMiddleware,
 	userController.permanentlyDeleteUser

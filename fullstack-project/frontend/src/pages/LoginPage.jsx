@@ -1,337 +1,325 @@
 import { useEffect, useState } from "react";
-import { useLocation, useNavigate, Navigate } from "react-router-dom";
+import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import AlertMessage from "../components/AlertMessage";
-import AuthLayout from "../components/AuthLayout";
-import AuthInput from "../components/AuthInput";
-import AuthPasswordInput from "../components/AuthPasswordInput";
-import AuthButton from "../components/AuthButton";
-import AuthLink from "../components/AuthLink";
-import SocialButtons from "../components/SocialButtons";
+import BrandLogo from "../components/BrandLogo";
+import NexoraAuthVisual from "../components/NexoraAuthVisual";
 import { getApiMessage, loginUser } from "../services/authApi";
-import { useTranslation } from "../contexts/LanguageContext";
-import { clearAuthSession, clearSuperAdminSession } from "../utils/session";
+import { getBackendBaseUrl } from "../services/runtimeUrls";
 import {
-  getRoleHomePath,
+  clearAuthSession,
+  clearSuperAdminSession,
   clearSelectedSociety,
+  getRoleHomePath,
   getSelectedSociety,
   getStoredRole,
+  hasRequiredSocietyContext,
   isValidAuthToken,
   saveAuthSession,
   saveSelectedSociety,
 } from "../utils/session";
 
-function LoginPage() {
+const Motion = motion;
+
+function resolveSocietyCode(selectedSociety, formSocietyCode = "") {
+  const typedCode = String(formSocietyCode || "").trim();
+  if (typedCode) return typedCode.toUpperCase();
+
+  const selectedCode =
+    selectedSociety?.code ||
+    selectedSociety?.societyCode ||
+    selectedSociety?.society_code ||
+    "";
+  const candidate = String(selectedCode).trim();
+
+  if (candidate && candidate === String(selectedSociety?.id || "").trim() && /^\d+$/.test(candidate)) {
+    return "";
+  }
+
+  return candidate.toUpperCase();
+}
+
+function saveOtpSocietyCode(value) {
+  const societyCode = String(value || "").trim().toUpperCase();
+  if (!societyCode) return;
+  sessionStorage.setItem("otpSocietyCode", societyCode);
+  localStorage.setItem("otpSocietyCode", societyCode);
+  localStorage.setItem("societyCode", societyCode);
+}
+
+export default function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const [form, setForm] = useState({ email: "", password: "", societyCode: "" });
   const [selectedSociety, setSelectedSociety] = useState(() => getSelectedSociety() || null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [remember, setRemember] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [oauthLoading, setOauthLoading] = useState("");
   const [alert, setAlert] = useState({ type: "", message: "" });
   const [unverifiedEmail, setUnverifiedEmail] = useState(null);
-  const { t } = useTranslation();
-
   const token = localStorage.getItem("token");
   const storedRole = getStoredRole();
 
+  useEffect(() => clearSuperAdminSession(), []);
   useEffect(() => {
-    clearSuperAdminSession();
-  }, []);
-
-  useEffect(() => {
-    if (token && !isValidAuthToken(token)) {
-      clearAuthSession();
+    const params = new URLSearchParams(location.search);
+    const societyCode = params.get("societyCode");
+    const email = params.get("email");
+    const oauthError = params.get("oauth_error");
+    const oauthDebug = params.get("oauth_debug");
+    if (email) setForm((prev) => ({ ...prev, email }));
+    if (params.get("verified") === "true") setAlert({ type: "success", message: "Email verified successfully." });
+    if (oauthError) {
+      setAlert({
+        type: "error",
+        message: `${oauthError}${import.meta.env.DEV && oauthDebug ? ` Developer details: ${oauthDebug}` : ""}`,
+      });
     }
-  }, [token]);
-
-  if (isValidAuthToken(token)) {
-    return <Navigate to={getRoleHomePath(storedRole)} replace />;
-  }
-
-  useEffect(() => {
-    const searchParams = new URLSearchParams(location.search);
-    const societyId = searchParams.get("societyId");
-    const societyCode = searchParams.get("societyCode");
-    const email = searchParams.get("email");
-    const verified = searchParams.get("verified");
-
-    if (email) {
-      setForm((prev) => ({ ...prev, email }));
+    if (location.state?.message) setAlert({ type: "error", message: location.state.message });
+    const storedLoginError = sessionStorage.getItem("loginErrorMessage");
+    if (storedLoginError) {
+      setAlert({ type: "error", message: storedLoginError });
+      sessionStorage.removeItem("loginErrorMessage");
     }
-
-    if (verified === "true") {
-      setAlert({ type: "success", message: t("auth.emailVerifiedSuccess") });
-      setUnverifiedEmail(null);
+    const storedLoginSuccess = sessionStorage.getItem("loginSuccessMessage");
+    if (storedLoginSuccess) {
+      setAlert({ type: "success", message: storedLoginSuccess });
+      sessionStorage.removeItem("loginSuccessMessage");
     }
-
     if (societyCode) {
-      const society = { id: societyCode, name: societyCode };
+      const normalizedSocietyCode = societyCode.trim().toUpperCase();
+      const society = { id: normalizedSocietyCode, code: normalizedSocietyCode, societyCode: normalizedSocietyCode, name: normalizedSocietyCode };
       saveSelectedSociety(society);
       setSelectedSociety(society);
-      setForm((prev) => ({ ...prev, societyCode: society.id }));
-      return;
+      setForm((prev) => ({ ...prev, societyCode: normalizedSocietyCode }));
     }
+  }, [location.search, location.state]);
 
-    if (societyId) {
-      const society = { id: societyId, name: societyId };
-      saveSelectedSociety(society);
-      setSelectedSociety(society);
-      setForm((prev) => ({ ...prev, societyCode: society.id }));
-      return;
-    }
+  if (isValidAuthToken(token)) return <Navigate to={getRoleHomePath(storedRole)} replace />;
 
-    const stored = getSelectedSociety();
-    if (stored?.id) {
-      setSelectedSociety(stored);
-      setForm((prev) => ({ ...prev, societyCode: stored.id }));
-    }
-  }, [location.search]);
-
-  function validate() {
-    if (!form.email) {
-      return t("form.required");
-    }
-
-    if (!form.password) {
-      return t("form.required");
-    }
-
-    if (!form.societyCode) {
-      return t("auth.societyCodeRequired");
-    }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(form.email)) {
-      return t("auth.invalidEmail");
-    }
-
-    if (form.password.length < 8) {
-      return t("auth.passwordTooShort");
-    }
-
-    return null;
-  }
+  const loginSocietyCode = resolveSocietyCode(selectedSociety, form.societyCode);
+  const canSubmit = form.email && form.password && loginSocietyCode;
+  const otpEmail = unverifiedEmail || form.email;
+  const otpSocietyCode = loginSocietyCode;
+  const otpPath = `/verify-otp?email=${encodeURIComponent(otpEmail)}&societyCode=${encodeURIComponent(otpSocietyCode)}`;
 
   async function handleSubmit(event) {
     event.preventDefault();
     setAlert({ type: "", message: "" });
-
-    const validationError = validate();
-    if (validationError) {
-      setAlert({ type: "error", message: validationError });
+    if (!canSubmit) {
+      setAlert({ type: "error", message: "Email, password and society code are required." });
       return;
     }
-
     try {
       setLoading(true);
-      clearAuthSession();
       const payload = {
-        ...form,
-        societyCode: selectedSociety?.id || form.societyCode,
+        email: form.email.trim(),
+        password: form.password,
+        societyCode: loginSocietyCode,
       };
+      saveOtpSocietyCode(loginSocietyCode);
+      clearAuthSession();
+      clearSelectedSociety();
       const response = await loginUser(payload);
       const user = response.user || response.data;
-      console.log("[LoginPage] auth payload", {
-        role: user?.role,
-        tokenExists: Boolean(response.token),
-        societyId: user?.societyId || user?.society_id || selectedSociety?.id || form.societyCode,
-        societyName: user?.societyName || user?.society_name || selectedSociety?.name || form.societyCode,
-        userName: user?.name || user?.userName,
-      });
+      if (!hasRequiredSocietyContext(user)) {
+        clearAuthSession();
+        clearSelectedSociety();
+        setAlert({ type: "error", message: "Society access not found. Please login again." });
+        return;
+      }
       saveAuthSession({
-        token: response.token,
+        accessToken: response.accessToken || response.access_token || response.token,
+        refreshToken: response.refreshToken || response.refresh_token,
         user,
-        societyId: user?.societyId || user?.society_id || selectedSociety?.id || form.societyCode,
-        societyName: user?.societyName || user?.society_name || selectedSociety?.name || form.societyCode,
+        societyId: user?.societyId || user?.society_id,
+        societyName: user?.societyName || user?.society_name,
       });
-
-      setAlert({
-        type: "success",
-        message: response.message || "Login successful",
-      });
-
+      if (remember) localStorage.setItem("rememberedLoginEmail", form.email);
       navigate(getRoleHomePath(user?.role), { replace: true });
     } catch (error) {
-      console.error("[LoginPage] login error", error?.response?.data || error?.message || error);
-      const apiMessage = getApiMessage(error, "Login failed");
-      const errorData = error?.response?.data || {};
-      const isEmailNotVerified = errorData.code === "EMAIL_NOT_VERIFIED";
-
-      if (isEmailNotVerified) {
-        setUnverifiedEmail(errorData.email || form.email);
-        setAlert({
-          type: "error",
-          message: "Please verify your email before login.",
-        });
+      const data = error?.response?.data || {};
+      if (data.code === "EMAIL_NOT_VERIFIED") {
+        setUnverifiedEmail(data.email || form.email);
+        setAlert({ type: "error", message: "Please verify your email before login." });
       } else {
-        setUnverifiedEmail(null);
-        setAlert({
-          type: "error",
-          message: apiMessage === "Your account is waiting for admin approval" ? "Your account is pending approval." : apiMessage,
-        });
+        setAlert({ type: "error", message: getApiMessage(error, "Login failed") });
       }
     } finally {
       setLoading(false);
     }
   }
 
-  function handleGoToVerify() {
-    const societyCode = selectedSociety?.id || form.societyCode;
-    navigate(
-      `/verify-otp?email=${encodeURIComponent(unverifiedEmail || form.email)}&societyCode=${encodeURIComponent(societyCode)}`
-    );
+  function completeOAuthLogin(response) {
+    if (response.requiresProfileCompletion) {
+      sessionStorage.setItem(
+        "oauthCompletion",
+        JSON.stringify({ completionToken: response.completionToken, profile: response.profile })
+      );
+      navigate("/auth/complete-profile", { replace: true });
+      return;
+    }
+
+    const user = response.user || response.data;
+    const accessToken = response.accessToken || response.access_token || response.token;
+    if (!accessToken || !hasRequiredSocietyContext(user)) {
+      clearAuthSession();
+      clearSelectedSociety();
+      setAlert({ type: "error", message: "Society access not found. Please login again." });
+      return;
+    }
+
+    saveAuthSession({
+      accessToken,
+      refreshToken: response.refreshToken || response.refresh_token,
+      user,
+      societyId: user?.societyId || user?.society_id,
+      societyName: user?.societyName || user?.society_name,
+    });
+    navigate(getRoleHomePath(user?.role), { replace: true });
   }
 
-  const renderValidationError = validate();
-  const canSubmit = renderValidationError === null;
+  function requestBackendOAuthResult(provider) {
+    const params = new URLSearchParams();
+    const societyCode = loginSocietyCode;
+    if (societyCode) params.set("societyCode", societyCode);
+    const popup = window.open(
+      `${getBackendBaseUrl()}/api/auth/${provider}${params.toString() ? `?${params.toString()}` : ""}`,
+      `nexora${provider}OAuth`,
+      "width=520,height=680,menubar=no,toolbar=no,status=no"
+    );
+    if (!popup) return Promise.reject(new Error(`${provider === "microsoft" ? "Microsoft" : "Google"} login popup was blocked.`));
+
+    return new Promise((resolve, reject) => {
+      const timeout = window.setTimeout(() => {
+        window.removeEventListener("message", handleMessage);
+        popup.close();
+        reject(new Error(`${provider === "microsoft" ? "Microsoft" : "Google"} login failed.`));
+      }, 120000);
+
+      function handleMessage(event) {
+        if (event.origin !== getBackendBaseUrl() || event.data?.type !== "nexora-backend-oauth-callback") return;
+        window.clearTimeout(timeout);
+        window.removeEventListener("message", handleMessage);
+        if (!event.data.success) {
+          const error = new Error(event.data.message || `${provider === "microsoft" ? "Microsoft" : "Google"} login failed.`);
+          error.code = event.data.code;
+          error.missing = event.data.missing || [];
+          error.warnings = event.data.warnings || [];
+          error.debugMessage = event.data.debugMessage || "";
+          reject(error);
+          return;
+        }
+        resolve(event.data);
+      }
+
+      window.addEventListener("message", handleMessage);
+    });
+  }
+
+  async function handleOAuthLogin(provider) {
+    const providerLabel = provider === "microsoft" ? "Microsoft" : "Google";
+    setAlert({ type: "", message: "" });
+    setOauthLoading(provider);
+    clearAuthSession();
+    clearSelectedSociety();
+    try {
+      const response = await requestBackendOAuthResult(provider);
+      completeOAuthLogin(response);
+    } catch (error) {
+      const message = error?.response
+        ? getApiMessage(error, `${providerLabel} login failed.`)
+        : error?.message || `${providerLabel} login failed.`;
+      const devHint = import.meta.env.DEV && error?.code === "OAUTH_CONFIGURATION_MISSING" && error?.missing?.length
+        ? ` Developer setup: add ${error.missing.join(", ")} in backend .env and restart the backend.`
+        : "";
+      const warningHint = import.meta.env.DEV && error?.warnings?.length
+        ? ` ${error.warnings.join(" ")}`
+        : "";
+      const debugHint = import.meta.env.DEV && error?.debugMessage
+        ? ` Developer details: ${error.debugMessage}`
+        : "";
+      setAlert({ type: "error", message: `${message}${devHint}${warningHint}${debugHint}` });
+    } finally {
+      setOauthLoading("");
+    }
+  }
+
+  const oauthDisabled = Boolean(oauthLoading || loading);
 
   return (
-    <AuthLayout title="Welcome back" subtitle="Sign in to continue to your society workspace.">
-      {alert.message && <AlertMessage type={alert.type} message={alert.message} />}
+    <main className="auth-v2 auth-v2-login">
+      <div className="nexora-login-bg" aria-hidden="true">
+        <span />
+        <span />
+        <span />
+      </div>
+      <section className="auth-v2-art">
+        <div className="nexora-login-brand"><BrandLogo to={null} variant="full" /></div>
+        <NexoraAuthVisual type="login" />
+        <Motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} className="auth-v2-art-copy">
+          <h1>Manage Your Community Smarter</h1>
+          <p>One intelligent platform to manage residents, visitors, security, maintenance, billing, and society operations.</p>
+        </Motion.div>
+        <div className="auth-v2-illustration">
+          <div><span>✓</span><strong>Secure</strong></div>
+          <div><span>✓</span><strong>Multi-Society</strong></div>
+          <div><span>✓</span><strong>AI Powered</strong></div>
+          <div><span>✓</span><strong>Real-Time</strong></div>
+        </div>
+        <div className="auth-v2-illustration auth-v2-illustration-premium">
+          <div><span>&check;</span><strong>Secure Access</strong></div>
+          <div><span>&check;</span><strong>Multi-Society</strong></div>
+          <div><span>&check;</span><strong>AI Powered</strong></div>
+          <div><span>&check;</span><strong>Real-Time Analytics</strong></div>
+        </div>
+      </section>
 
-      {unverifiedEmail && (
-        <div
-          className="mb-6 rounded-2xl border p-4 shadow-sm"
-          style={{ backgroundColor: "var(--surface)", borderColor: "var(--border)", color: "var(--text)" }}
-        >
-          <div className="flex items-start gap-3">
-            <div className="mt-0.5 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-amber-500/15">
-              <svg className="h-5 w-5 text-amber-500" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-              </svg>
+      <section className="auth-v2-form-zone">
+        <Motion.form className="auth-v2-card" onSubmit={handleSubmit} initial={{ opacity: 0, y: 22 }} animate={{ opacity: 1, y: 0 }}>
+          <div className="auth-v2-heading">
+            <div className="nexora-form-logo" aria-hidden="true"><img src="/nexora-icon.png" alt="" /></div>
+            <span>Secure Access</span>
+            <h2>Welcome Back</h2>
+            <p>Access your society dashboard</p>
+          </div>
+          <AlertMessage type={alert.type} message={alert.message} />
+          {unverifiedEmail ? (
+            <div className="auth-v2-warning" role="status">
+              <strong>Email verification required</strong>
+              <span>Verify {unverifiedEmail} to continue securely.</span>
             </div>
-            <div className="flex-1">
-              <p className="font-semibold text-[var(--text)]">Email verification required</p>
-              <p className="mt-1 text-sm" style={{ color: "var(--text-muted)" }}>
-                {unverifiedEmail} needs a valid OTP verification before login.
-              </p>
-              <div className="mt-4">
-                <button
-                  type="button"
-                  onClick={handleGoToVerify}
-                  className="w-full rounded-xl bg-amber-500 px-4 py-3 text-sm font-semibold text-slate-950 shadow-sm transition hover:bg-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2"
-                  aria-label={`Verify email ${unverifiedEmail}`}
-                >
-                  Verify Email Now
-                </button>
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={() => setUnverifiedEmail(null)}
-              className="flex-shrink-0 rounded-full p-1 text-[var(--text-muted)] transition hover:text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-amber-400"
-              aria-label="Dismiss email verification prompt"
-            >
-              <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-              </svg>
+          ) : null}
+          {selectedSociety ? (
+            <div className="auth-v2-society"><span>Selected society</span><strong>{selectedSociety.name}</strong><button type="button" onClick={() => { clearSelectedSociety(); setSelectedSociety(null); setForm((p) => ({ ...p, societyCode: "" })); }}>Change</button></div>
+          ) : (
+            <label className="auth-v2-field"><span>Society Selector</span><input value={form.societyCode} onChange={(e) => setForm((p) => ({ ...p, societyCode: e.target.value.trim().toUpperCase() }))} placeholder="e.g. GREEN-01" /></label>
+          )}
+          <label className="auth-v2-field"><span>Email / Mobile Number</span><input value={form.email} onChange={(e) => setForm((p) => ({ ...p, email: e.target.value.trim() }))} placeholder="name@society.com" autoComplete="email" /></label>
+          <label className="auth-v2-field"><span>Password</span><div><input type={showPassword ? "text" : "password"} value={form.password} onChange={(e) => setForm((p) => ({ ...p, password: e.target.value }))} placeholder="Enter password" autoComplete="current-password" /><button type="button" onClick={() => setShowPassword((v) => !v)}>{showPassword ? "Hide" : "Show"}</button></div></label>
+          <div className="auth-v2-row"><label><input type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} /> Remember me</label><Link to="/forgot-password">Forgot Password?</Link></div>
+          <button className="auth-v2-submit" disabled={!canSubmit || loading}>{loading ? "Signing in..." : "Login"}</button>
+          <button type="button" className="auth-v2-otp-action" onClick={() => { saveOtpSocietyCode(otpSocietyCode); navigate(otpPath, { state: { email: otpEmail, societyCode: otpSocietyCode } }); }}>
+            <span>Need email verification?</span>
+            <strong>Verify OTP</strong>
+          </button>
+          <div className="auth-v2-social-label"><span />Continue With<span /></div>
+          <div className="auth-v2-social">
+            <button type="button" className="auth-v2-social-btn" disabled={oauthDisabled} onClick={() => handleOAuthLogin("google")}>
+              <span className="auth-v2-provider-icon auth-v2-provider-icon--google" aria-hidden="true">G</span>
+              <strong>{oauthLoading === "google" ? "Connecting..." : "Continue with Google"}</strong>
+              {oauthLoading === "google" ? <i aria-hidden="true" /> : null}
+            </button>
+            <button type="button" className="auth-v2-social-btn" disabled={oauthDisabled} onClick={() => handleOAuthLogin("microsoft")}>
+              <span className="auth-v2-provider-icon auth-v2-provider-icon--microsoft" aria-hidden="true"><b /><b /><b /><b /></span>
+              <strong>{oauthLoading === "microsoft" ? "Connecting..." : "Continue with Microsoft"}</strong>
+              {oauthLoading === "microsoft" ? <i aria-hidden="true" /> : null}
             </button>
           </div>
-        </div>
-      )}
-
-      <div className="mb-4 flex items-center justify-start">
-        <button
-          type="button"
-          onClick={() => navigate("/")}
-          className="inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition duration-200 focus:outline-none focus:ring-2 focus:ring-cyan-400"
-          style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)", color: "var(--text)" }}
-        >
-          <span className="text-base">←</span>
-          Back to Home
-        </button>
-      </div>
-
-      <div className="mb-4 rounded-2xl border p-4 text-sm" style={{ backgroundColor: "var(--surface)", borderColor: "var(--border)", color: "var(--text-muted)" }}>
-        Platform administrator?{" "}
-        <AuthLink to="/super-admin/login" className="font-semibold text-[var(--text-main)]">
-          Use super admin login
-        </AuthLink>
-        . No society code is required there.
-      </div>
-
-      <form className="space-y-5" onSubmit={handleSubmit}>
-        {selectedSociety ? (
-          <div className="rounded-3xl border p-4" style={{ backgroundColor: "var(--surface)", borderColor: "var(--border)", color: "var(--text)" }}>
-            <p className="text-sm text-muted">Selected society</p>
-            <p className="mt-2 text-lg font-semibold text-[var(--text)]">{selectedSociety.name}</p>
-            <p className="text-sm text-muted">Code: {selectedSociety.id}</p>
-            <button
-              type="button"
-              className="mt-3 text-sm font-semibold underline underline-offset-4"
-              style={{ color: "var(--text)" }}
-              onClick={() => {
-                clearSelectedSociety();
-                setSelectedSociety(null);
-                setForm((prev) => ({ ...prev, societyCode: "" }));
-              }}
-            >
-              Choose a different society
-            </button>
-          </div>
-        ) : (
-          <AuthInput
-            label="Society Code"
-            type="text"
-            value={form.societyCode}
-            onChange={(v) => setForm((prev) => ({ ...prev, societyCode: v.trim().toUpperCase() }))}
-            placeholder="e.g., SOCIETYCODE"
-            autoComplete="off"
-            required
-          />
-        )}
-
-        <AuthInput
-          label="Email Address"
-          type="email"
-          value={form.email}
-          onChange={(v) => setForm((prev) => ({ ...prev, email: v.trim() }))}
-          autoComplete="email"
-          required
-        />
-
-        <AuthPasswordInput
-          label="Password"
-          value={form.password}
-          onChange={(v) => setForm((prev) => ({ ...prev, password: v }))}
-          autoComplete="current-password"
-          required
-        />
-
-        <div className="flex items-center justify-between gap-3 text-sm" style={{ color: "var(--text-muted)" }}>
-          <label className="flex items-center gap-2" style={{ color: "var(--text-muted)" }}>
-            <input type="checkbox" className="h-4 w-4 rounded border" style={{ borderColor: "var(--border)", backgroundColor: "var(--input-bg)" }} />
-            Remember me
-          </label>
-          <AuthLink to="/forgot-password">Forgot password?</AuthLink>
-        </div>
-
-        {renderValidationError && (
-          <p className="text-sm text-red-500">{renderValidationError}</p>
-        )}
-
-        <AuthButton type="submit" loading={loading} disabled={!canSubmit || loading}>
-          {loading ? "Signing in..." : "Sign in"}
-        </AuthButton>
-      </form>
-
-      <div className="space-y-4 pt-2">
-        <p className="text-sm text-[var(--text-secondary)]">
-          New to Society Pro? {" "}
-          <AuthLink to="/register" className="font-semibold text-[var(--text-main)]">
-            Create account
-          </AuthLink>
-        </p>
-
-        <SocialButtons
-          email={form.email}
-          societyCode={selectedSociety?.id || form.societyCode}
-          onNotice={(message) => setAlert({ type: "info", message })}
-        />
-      </div>
-
-      <p className="text-xs text-[rgb(var(--app-text-muted-rgb))]">Your data is encrypted and secure.</p>
-    </AuthLayout>
+          <p className="auth-v2-bottom">New here? <Link to="/register">Create account</Link></p>
+        </Motion.form>
+      </section>
+    </main>
   );
 }
-
-export default LoginPage;

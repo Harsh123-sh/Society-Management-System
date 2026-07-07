@@ -181,10 +181,10 @@
   /* ========================================
      BRAND IDENTITY
      ======================================== */
-  --brand-name: "Smart Society";
-  --brand-tagline: "Intelligent Community Management";
-  --brand-logo-url: "";
-  --brand-favicon-url: "";
+  --brand-name: "NEXORA";
+  --brand-tagline: "Smart Society Management Platform";
+  --brand-logo-url: "/nexora-logo.png";
+  --brand-favicon-url: "/nexora-favicon.png";
 
   /* ========================================
      THEME MODE

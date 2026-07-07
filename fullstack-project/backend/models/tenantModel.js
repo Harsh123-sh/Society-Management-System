@@ -95,7 +95,7 @@ async function ensureSocietyDefaults(connection, societyId, overrides = {}) {
       storageMb: 5000,
       aiRequests: 10000,
     },
-    providerName: overrides.providerName || "render",
+    providerName: overrides.providerName || "supabase",
     providerSubscriptionId: overrides.providerSubscriptionId || null,
   };
 
@@ -385,7 +385,7 @@ async function updateTenantSubscription(societyId, subscription = {}) {
       subscription.billingCycle || subscription.billing_cycle || "monthly",
       subscription.renewalAt || subscription.renewal_at || null,
       toJson(subscription.limits || {}),
-      subscription.providerName || subscription.provider_name || "render",
+      subscription.providerName || subscription.provider_name || "supabase",
       subscription.providerSubscriptionId || subscription.provider_subscription_id || null,
     ]
   );

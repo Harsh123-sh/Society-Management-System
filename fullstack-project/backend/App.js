@@ -19,6 +19,7 @@ const analyticsRoutes = require("./routes/analyticsRoutes");
 const documentRoutes = require("./routes/documentRoutes");
 const societyRoutes = require("./routes/societyRoutes");
 const securityRoutes = require("./routes/securityRoutes");
+const staffRoutes = require("./routes/staffRoutes");
 const chatRoutes = require("./routes/chatRoutes");
 const parkingRoutes = require("./routes/parkingRoutes");
 const bookingRoutes = require("./routes/bookingRoutes");
@@ -34,19 +35,25 @@ const builderRoutes = require("./routes/builderRoutes");
 const structureRoutes = require("./routes/structureRoutes");
 const dashboardRoutes = require("./routes/dashboardRoutes");
 const auditRoutes = require("./routes/auditRoutes");
+const chairmanSettingsRoutes = require("./routes/chairmanSettingsRoutes");
 const { notFound, errorHandler } = require("./middleware/errorHandler");
 const { resolveTenantContext } = require("./middleware/tenantMiddleware");
 
 const app = express();
 const requestBodyLimit = process.env.REQUEST_BODY_LIMIT || "10mb";
 
-const allowedOrigins = (process.env.CORS_ORIGIN || "http://localhost:5173")
+const allowedOrigins = (process.env.CORS_ORIGIN || "http://localhost:5173,http://127.0.0.1:5173")
   .split(",")
   .map((origin) => origin.trim())
   .filter(Boolean);
 
 function isLocalDevOrigin(origin) {
-  return /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
+  if (!origin) {
+    return true;
+  }
+
+  return /^https?:\/\/(localhost|127\.0\.0\.1|0\.0\.0\.0)(:\d+)?$/.test(origin) ||
+    /^https?:\/\/(10\.\d+\.\d+\.\d+|192\.168\.\d+\.\d+|172\.(1[6-9]|2\d|3[0-1])\.\d+\.\d+)(:\d+)?$/.test(origin);
 }
 
 const apiLimiter = rateLimit({
@@ -113,6 +120,7 @@ app.use("/api/analytics", analyticsRoutes);
 app.use("/api/documents", documentRoutes);
 app.use("/api/societies", societyRoutes);
 app.use("/api/security", securityRoutes);
+app.use("/api/staff", staffRoutes);
 app.use("/api/chats", chatRoutes);
 app.use("/api/parking", parkingRoutes);
 app.use("/api/bookings", bookingRoutes);
@@ -130,6 +138,7 @@ app.use("/api/structure", structureRoutes);
 app.use("/api/dashboards", dashboardRoutes);
 app.use("/api/dashboards", dashboardRoutes);
 app.use("/api/audit", auditRoutes);
+app.use("/api/chairman/settings", chairmanSettingsRoutes);
 
 // Health check routes
 app.get("/", (req, res) => {

@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { getStoredRole, getStoredUser } from '../utils/session';
 import { societyPresets } from '../theme/societyPresets';
 import { fetchCurrentTheme, fetchThemeCatalog, generateTheme, updateTheme } from '../services/themeApi';
-import { applyThemeState, normalizeThemeState, readStoredThemeState, writeStoredThemeState } from '../utils/themeState';
+import { DEFAULT_THEME_STATE, applyThemeState, normalizeThemeState, readStoredThemeState, writeStoredThemeState } from '../utils/themeState';
 
 const ThemeContext = createContext(null);
 
@@ -118,10 +118,9 @@ export function ThemeProvider({ children }) {
           secondaryColor: themeContext.branding.secondaryColor || current.secondaryColor,
           accentColor: themeContext.branding.accentColor || current.accentColor,
           fontFamily: themeContext.branding.fontFamily || current.fontFamily,
-          themeMode: themeContext.branding.theme?.mode || current.themeMode,
           density: themeContext.branding.theme?.density || current.density,
           layoutMode: themeContext.branding.theme?.layout || current.layoutMode,
-          themeJson: { ...current.themeJson, ...(themeContext.branding.theme || {}) },
+          themeJson: { ...current.themeJson, ...(themeContext.branding.theme || {}), mode: current.themeMode },
         }));
       })
       .catch(() => undefined);

@@ -15,9 +15,7 @@ function ResidentDashboardRouterPage() {
   }
 
   return (
-    <div className="resident-page resident-owner-page">
-      <OwnerDashboardPage />
-    </div>
+    <OwnerDashboardPage />
   );
 }
 

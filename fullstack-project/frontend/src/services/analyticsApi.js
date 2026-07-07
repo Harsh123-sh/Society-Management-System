@@ -22,6 +22,54 @@ function unwrapResponse(payload) {
   return payload;
 }
 
+function createEmptyOverview() {
+  return {
+    totals: {
+      totalResidents: 0,
+      pendingComplaints: 0,
+      totalUnpaidBills: 0,
+    },
+    charts: {
+      complaintStatus: [],
+      billStatus: [],
+      monthlyTrend: [],
+    },
+  };
+}
+
+function createEmptyAnalytics() {
+  return {
+    visitor: {},
+    financial: {},
+    complaint: {},
+    chat: {},
+    payment: {},
+    ai: {},
+    staff: {},
+    security: {},
+  };
+}
+
+function createEmptyAiWidgets() {
+  return {
+    widgets: [],
+    recommendations: [],
+    anomalies: [],
+    summary: "",
+  };
+}
+
+function resolveSettled(result, fallback) {
+  if (result.status === "fulfilled") {
+    return unwrapResponse(result.value) || fallback;
+  }
+
+  return {
+    ...fallback,
+    unavailable: true,
+  };
+}
+
 export async function fetchOverviewStats() {
   const { data } = await api.get("/analytics/overview");
   return data;
@@ -81,16 +129,16 @@ export async function fetchAllAnalytics(params = {}) {
 
 export async function fetchAnalyticsDashboardBundle(params = {}) {
   const query = normalizeParams(params);
-  const [overview, analytics, aiWidgets] = await Promise.all([
+  const [overview, analytics, aiWidgets] = await Promise.allSettled([
     fetchOverviewStats(),
     fetchAllAnalytics(query),
     fetchAiDashboardWidgets(),
   ]);
 
   return {
-    overview: unwrapResponse(overview),
-    analytics: unwrapResponse(analytics),
-    ai: unwrapResponse(aiWidgets),
+    overview: resolveSettled(overview, createEmptyOverview()),
+    analytics: resolveSettled(analytics, createEmptyAnalytics()),
+    ai: resolveSettled(aiWidgets, createEmptyAiWidgets()),
     params: query,
   };
 }

@@ -1,5 +1,5 @@
 -- SaaS Platform Enhancements: Multi-society Demo, Theme System, Approval Workflow
--- This migration adds comprehensive support for the AI Smart Society Management SaaS Platform
+-- This migration adds comprehensive support for the Nexora Smart Society Management Platform
 
 -- =====================================================
 -- 1. WINGS/TOWERS/BLOCKS TABLE
@@ -270,5 +270,5 @@ ALTER TABLE flats
 ADD INDEX IF NOT EXISTS idx_flats_society_wing (society_id, wing_id);
 
 -- =====================================================
--- COMPLETE - Database enhancements for AI Smart Society Management SaaS
+-- COMPLETE - Database enhancements for AI NEXORA Management SaaS
 -- =====================================================

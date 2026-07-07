@@ -20,7 +20,7 @@
   },
   "brand": {
     "eyebrow": "Multi-society SaaS",
-    "title": "Atlas Society Cloud"
+    "title": "NEXORA"
   },
   "actions": {
     "lightMode": "Light mode",
@@ -33,7 +33,7 @@
   "hero": {
     "eyebrow": "Enterprise multi-tenant platform",
     "title": "Rebuild society operations with an AI-native command center for residents, staff, security, and super admins.",
-    "description": "Atlas Society Cloud blends modern SaaS UX, WhatsApp-style communication, automation, realtime updates, billing, analytics, and role-based dashboards into one scalable platform.",
+    "description": "NEXORA blends modern SaaS UX, WhatsApp-style communication, automation, realtime updates, billing, analytics, and role-based dashboards into one scalable platform.",
     "launchPlatform": "Launch platform",
     "exploreArchitecture": "Explore architecture",
     "health": "Society health",
@@ -298,7 +298,37 @@
     "emergencySos": "Emergency SOS",
     "maintenance": "Maintenance",
     "residentPortal": "Resident Portal",
-    "securityOps": "Security Ops"
+    "securityOps": "Security Ops",
+    "residents": "Residents",
+    "property": "Property",
+    "security": "Visitors & Security",
+    "analyticsAi": "Analytics & AI"
+  },
+  "society": {
+    "switcher": "Society Switcher",
+    "searchPlaceholder": "Search society name or code",
+    "recent": "Recent Societies",
+    "favorites": "Favorite Societies",
+    "allSocieties": "All Societies",
+    "switchSociety": "Switch Society",
+    "openSociety": "Open Society",
+    "viewAnalytics": "View Analytics",
+    "manageSociety": "Manage Society",
+    "residentCount": "Residents",
+    "occupancyRate": "Occupancy rate",
+    "pendingComplaints": "Pending complaints",
+    "monthlyCollections": "Monthly collections",
+    "dataIsolation": "Data is isolated to the selected society"
+  },
+  "theme": {
+    "title": "Theme",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  },
+  "language": {
+    "title": "Language",
+    "subtitle": "Change the entire website language"
   },
   "sidebar": {
     "tenantWorkspace": "Tenant Workspace",
@@ -338,7 +368,7 @@
     "societyCodeRequired": "Society code is required",
     "invalidEmail": "Please enter a valid email address",
     "passwordTooShort": "Password must be at least 8 characters",
-    "createAccountPrompt": "New to Society Pro?",
+    "createAccountPrompt": "New to NEXORA?",
     "forgotPassword": "Forgot password?",
     "loginSuccessful": "Login successful",
     "pendingApproval": "Your account is pending approval."

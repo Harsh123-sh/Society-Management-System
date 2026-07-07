@@ -7,6 +7,7 @@ import AuthButton from "../components/AuthButton";
 import AuthLink from "../components/AuthLink";
 import OtpInput from "../components/OtpInput";
 import { forgotSuperAdminPassword, getApiMessage, verifySuperAdminOtp } from "../services/authApi";
+import otpHero from "../assets/auth/otp-hero.webp";
 
 function SuperAdminVerifyOtpPage() {
   const navigate = useNavigate();
@@ -81,6 +82,9 @@ function SuperAdminVerifyOtpPage() {
         ["Email OTP", "Platform account"],
         ["Time-limited", "Secure reset"],
       ]}
+      heroImageSrc={otpHero}
+      heroImageAlt="Nexora OTP verification security preview"
+      heroImageType="otp"
     >
       <AlertMessage type={alert.type} message={alert.message} />
 

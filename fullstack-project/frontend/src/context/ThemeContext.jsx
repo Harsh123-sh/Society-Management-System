@@ -209,8 +209,9 @@ function getDefaultTheme() {
     sidebar_style: 'default',
     button_style: 'rounded',
     accent_radius: 'medium',
-    logo_url: null,
-    brand_name: 'Society Pro',
+    brand_name: 'NEXORA',
+    logo_url: '/nexora-logo.png',
+    favicon_url: '/nexora-favicon.png',
   };
 }
 

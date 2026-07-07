@@ -53,6 +53,9 @@ function SuperAdminForgotPasswordPage() {
         ["Email OTP", "Platform account"],
         ["Secure reset", "Verified access"],
       ]}
+      heroImageSrc={null}
+      heroImageAlt="Nexora forgot password recovery preview"
+      heroImageType="forgot"
     >
       <AlertMessage type={alert.type} message={alert.message} />
 

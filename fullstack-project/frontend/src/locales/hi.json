@@ -298,7 +298,37 @@
     "emergencySos": "आपातकालीन SOS",
     "maintenance": "रखरखाव",
     "residentPortal": "रैज़िडेंट पोर्टल",
-    "securityOps": "सिक्योरिटी ऑप्स"
+    "securityOps": "सिक्योरिटी ऑप्स",
+    "residents": "रहवासी",
+    "property": "संपत्ति",
+    "security": "आगंतुक और सुरक्षा",
+    "analyticsAi": "एनालिटिक्स और AI"
+  },
+  "society": {
+    "switcher": "सोसायटी स्विचर",
+    "searchPlaceholder": "सोसायटी नाम या कोड खोजें",
+    "recent": "हाल की सोसायटी",
+    "favorites": "पसंदीदा सोसायटी",
+    "allSocieties": "सभी सोसायटी",
+    "switchSociety": "सोसायटी बदलें",
+    "openSociety": "सोसायटी खोलें",
+    "viewAnalytics": "एनालिटिक्स देखें",
+    "manageSociety": "सोसायटी प्रबंधित करें",
+    "residentCount": "रहवासी",
+    "occupancyRate": "ऑक्यूपेंसी दर",
+    "pendingComplaints": "लंबित शिकायतें",
+    "monthlyCollections": "मासिक संग्रह",
+    "dataIsolation": "डेटा चुनी हुई सोसायटी तक सीमित है"
+  },
+  "theme": {
+    "title": "थीम",
+    "light": "लाइट",
+    "dark": "डार्क",
+    "system": "सिस्टम"
+  },
+  "language": {
+    "title": "भाषा",
+    "subtitle": "पूरी वेबसाइट की भाषा बदलें"
   },
   "sidebar": {
     "tenantWorkspace": "किरायेदार वर्कस्पेस",

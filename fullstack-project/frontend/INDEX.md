@@ -2,7 +2,7 @@
 
 ## Welcome! 👋
 
-This document serves as your **central hub** for the complete Society Management System premium UI transformation. Everything you need is documented below.
+This document serves as your **central hub** for the complete Nexora premium UI transformation. Everything you need is documented below.
 
 ---
 
@@ -68,7 +68,7 @@ All components are documented in their respective files with:
 ## 🗂️ Project Structure
 
 ```
-Society Management System SAAS
+Nexora SAAS
 └── fullstack-project/
     └── frontend/
         ├── src/

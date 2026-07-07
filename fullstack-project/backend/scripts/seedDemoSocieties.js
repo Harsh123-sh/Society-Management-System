@@ -1,5 +1,5 @@
 /**
- * Demo Data Seeder for AI Smart Society Management SaaS Platform
+ * Demo Data Seeder for Nexora Smart Society Management Platform
  * Creates 5 complete demo societies with all related data
  * 
  * Run with: node scripts/seedDemoSocieties.js

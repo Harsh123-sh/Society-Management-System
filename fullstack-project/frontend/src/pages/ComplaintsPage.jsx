@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import AlertMessage from "../components/AlertMessage";
+import ModulePageHeader from "../components/ModulePageHeader";
 import { getApiMessage, getCurrentUserFromToken } from "../services/authApi";
 import {
   addComplaintComment,
@@ -57,11 +58,6 @@ function ComplaintsPage() {
   useEffect(() => {
     loadComplaints();
   }, []);
-
-  function handleFilterSubmit(event) {
-    event.preventDefault();
-    loadComplaints();
-  }
 
   function handleResetFilters() {
     setSearch("");
@@ -136,51 +132,43 @@ function ComplaintsPage() {
 
   return (
     <div className="chairman-page space-y-6">
-      <div>
-        <h2 className="text-xl font-bold text-slate-900">Complaint Management</h2>
-        <p className="text-sm text-slate-600">
-          Raise complaints, track progress, and communicate through comments.
-        </p>
-      </div>
+      <ModulePageHeader
+        title="Complaints"
+        subtitle="Resolve resident complaints and service requests."
+        actions={(
+          <>
+            <label className="module-action-search">
+              <input
+                type="text"
+                placeholder="Complaint Search"
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+              />
+            </label>
+            <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
+              <option value="">All Status</option>
+              <option value="pending">Pending</option>
+              <option value="resolved">Resolved</option>
+            </select>
+            <button
+              type="button"
+              onClick={() => loadComplaints()}
+              className="rounded-lg theme-surface px-4 py-2 text-sm font-medium text-[var(--text-main)] hover:theme-surface"
+            >
+              Apply
+            </button>
+            <button
+              type="button"
+              onClick={handleResetFilters}
+              className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100"
+            >
+              Reset
+            </button>
+          </>
+        )}
+      />
 
       <AlertMessage type={alert.type} message={alert.message} />
-
-      <form
-        className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
-        onSubmit={handleFilterSubmit}
-      >
-        <div className="chairman-page grid gap-3 md:grid-cols-[1fr_180px_auto_auto]">
-          <input
-            type="text"
-            className="rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none ring-blue-500 focus:ring"
-            placeholder="Search complaints"
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-          />
-          <select
-            className="rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none ring-blue-500 focus:ring"
-            value={statusFilter}
-            onChange={(event) => setStatusFilter(event.target.value)}
-          >
-            <option value="">All Status</option>
-            <option value="pending">Pending</option>
-            <option value="resolved">Resolved</option>
-          </select>
-          <button
-            type="submit"
-            className="rounded-lg theme-surface px-4 py-2 text-sm font-medium text-[var(--text-main)] hover:theme-surface"
-          >
-            Apply
-          </button>
-          <button
-            type="button"
-            onClick={handleResetFilters}
-            className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100"
-          >
-            Reset
-          </button>
-        </div>
-      </form>
 
       {canRaise ? (
         <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">

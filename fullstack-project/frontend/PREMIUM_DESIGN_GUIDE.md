@@ -2,14 +2,14 @@
  * PREMIUM UI/UX DESIGN SYSTEM - IMPLEMENTATION GUIDE
  * 
  * This guide provides complete instructions for using the premium
- * component library and design system across the Society Management System.
+ * component library and design system across the Nexora.
  */
 
 # Premium Design System - Complete Implementation Guide
 
 ## Overview
 
-The Society Management System has been transformed with a premium Apple + Linear + Stripe inspired design system. All components follow modern SaaS best practices with glassmorphism, smooth animations, and comprehensive dark/light mode support.
+The Nexora has been transformed with a premium Apple + Linear + Stripe inspired design system. All components follow modern SaaS best practices with glassmorphism, smooth animations, and comprehensive dark/light mode support.
 
 ## Design System Architecture
 

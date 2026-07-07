@@ -2,33 +2,85 @@ const { Pool } = require("pg");
 require("dotenv").config();
 
 function isPlaceholder(value) {
-  return typeof value === "string" && (/<[^>]+>|YOUR_[A-Z_]+|RENDER_DB/.test(value));
+  return typeof value === "string" && (/<[^>]+>|YOUR_[A-Z_]+|RENDER_DB|SUPABASE_[A-Z_]+/.test(value));
 }
 
-// Validate DATABASE_URL on startup
-if (!process.env.DATABASE_URL) {
+function isLocalDatabaseUrl(value) {
+  if (!value) {
+    return true;
+  }
+
+  return /(^|:)(localhost|127\.0\.0\.1|::1)(:|\/|$)/i.test(value) || /\.local$/i.test(value);
+}
+
+function buildConnectionStringFromParts() {
+  const {
+    DB_HOST,
+    DB_PORT = "5432",
+    DB_USER,
+    DB_PASSWORD = "",
+    DB_NAME,
+  } = process.env;
+
+  if (!DB_HOST || !DB_USER || !DB_NAME) {
+    return "";
+  }
+
+  const user = encodeURIComponent(DB_USER);
+  const password = DB_PASSWORD ? `:${encodeURIComponent(DB_PASSWORD)}` : "";
+  const host = DB_HOST.includes(":") && !DB_HOST.startsWith("[") ? `[${DB_HOST}]` : DB_HOST;
+  const database = encodeURIComponent(DB_NAME);
+
+  return `postgresql://${user}${password}@${host}:${DB_PORT}/${database}`;
+}
+
+function buildConnectionString() {
+  if (process.env.DATABASE_URL && !isPlaceholder(process.env.DATABASE_URL)) {
+    return process.env.DATABASE_URL;
+  }
+
+  const builtUrl = buildConnectionStringFromParts();
+  if (builtUrl) {
+    return builtUrl;
+  }
+
+  if (!process.env.DATABASE_URL || isPlaceholder(process.env.DATABASE_URL)) {
+    throw new Error(
+      "DATABASE_URL is required and must point to the active Postgres database, or set DB_HOST/DB_PORT/DB_USER/DB_PASSWORD/DB_NAME for local PostgreSQL."
+    );
+  }
+}
+
+const databaseUrl = buildConnectionString();
+console.log("[DB] active database host:", getDatabaseHost());
+
+if (!databaseUrl || isPlaceholder(databaseUrl)) {
   throw new Error(
-    "DATABASE_URL environment variable is required. Set it to your Render PostgreSQL Internal Database URL in format: postgresql://user:password@host:port/dbname"
+    "Database configuration is missing. Set DATABASE_URL for Supabase or DB_HOST/DB_PORT/DB_USER/DB_PASSWORD/DB_NAME for local PostgreSQL."
   );
 }
 
-if (isPlaceholder(process.env.DATABASE_URL)) {
-  throw new Error(
-    `Invalid DATABASE_URL: ${process.env.DATABASE_URL}. Replace placeholder values. Use Render PostgreSQL Internal Database URL in format: postgresql://user:password@host:port/dbname`
-  );
-}
-
-const sslConfig = process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : undefined;
+const isLocalDatabase = isLocalDatabaseUrl(databaseUrl);
+const sslConfig = isLocalDatabase ? false : { rejectUnauthorized: false };
 
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
+  connectionString: databaseUrl,
   ssl: sslConfig,
   connectionTimeoutMillis: 10000,
   idleTimeoutMillis: 30000,
   max: 20,
+  keepAlive: true,
 });
 
 const originalQuery = pool.query.bind(pool);
+
+function getDatabaseHost() {
+  try {
+    return new URL(databaseUrl).hostname;
+  } catch {
+    return "unknown";
+  }
+}
 
 function addInsertReturningId(queryText) {
   if (/^\s*INSERT\s+INTO/i.test(queryText) && !/RETURNING\s+/i.test(queryText)) {
@@ -137,33 +189,37 @@ pool.getConnection = async () => {
 };
 
 pool.on("error", (error) => {
-  console.error("Unexpected error on idle client", error);
+  console.error("[DB] Unexpected error on idle client:", error);
 });
 
-let connectionAttempts = 0;
 const maxRetries = 3;
 
-async function testConnection() {
+async function testConnection(connectionAttempts = 0) {
+  const databaseHost = getDatabaseHost();
+  const sslMode = isLocalDatabase ? "disabled" : "enabled (sslmode=require)";
+
   try {
-    await pool.query("SELECT NOW()");
-    console.log("✓ PostgreSQL database connected successfully");
+    const result = await originalQuery("SELECT NOW() AS current_time");
+    console.log(`✓ PostgreSQL database connected successfully (${databaseHost}, ssl: ${sslMode})`);
+    console.log(`[DB] Connection verified at ${result.rows?.[0]?.current_time || "unknown time"}`);
     return true;
   } catch (error) {
-    connectionAttempts++;
+    connectionAttempts += 1;
     if (connectionAttempts < maxRetries) {
-      console.warn(`Connection attempt ${connectionAttempts}/${maxRetries} failed: ${error.message}`);
+      console.warn(`[DB] Connection attempt ${connectionAttempts}/${maxRetries} failed: ${error.message}`);
       await new Promise((resolve) => setTimeout(resolve, 2000));
-      return testConnection();
+      return testConnection(connectionAttempts);
     }
-    console.error("✗ Database connection failed after retries:", error.message);
+    console.error("[DB] Database connection failed after retries:", error.message);
+    console.error(`[DB] Host: ${databaseHost}`);
+    console.error(`[DB] SSL mode: ${sslMode}`);
+
     return false;
   }
 }
 
-testConnection().then((success) => {
-  if (!success && process.env.NODE_ENV === "production") {
-    console.error("⚠ Production environment but database not ready");
-  }
-});
+pool.testConnection = testConnection;
+pool.getDatabaseHost = getDatabaseHost;
 
 module.exports = pool;
+module.exports.getDatabaseHost = getDatabaseHost;

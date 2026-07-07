@@ -7,36 +7,27 @@ import { motion } from 'framer-motion';
  * Modern table with sticky header, hover effects, and animations
  */
 
-interface TableProps extends React.TableHTMLAttributes<HTMLTableElement> {
-  variant?: 'default' | 'striped' | 'bordered';
-}
-
-const Table = React.forwardRef<HTMLTableElement, TableProps>(
-  ({ className, variant = 'default', ...props }, ref) => (
-    <div className="w-full overflow-x-auto rounded-lg border border-border">
-      <table
-        ref={ref}
-        className={clsx(
-          'w-full text-sm',
-          variant === 'striped' && '[&_tbody_tr:nth-child(even)]:bg-surface-secondary',
-          variant === 'bordered' && '[&_td]:border-r [&_td:last-child]:border-r-0 [&_th]:border-r [&_th:last-child]:border-r-0',
-          className
-        )}
-        {...props}
-      />
-    </div>
-  )
-);
+const Table = React.forwardRef(({ className, variant = 'default', ...props }, ref) => (
+  <div className="w-full overflow-x-auto rounded-lg border border-border">
+    <table
+      ref={ref}
+      className={clsx(
+        'w-full text-sm',
+        variant === 'striped' && '[&_tbody_tr:nth-child(even)]:bg-surface-secondary',
+        variant === 'bordered' && '[&_td]:border-r [&_td:last-child]:border-r-0 [&_th]:border-r [&_th:last-child]:border-r-0',
+        className
+      )}
+      {...props}
+    />
+  </div>
+));
 
 Table.displayName = 'Table';
 
 /**
  * Table Head Component
  */
-const TableHead = React.forwardRef<
-  HTMLTableSectionElement,
-  React.HTMLAttributes<HTMLTableSectionElement>
->(({ className, ...props }, ref) => (
+const TableHead = React.forwardRef(({ className, ...props }, ref) => (
   <thead
     ref={ref}
     className={clsx('bg-surface-secondary sticky top-0 z-10', className)}
@@ -49,10 +40,7 @@ TableHead.displayName = 'TableHead';
 /**
  * Table Body Component
  */
-const TableBody = React.forwardRef<
-  HTMLTableSectionElement,
-  React.HTMLAttributes<HTMLTableSectionElement>
->(({ className, ...props }, ref) => (
+const TableBody = React.forwardRef(({ className, ...props }, ref) => (
   <tbody
     ref={ref}
     className={clsx('[&_tr:last-child_td]:border-b-0', className)}
@@ -65,14 +53,7 @@ TableBody.displayName = 'TableBody';
 /**
  * Table Row Component
  */
-interface TableRowProps extends React.HTMLAttributes<HTMLTableRowElement> {
-  hoverable?: boolean;
-  clickable?: boolean;
-  isSelected?: boolean;
-}
-
-const TableRow = React.forwardRef<HTMLTableRowElement, TableRowProps>(
-  ({ className, hoverable = true, clickable = false, isSelected, ...props }, ref) => (
+const TableRow = React.forwardRef(({ className, hoverable = true, clickable = false, isSelected, ...props }, ref) => (
     <motion.tr
       ref={ref}
       initial={{ opacity: 0 }}
@@ -95,15 +76,7 @@ TableRow.displayName = 'TableRow';
 /**
  * Table Header Cell Component
  */
-interface TableHeaderCellProps
-  extends React.ThHTMLAttributes<HTMLTableCellElement> {
-  sortable?: boolean;
-  sorted?: 'asc' | 'desc' | false;
-  onSort?: (direction: 'asc' | 'desc') => void;
-}
-
-const TableHeaderCell = React.forwardRef<HTMLTableCellElement, TableHeaderCellProps>(
-  ({ className, sortable, sorted, onSort, children, ...props }, ref) => (
+const TableHeaderCell = React.forwardRef(({ className, sortable, sorted, onSort, children, ...props }, ref) => (
     <th
       ref={ref}
       className={clsx(
@@ -145,14 +118,7 @@ TableHeaderCell.displayName = 'TableHeaderCell';
 /**
  * Table Data Cell Component
  */
-interface TableDataCellProps
-  extends React.TdHTMLAttributes<HTMLTableCellElement> {
-  variant?: 'default' | 'muted' | 'success' | 'danger' | 'warning';
-  align?: 'left' | 'center' | 'right';
-}
-
-const TableDataCell = React.forwardRef<HTMLTableCellElement, TableDataCellProps>(
-  ({ className, variant = 'default', align = 'left', ...props }, ref) => {
+const TableDataCell = React.forwardRef(({ className, variant = 'default', align = 'left', ...props }, ref) => {
     const variantClasses = {
       default: 'text-text',
       muted: 'text-text-secondary',
@@ -187,13 +153,7 @@ TableDataCell.displayName = 'TableDataCell';
 /**
  * Table Empty State Component
  */
-interface TableEmptyProps extends React.HTMLAttributes<HTMLDivElement> {
-  message?: string;
-  icon?: React.ReactNode;
-}
-
-const TableEmpty = React.forwardRef<HTMLDivElement, TableEmptyProps>(
-  ({ className, message = 'No data available', icon, ...props }, ref) => (
+const TableEmpty = React.forwardRef(({ className, message = 'No data available', icon, ...props }, ref) => (
     <div
       ref={ref}
       className={clsx(
@@ -219,4 +179,4 @@ export {
   TableDataCell,
   TableEmpty,
 };
-export type { TableProps, TableRowProps, TableHeaderCellProps, TableDataCellProps, TableEmptyProps };
+ 

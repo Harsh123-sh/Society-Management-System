@@ -1,0 +1,15 @@
+◇ injected env (30) from .env // tip: ◈ secrets for agents [www.dotenvx.com]
+◇ injected env (0) from .env // tip: ⌘ override existing { override: true }
+◇ injected env (0) from .env // tip: ⌘ suppress logs { quiet: true }
+✓ PostgreSQL database connected successfully
+Initializing PostgreSQL schema...
+Starting migration: C:\Users\harsh\Desktop\SEM-4\Society Management System SAAS\fullstack-project\backend\database\migrations\2026-06-05_add_missing_schema.sql
+Migration completed: C:\Users\harsh\Desktop\SEM-4\Society Management System SAAS\fullstack-project\backend\database\migrations\2026-06-05_add_missing_schema.sql
+Starting migration: C:\Users\harsh\Desktop\SEM-4\Society Management System SAAS\fullstack-project\backend\database\migrations\2026-06-11_create_complaint_comments.sql
+Migration completed: C:\Users\harsh\Desktop\SEM-4\Society Management System SAAS\fullstack-project\backend\database\migrations\2026-06-11_create_complaint_comments.sql
+Starting migration: C:\Users\harsh\Desktop\SEM-4\Society Management System SAAS\fullstack-project\backend\database\migrations\2026-07-04_full_backend_schema_sync.sql
+Migration completed: C:\Users\harsh\Desktop\SEM-4\Society Management System SAAS\fullstack-project\backend\database\migrations\2026-07-04_full_backend_schema_sync.sql
+✓ PostgreSQL schema initialized successfully
+✓ Database schema initialized
+✓ Auth schema validation passed
+✓ Server running on port 0

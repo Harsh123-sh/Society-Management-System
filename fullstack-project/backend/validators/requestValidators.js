@@ -4,7 +4,7 @@ const ROLE_VALUES = ["super_admin", "admin", "chairman", "secretary", "resident"
 const CREATE_ROLE_VALUES = ["chairman", "secretary", "resident", "staff", "security"];
 const RESIDENT_TYPE_VALUES = ["owner", "tenant"];
 const ACCOUNT_STATUS_VALUES = ["pending", "active", "rejected", "inactive"];
-const REGISTRATION_ROLES = ["chairman", "secretary", "owner", "tenant", "staff", "security"];
+const REGISTRATION_ROLES = ["secretary", "owner", "tenant", "staff", "security"];
 
 const registerValidation = [
   body("name")
@@ -27,7 +27,7 @@ const registerValidation = [
     .withMessage("Password must be between 8 and 128 characters"),
   body("role")
     .isIn(REGISTRATION_ROLES)
-    .withMessage("Invalid role. Must be chairman, secretary, owner, tenant, staff, or security"),
+    .withMessage("Invalid role. Must be secretary, owner, tenant, staff, or security"),
   body("societyCode")
     .trim()
     .notEmpty()
@@ -51,20 +51,30 @@ const registerValidation = [
 ];
 
 const loginValidation = [
-  body("email")
-    .trim()
-    .notEmpty()
-    .withMessage("Email is required")
-    .isEmail()
-    .withMessage("Email must be valid")
-    .normalizeEmail(),
+  body().custom((value) => {
+    const identifier = String(value?.email || value?.username || "").trim();
+    if (!identifier) {
+      throw new Error("Email or username is required");
+    }
+    return true;
+  }),
   body("password").notEmpty().withMessage("Password is required"),
-  body("societyCode")
+  body().custom((value) => {
+    const societyCode = String(value?.societyCode || value?.society_code || "").trim();
+    if (!societyCode) {
+      throw new Error("Society code is required");
+    }
+    if (societyCode.length < 2 || societyCode.length > 30) {
+      throw new Error("Society code must be between 2 and 30 characters");
+    }
+    return true;
+  }),
+  body("role")
+    .optional()
     .trim()
-    .notEmpty()
-    .withMessage("Society code is required")
-    .isLength({ min: 2, max: 30 })
-    .withMessage("Society code must be between 2 and 30 characters"),
+    .toLowerCase()
+    .isIn(["admin", "chairman", "secretary", "resident", "owner", "tenant", "staff", "security"])
+    .withMessage("Invalid role"),
 ];
 
 const superAdminLoginValidation = [
@@ -477,9 +487,9 @@ const addVisitorEntryValidation = [
   body("visitorName")
     .trim()
     .notEmpty()
-    .withMessage("visitorName is required")
+    .withMessage("Full name is required")
     .isLength({ min: 2, max: 120 })
-    .withMessage("visitorName must be between 2 and 120 characters"),
+    .withMessage("Full name must be between 2 and 120 characters"),
   body("visitorEmail")
     .optional({ nullable: true })
     .trim()
@@ -489,9 +499,19 @@ const addVisitorEntryValidation = [
   body("phone")
     .trim()
     .notEmpty()
-    .withMessage("phone is required")
+    .withMessage("Mobile number is required")
     .isLength({ min: 7, max: 20 })
-    .withMessage("phone must be between 7 and 20 characters"),
+    .withMessage("Mobile number must be between 7 and 20 characters"),
+  body("gender")
+    .optional({ nullable: true })
+    .trim()
+    .isLength({ max: 30 })
+    .withMessage("gender can be at most 30 characters"),
+  body("visitorCount")
+    .optional({ nullable: true })
+    .isInt({ min: 1, max: 50 })
+    .withMessage("Number of visitors must be between 1 and 50")
+    .toInt(),
   body("purpose")
     .optional({ nullable: true })
     .trim()
@@ -504,21 +524,42 @@ const addVisitorEntryValidation = [
     .isLength({ min: 2, max: 200 })
     .withMessage("purpose must be between 2 and 200 characters"),
   body("wing")
+    .optional({ nullable: true })
     .trim()
-    .notEmpty()
-    .withMessage("wing is required")
-    .isIn(["A", "B", "C", "D"])
-    .withMessage("wing must be one of A, B, C, or D"),
+    .custom((value, { req }) => {
+      // wing required if flatId/preapprovalId not provided and request is not from security guard
+      if (req.body.flatId || req.body.preapprovalId || (req.user && req.user.role === 'security')) return true;
+      if (!value) throw new Error('wing is required');
+      return true;
+    })
+    .isLength({ min: 1, max: 40 })
+    .withMessage("wing must be between 1 and 40 characters"),
+  body("floor")
+    .optional({ nullable: true })
+    .trim()
+    .isLength({ max: 40 })
+    .withMessage("floor can be at most 40 characters"),
   body("flatNumber")
+    .optional({ nullable: true })
     .trim()
-    .notEmpty()
-    .withMessage("flatNumber is required")
+    .custom((value, { req }) => {
+      if (req.body.flatId || req.body.preapprovalId || (req.user && req.user.role === 'security')) return true;
+      if (!value) throw new Error('flatNumber is required');
+      return true;
+    })
     .isLength({ min: 1, max: 40 })
     .withMessage("flatNumber must be between 1 and 40 characters"),
   body("photoBase64")
+    .optional({ nullable: true, checkFalsy: true })
     .trim()
-    .notEmpty()
-    .withMessage("Please capture visitor face before check-in."),
+    .custom((value, { req }) => {
+      if (req.file || value) return true;
+      throw new Error("Please capture or upload visitor face before check-in.");
+    }),
+  body("visitorPhoto").custom((_value, { req }) => {
+    if (req.file || String(req.body.photoBase64 || "").trim()) return true;
+    throw new Error("Please capture or upload visitor face before check-in.");
+  }),
   body("faceDetectionConfidence")
     .optional({ nullable: true })
     .isFloat({ min: 0, max: 1 })
@@ -544,6 +585,18 @@ const addVisitorEntryValidation = [
     .isInt({ min: 1 })
     .withMessage("flatId must be a positive integer")
     .toInt(),
+  body("residentId")
+    .optional({ nullable: true })
+    .isInt({ min: 1 })
+    .withMessage("residentId must be a positive integer")
+    .toInt()
+    .custom((value, { req }) => {
+      // residentId is required for security guards
+      if (req.user && req.user.role === 'security' && !value) {
+        throw new Error('residentId is required for security check-ins');
+      }
+      return true;
+    }),
   body("preapprovalId")
     .optional({ nullable: true })
     .isInt({ min: 1 })

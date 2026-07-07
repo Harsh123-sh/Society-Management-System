@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import AlertMessage from "../components/AlertMessage";
+import ModulePageHeader from "../components/ModulePageHeader";
 import { getApiMessage, getCurrentUserFromToken } from "../services/authApi";
 import { getBackendBaseUrl } from "../services/runtimeUrls";
 import {
@@ -84,7 +85,21 @@ function DocumentsPage() {
 
   return (
     <div className="chairman-page space-y-5">
-      <h2 className="text-2xl font-bold text-slate-900">Documents</h2>
+      <ModulePageHeader
+        title="Documents"
+        subtitle="Store society documents and approvals."
+        actions={(
+          canUpload ? (
+            <button
+              type="button"
+              onClick={() => document.querySelector("[data-document-type]")?.focus()}
+              className="rounded-lg theme-surface px-4 py-2 text-sm font-medium text-[var(--text-main)] hover:theme-surface"
+            >
+              Upload Document
+            </button>
+          ) : null
+        )}
+      />
       <AlertMessage type={alert.type} message={alert.message} />
 
       {canUpload ? (
@@ -93,6 +108,7 @@ function DocumentsPage() {
           <form className="grid gap-3 md:grid-cols-3" onSubmit={handleUpload}>
             <input
               type="text"
+              data-document-type
               value={form.documentType}
               onChange={(event) =>
                 setForm((prev) => ({ ...prev, documentType: event.target.value }))

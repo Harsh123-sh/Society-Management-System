@@ -216,7 +216,9 @@ function getDefaultTheme() {
     button_style: 'rounded',
     font_family: 'Inter',
     accent_radius: 'lg',
-    brand_name: 'Smart Society'
+    brand_name: 'NEXORA',
+    logo_url: '/nexora-logo.png',
+    favicon_url: '/nexora-favicon.png'
   };
 }
 

@@ -92,7 +92,7 @@ CREATE TABLE IF NOT EXISTS society_subscriptions (
   billing_cycle ENUM('monthly', 'quarterly', 'yearly') NOT NULL DEFAULT 'monthly',
   renewal_at DATETIME NULL,
   limits_json LONGTEXT NULL,
-  provider_name VARCHAR(50) NOT NULL DEFAULT 'render',
+  provider_name VARCHAR(50) NOT NULL DEFAULT 'supabase',
   provider_subscription_id VARCHAR(120) NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

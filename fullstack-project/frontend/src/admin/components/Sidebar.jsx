@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { menuItems } from "../data/navigation";
+import BrandLogo from "../../components/BrandLogo";
 
 function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
@@ -20,12 +21,11 @@ function Sidebar() {
         <div className="border-b border-slate-700 p-4">
           <div className="flex items-center justify-between">
             <div className={`flex items-center gap-3 ${collapsed ? "justify-center w-full" : ""}`}>
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-purple-600">
-                <span className="text-lg font-bold">📱</span>
-              </div>
-              {!collapsed && (
+              {collapsed ? (
+                <BrandLogo variant="icon" />
+              ) : (
                 <div>
-                  <h1 className="text-sm font-bold">Society Pro</h1>
+                  <BrandLogo variant="compact" />
                   <p className="text-xs text-slate-400">Admin Dashboard</p>
                 </div>
               )}

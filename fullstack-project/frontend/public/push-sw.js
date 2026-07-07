@@ -22,8 +22,8 @@ function initFirebase(config) {
       const notificationTitle = payload?.notification?.title || payload?.data?.title || "Society update";
       const notificationOptions = {
         body: payload?.notification?.body || payload?.data?.body || "You have a new notification",
-        icon: "/favicon.svg",
-        badge: "/favicon.svg",
+        icon: "/nexora-favicon.png",
+        badge: "/nexora-favicon.png",
         data: payload?.data || {},
         tag: payload?.data?.category || "society-notification",
         renotify: true,
@@ -58,8 +58,8 @@ self.addEventListener("push", (event) => {
   const title = payload.title || "Society update";
   const options = {
     body: payload.body || payload.message || "You have a new notification",
-    icon: "/favicon.svg",
-    badge: "/favicon.svg",
+    icon: "/nexora-favicon.png",
+    badge: "/nexora-favicon.png",
     data: payload.data || {},
     tag: payload.tag || payload.data?.category || "society-notification",
     renotify: true,

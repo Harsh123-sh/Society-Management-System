@@ -3,6 +3,7 @@ const builderModel = require("../models/builderModel");
 const societyModel = require("../models/societyModel");
 const userModel = require("../models/userModel");
 const analyticsModel = require("../models/analyticsModel");
+const staffAttendanceModel = require("../models/staffAttendanceModel");
 
 /**
  * Super Admin Dashboard - System-wide metrics
@@ -483,10 +484,10 @@ async function getSecurityDashboard(req, res) {
 
     // Get emergency alerts
     const { rows: alerts } = await db.query(
-      `SELECT id, alert_type, severity, message, location, triggered_at, status
+      `SELECT id, alert_type, severity, message, location, created_at AS triggered_at, 'active' AS status
        FROM security_alerts
-       WHERE society_id = ? AND triggered_at > NOW() - INTERVAL '7 days'
-       ORDER BY triggered_at DESC
+       WHERE society_id = ? AND created_at > NOW() - INTERVAL '7 days'
+       ORDER BY created_at DESC
        LIMIT 10`,
       [req.user.society_id]
     );
@@ -504,6 +505,247 @@ async function getSecurityDashboard(req, res) {
       },
     });
   } catch (error) {
+    if (process.env.NODE_ENV !== "production") {
+      console.error("[dashboardController.getSecurityDashboard]", error);
+    }
+    return res.status(500).json({ success: false, message: "Internal server error" });
+  }
+}
+
+function isMissingRelationError(error) {
+  return error?.code === "42P01" || /does not exist|unknown column|no such table/i.test(error?.message || "");
+}
+
+async function safeRows(label, query, params = []) {
+  try {
+    const { rows } = await db.query(query, params);
+    return rows || [];
+  } catch (error) {
+    if (isMissingRelationError(error)) {
+      console.warn(`[staffDashboard] ${label} unavailable: ${error.message}`);
+      return [];
+    }
+    throw error;
+  }
+}
+
+function toDateKey(value) {
+  const date = value ? new Date(value) : null;
+  if (!date || Number.isNaN(date.getTime())) return "Unscheduled";
+  return date.toLocaleDateString("en-IN", { day: "2-digit", month: "short" });
+}
+
+function groupByStatus(rows, statusKey = "status") {
+  const grouped = rows.reduce((acc, item) => {
+    const status = item?.[statusKey] || "unknown";
+    acc[status] = (acc[status] || 0) + 1;
+    return acc;
+  }, {});
+  return Object.entries(grouped).map(([name, value]) => ({ name, value }));
+}
+
+function taskCompletionDistribution(rows) {
+  const buckets = {
+    pending: 0,
+    accepted: 0,
+    inProgress: 0,
+    completed: 0,
+    closed: 0,
+  };
+
+  rows.forEach((item) => {
+    const status = String(item?.status || "").toLowerCase();
+    if (status === "pending") buckets.pending += 1;
+    else if (status === "accepted" || status === "assigned") buckets.accepted += 1;
+    else if (status === "in_progress" || status === "open") buckets.inProgress += 1;
+    else if (status === "resolved" || status === "completed") buckets.completed += 1;
+    else if (status === "closed") buckets.closed += 1;
+  });
+
+  return [
+    { name: "Pending", value: buckets.pending },
+    { name: "Accepted", value: buckets.accepted },
+    { name: "In Progress", value: buckets.inProgress },
+    { name: "Completed", value: buckets.completed },
+    { name: "Closed", value: buckets.closed },
+  ];
+}
+
+function groupByDate(rows, dateKey = "created_at") {
+  const grouped = rows.reduce((acc, item) => {
+    const name = toDateKey(item?.[dateKey]);
+    acc[name] = (acc[name] || 0) + 1;
+    return acc;
+  }, {});
+  return Object.entries(grouped).map(([name, value]) => ({ name, value }));
+}
+
+function emptyStaffAttendanceData() {
+  return {
+    today: null,
+    records: [],
+    requests: [],
+    charts: {
+      attendanceTrend: [],
+      workingHours: [],
+      leaveStatistics: [],
+      lateArrivalTrend: [],
+    },
+    monthlySummary: {
+      presentDays: 0,
+      absentDays: 0,
+      paidLeaveUsed: 0,
+      halfLeaveUsed: 0,
+      remainingLeave: null,
+      lateArrivals: 0,
+      overtimeHours: 0,
+      attendancePercentage: 0,
+    },
+  };
+}
+
+async function safeStaffAttendanceData({ staffId, societyId }) {
+  try {
+    return await staffAttendanceModel.getMonthAttendance({
+      staffId,
+      societyId,
+      month: new Date().getMonth() + 1,
+      year: new Date().getFullYear(),
+    });
+  } catch (error) {
+    console.warn(`[staffDashboard] attendance unavailable: ${error.message}`);
+    return emptyStaffAttendanceData();
+  }
+}
+
+async function getStaffDashboard(req, res) {
+  try {
+    const societyId = req.user?.societyId || req.user?.society_id;
+    const staffId = req.user?.id || req.user?.userId;
+
+    if (!societyId) {
+      return res.status(401).json({ success: false, message: "Society access not found. Please login again." });
+    }
+
+    const userRows = await safeRows(
+      "staff profile",
+      `SELECT u.id, u.name, u.email, u.role, u.status, u.society_id,
+              s.name AS society_name, s.code AS society_code
+       FROM users u
+       JOIN societies s ON s.id = u.society_id
+       WHERE u.id = ? AND u.society_id = ? AND u.role = 'staff'
+       LIMIT 1`,
+      [staffId, societyId]
+    );
+
+    const staff = userRows[0] || null;
+    if (!staff) {
+      return res.status(403).json({ success: false, message: "Staff access denied for this society" });
+    }
+
+    const complaints = await safeRows(
+      "society work orders",
+      `SELECT c.id, c.title, c.description, c.category, c.status, c.created_at, c.updated_at,
+              resident.name AS resident_name, resident.flat_number AS resident_flat_number
+       FROM complaints c
+       JOIN users resident ON resident.id = c.resident_id
+       WHERE resident.society_id = ?
+         AND c.status NOT IN ('archived', 'deleted')
+       ORDER BY c.created_at DESC
+       LIMIT 20`,
+      [societyId]
+    );
+
+    const notices = await safeRows(
+      "notices",
+      `SELECT n.id, n.title, n.message, n.status, n.created_at, n.expires_at
+       FROM notices n
+       WHERE n.society_id = ?
+         AND n.status NOT IN ('archived', 'deleted')
+       ORDER BY n.created_at DESC
+       LIMIT 8`,
+      [societyId]
+    );
+
+    const emergencyAlerts = await safeRows(
+      "emergency alerts",
+      `SELECT id, alert_type, severity, message, location, status, created_at
+       FROM visitor_emergency_alerts
+       WHERE society_id = ?
+       ORDER BY created_at DESC
+       LIMIT 8`,
+      [societyId]
+    );
+
+    const activeWorkOrders = complaints.filter((item) => !["resolved", "closed"].includes(String(item.status).toLowerCase()));
+    const completedWorkOrders = complaints.filter((item) => ["resolved", "closed"].includes(String(item.status).toLowerCase()));
+    const pendingNotices = notices.filter((item) => String(item.status).toLowerCase() !== "expired");
+    const attendanceData = await safeStaffAttendanceData({ staffId, societyId });
+
+    return res.json({
+      success: true,
+      data: {
+        staff: {
+          id: staff.id,
+          name: staff.name,
+          email: staff.email,
+          role: staff.role,
+          status: staff.status,
+        },
+        society: {
+          id: staff.society_id,
+          name: staff.society_name,
+          code: staff.society_code,
+        },
+        metrics: {
+          todaysTasks: 0,
+          completedTasks: completedWorkOrders.length,
+          workOrders: activeWorkOrders.length,
+          attendance: attendanceData.today?.status || null,
+          leaveBalance: attendanceData.monthlySummary?.remainingLeave ?? null,
+          pendingRequests: emergencyAlerts.filter((item) => String(item.status).toLowerCase() !== "resolved").length,
+        },
+        attendance: {
+          today: attendanceData.today,
+          summary: attendanceData.records,
+          records: attendanceData.records,
+          requests: attendanceData.requests,
+          monthlySummary: attendanceData.monthlySummary,
+          policy: [],
+          trend: [],
+        },
+        tasks: [],
+        workOrders: complaints,
+        announcements: notices,
+        notices,
+        emergencyAlerts,
+        leaveRequests: [],
+        materialRequests: [],
+        quickStats: [
+          { label: "Open Work Orders", value: activeWorkOrders.length },
+          { label: "Closed Work Orders", value: completedWorkOrders.length },
+          { label: "Active Notices", value: pendingNotices.length },
+          { label: "Emergency Alerts", value: emergencyAlerts.length },
+        ],
+        charts: {
+          attendanceTrend: [],
+          taskCompletion: taskCompletionDistribution(complaints),
+          monthlyPerformance: groupByDate(complaints),
+          leaveStatistics: [],
+          workOrders: groupByStatus(complaints, "category"),
+        },
+        aiInsights: [
+          activeWorkOrders.length
+            ? `There are ${activeWorkOrders.length} open society work orders in your assigned society.`
+            : "No open society work orders are currently available for your staff account.",
+          emergencyAlerts.length
+            ? `${emergencyAlerts.length} emergency alert records need review in this society.`
+            : "No emergency alerts are active for your assigned society.",
+        ],
+      },
+    });
+  } catch (error) {
+    console.error("Staff dashboard error:", error);
     return res.status(500).json({ success: false, message: "Internal server error" });
   }
 }
@@ -515,4 +757,5 @@ module.exports = {
   getOwnerDashboard,
   getTenantDashboard,
   getSecurityDashboard,
+  getStaffDashboard,
 };

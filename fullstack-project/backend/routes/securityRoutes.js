@@ -2,6 +2,7 @@ const express = require("express");
 const securityController = require("../controllers/securityController");
 const { authenticateToken } = require("../middleware/authMiddleware");
 const { authorizeRoles } = require("../middleware/roleMiddleware");
+const { uploadVisitorPhoto } = require("../middleware/uploadMiddleware");
 
 const router = express.Router();
 
@@ -19,6 +20,12 @@ router.get(
   securityController.getDashboard
 );
 
+// Residents search for guard visitor check-in select box
+router.get(
+  "/residents/search",
+  authorizeRoles("security"),
+  securityController.searchResidents
+);
 router.post("/attendance/check-in", authorizeRoles("security"), securityController.checkIn);
 router.post("/attendance/check-out", authorizeRoles("security"), securityController.checkOut);
 
@@ -35,6 +42,13 @@ router.post("/shifts", authorizeRoles("admin", "secretary"), securityController.
 
 router.get("/holidays", authorizeRoles("security", "admin", "secretary"), securityController.getHolidays);
 router.post("/holidays", authorizeRoles("admin", "secretary"), securityController.createHoliday);
+
+router.post("/visitors/check-in", authorizeRoles("security"), uploadVisitorPhoto.single("visitorPhoto"), securityController.checkInVisitor);
+router.get("/visitors", authorizeRoles("security", "admin", "secretary"), securityController.listVisitors);
+router.post("/visitors/:id/check-out", authorizeRoles("security"), securityController.checkOutVisitor);
+
+router.post("/vehicles/entry", authorizeRoles("security"), securityController.createVehicleEntry);
+router.get("/vehicles", authorizeRoles("security", "admin", "secretary"), securityController.listVehicles);
 
 router.post("/deliveries", authorizeRoles("security", "admin"), securityController.createDelivery);
 router.get("/deliveries", authorizeRoles("security", "admin", "secretary"), securityController.listDeliveries);

@@ -1,0 +1,86 @@
+{
+  "common": {
+    "language": "ভাষা",
+    "menu": "মেনু",
+    "soon": "শীঘ্রই",
+    "live": "লাইভ",
+    "backToHome": "হোমে ফিরে যান",
+    "selectedSociety": "নির্বাচিত সোসাইটি",
+    "code": "কোড",
+    "chooseDifferentSociety": "অন্য সোসাইটি বেছে নিন",
+    "rememberMe": "আমাকে মনে রাখুন",
+    "forgotPassword": "পাসওয়ার্ড ভুলে গেছেন?",
+    "role": "ভূমিকা",
+    "mode": "মোড",
+    "signingIn": "সাইন ইন হচ্ছে...",
+    "loading": "লোড হচ্ছে",
+    "search": "খুঁজুন",
+    "settings": "সেটিংস",
+    "save": "সেভ",
+    "cancel": "বাতিল"
+  },
+  "brand": { "eyebrow": "মাল্টি-সোসাইটি SaaS", "title": "NEXORA" },
+  "actions": {
+    "lightMode": "লাইট মোড",
+    "darkMode": "ডার্ক মোড",
+    "systemMode": "সিস্টেম মোড",
+    "signIn": "সাইন ইন",
+    "startFreeTrial": "ফ্রি ট্রায়াল শুরু করুন",
+    "createAccount": "অ্যাকাউন্ট তৈরি করুন",
+    "openPortal": "পোর্টাল খুলুন"
+  },
+  "nav": {
+    "dashboard": "ড্যাশবোর্ড",
+    "billing": "বিলিং",
+    "maintenance": "রক্ষণাবেক্ষণ",
+    "complaints": "অভিযোগ",
+    "visitors": "ভিজিটর",
+    "documents": "ডকুমেন্ট",
+    "analytics": "অ্যানালিটিক্স",
+    "settings": "সেটিংস",
+    "aiAssistant": "AI সহকারী",
+    "messages": "বার্তা"
+  },
+  "role": {
+    "admin": "চেয়ারম্যান",
+    "secretary": "সেক্রেটারি",
+    "super_admin": "সুপার অ্যাডমিন",
+    "resident": "বাসিন্দা",
+    "staff": "স্টাফ",
+    "security": "সিকিউরিটি"
+  },
+  "dashboard": { "title": "{{role}} ড্যাশবোর্ড" },
+  "society": {
+    "switcher": "সোসাইটি সুইচার",
+    "searchPlaceholder": "সোসাইটির নাম বা কোড খুঁজুন",
+    "recent": "সাম্প্রতিক সোসাইটি",
+    "favorites": "প্রিয় সোসাইটি",
+    "allSocieties": "সব সোসাইটি",
+    "switchSociety": "সোসাইটি বদলান",
+    "openSociety": "সোসাইটি খুলুন",
+    "viewAnalytics": "অ্যানালিটিক্স দেখুন",
+    "manageSociety": "সোসাইটি পরিচালনা করুন",
+    "residentCount": "বাসিন্দা",
+    "occupancyRate": "অকুপেন্সি রেট",
+    "pendingComplaints": "বাকি অভিযোগ",
+    "monthlyCollections": "মাসিক সংগ্রহ",
+    "dataIsolation": "ডেটা শুধুমাত্র এই সোসাইটির মধ্যে সীমাবদ্ধ"
+  },
+  "theme": { "title": "থিম", "light": "লাইট", "dark": "ডার্ক", "system": "সিস্টেম" },
+  "language": { "title": "ভাষা", "subtitle": "পুরো ওয়েবসাইটের ভাষা বদলান" },
+  "auth": {
+    "welcomeBack": "আবার স্বাগতম",
+    "login": "লগইন",
+    "register": "রেজিস্টার",
+    "email": "ইমেল",
+    "password": "পাসওয়ার্ড",
+    "societyCode": "সোসাইটি কোড",
+    "verifyOtp": "OTP যাচাই করুন"
+  },
+  "messages": {
+    "maintenancePayment": "রক্ষণাবেক্ষণ পেমেন্ট",
+    "success": "সফল",
+    "error": "ত্রুটি",
+    "empty": "কোনও ডেটা নেই"
+  }
+}

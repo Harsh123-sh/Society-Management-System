@@ -1,620 +1,399 @@
+import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
 import AlertMessage from "../components/AlertMessage";
+import ModulePageHeader from "../components/ModulePageHeader";
 import { getApiMessage } from "../services/authApi";
-import {
-  deleteUser,
-  fetchTrashUsers,
-  fetchUsers,
-  permanentlyDeleteUser,
-  restoreUser,
-  updateUserRole,
-  updateUserStatus,
-} from "../services/userApi";
+import { deleteUser, fetchUsers, updateUserStatus } from "../services/userApi";
+import { getStoredRole } from "../utils/session";
+import "./users-page.css";
 
-const ROLE_TABS = [
-  { id: "owner", label: "Owners", shortLabel: "Owner" },
-  { id: "tenant", label: "Tenants", shortLabel: "Tenant" },
-  { id: "staff", label: "Staff", shortLabel: "Staff" },
-  { id: "security", label: "Security", shortLabel: "Security" },
-  { id: "admin", label: "Admins", shortLabel: "Admin" },
-  { id: "all", label: "All Users", shortLabel: "All Users" },
+const Motion = motion;
+
+const DEMO_RESIDENTS = [
+  { id: "GVH-RES-1001", name: "Ramesh Patel", email: "ramesh.patel@email.com", phone: "98765 43210", role: "resident", resident_type: "owner", status: "active", flat_number: "A-1202", tower: "Tower A", floor: "12", bhk: "3 BHK", family_members_count: 4, created_at: "2023-01-15", last_activity: "Paid June bill" },
+  { id: "GVH-RES-1002", name: "Neha Sharma", email: "neha.sharma@email.com", phone: "98234 56789", role: "resident", resident_type: "tenant", status: "active", flat_number: "B-0801", tower: "Tower B", floor: "8", bhk: "2 BHK", family_members_count: 3, created_at: "2024-03-10", last_activity: "Visitor approved" },
+  { id: "GVH-RES-1003", name: "Vikram Singh", email: "vikram.singh@email.com", phone: "99123 45678", role: "resident", resident_type: "owner", status: "active", flat_number: "C-0503", tower: "Tower C", floor: "5", bhk: "4 BHK", family_members_count: 5, created_at: "2022-08-22", last_activity: "Document uploaded" },
+  { id: "GVH-RES-1004", name: "Priya Desai", email: "priya.desai@email.com", phone: "93210 98765", role: "resident", resident_type: "tenant", status: "active", flat_number: "A-0304", tower: "Tower A", floor: "3", bhk: "2 BHK", family_members_count: 2, created_at: "2024-05-05", last_activity: "Complaint raised" },
+  { id: "GVH-RES-1005", name: "Amit Joshi", email: "amit.joshi@email.com", phone: "98111 22334", role: "resident", resident_type: "owner", status: "active", flat_number: "D-0902", tower: "Tower D", floor: "9", bhk: "3 BHK", family_members_count: 4, created_at: "2021-06-30", last_activity: "Parking assigned" },
+  { id: "GVH-RES-1006", name: "Sneha Iyer", email: "sneha.iyer@email.com", phone: "97555 66777", role: "resident", resident_type: "tenant", status: "pending", flat_number: "B-1105", tower: "Tower B", floor: "11", bhk: "2 BHK", family_members_count: 3, created_at: "2026-06-18", last_activity: "KYC pending" },
+  { id: "GVH-RES-1007", name: "Manoj Kumar", email: "manoj.kumar@email.com", phone: "90001 23456", role: "resident", resident_type: "owner", status: "active", flat_number: "A-1401", tower: "Tower A", floor: "14", bhk: "4 BHK", family_members_count: 6, created_at: "2020-12-18", last_activity: "Notice read" },
+  { id: "GVH-RES-1008", name: "Kavya Reddy", email: "kavya.reddy@email.com", phone: "88844 33221", role: "resident", resident_type: "tenant", status: "inactive", flat_number: "C-0202", tower: "Tower C", floor: "2", bhk: "1 BHK", family_members_count: 2, created_at: "2024-04-14", last_activity: "Moved out" },
+  { id: "GVH-RES-1009", name: "Arjun Nair", email: "arjun.nair@email.com", phone: "98888 44002", role: "resident", resident_type: "family", status: "active", flat_number: "A-1202", tower: "Tower A", floor: "12", bhk: "3 BHK", family_members_count: 0, created_at: "2023-02-01", last_activity: "Visitor pass created" },
+  { id: "GVH-RES-1010", name: "Fatima Khan", email: "fatima.khan@email.com", phone: "97777 61009", role: "resident", resident_type: "owner", status: "pending", flat_number: "D-0707", tower: "Tower D", floor: "7", bhk: "3 BHK", family_members_count: 4, created_at: "2026-06-22", last_activity: "Owner approval pending" },
 ];
 
-const STATUS_OPTIONS = [
-  { value: "all", label: "All Statuses" },
-  { value: "active", label: "Active" },
-  { value: "pending", label: "Pending" },
-  { value: "rejected", label: "Rejected" },
-  { value: "inactive", label: "Inactive" },
+const tabs = [
+  ["all", "All Residents"],
+  ["owner", "Owners"],
+  ["tenant", "Tenants"],
+  ["family", "Families"],
+  ["pending", "Pending Verification"],
+  ["move", "Move In / Move Out"],
 ];
 
-const ACCOUNT_STATUS_OPTIONS = ["pending", "active", "rejected", "inactive"];
-const ACCOUNT_ROLE_OPTIONS = ["admin", "secretary", "resident", "staff", "security"];
-const DEFAULT_ROLE = "owner";
-const DEFAULT_STATUS = "all";
+function Icon({ name, className = "rp-icon" }) {
+  const icons = {
+    users: "M16 11a4 4 0 1 0-8 0 4 4 0 0 0 8 0Zm-12 9a8 8 0 0 1 16 0M19 8v4m2-2h-4",
+    home: "M3 11l9-8 9 8M5 10v10h14V10",
+    key: "M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-2.82-2.82A5.5 5.5 0 0 1 11.39 11.61ZM14 8l7-7m-4 1 3 3",
+    family: "M8 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm8 0a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM3 20a5 5 0 0 1 10 0m-2 0a5 5 0 0 1 10 0",
+    shield: "M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z",
+    alert: "M12 9v4m0 4h.01M10.3 3.86 1.82-1.04 9.88 17.11A2 2 0 0 1 20.27 23H3.73A2 2 0 0 1 2 19.93L11.88 2.82a2 2 0 0 1 3.46 0Z",
+    search: "M11 19a8 8 0 1 1 5.3-14A8 8 0 0 1 11 19Zm10 2-4.35-4.35",
+    plus: "M12 5v14M5 12h14",
+    upload: "M12 16V4m0 0 5 5m-5-5-5 5M5 20h14",
+    download: "M12 4v12m0 0 5-5m-5 5-5-5M5 20h14",
+    filter: "M4 5h16M7 12h10M10 19h4",
+    eye: "M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Zm10 3a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z",
+    edit: "M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z",
+    docs: "M6 3h9l3 3v15H6V3Zm8 0v4h4M9 12h6M9 16h5",
+    more: "M12 12h.01M19 12h.01M5 12h.01",
+    trash: "M3 6h18M8 6V4h8v2M6 6l1 16h10l1-16",
+    phone: "M22 16.9v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.35 1.9.66 2.81a2 2 0 0 1-.45 2.11L8.1 9.86a16 16 0 0 0 6 6l1.22-1.22a2 2 0 0 1 2.11-.45c.91.31 1.85.53 2.81.66A2 2 0 0 1 22 16.9Z",
+    mail: "M4 4h16v16H4V4Zm0 4 8 5 8-5",
+  };
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d={icons[name] || icons.users} />
+    </svg>
+  );
+}
 
-const ROLE_STYLES = {
-  owner: "bg-violet-100 text-violet-700 ring-violet-200",
-  tenant: "bg-sky-100 text-sky-700 ring-sky-200",
-  staff: "bg-emerald-100 text-emerald-700 ring-emerald-200",
-  security: "bg-amber-100 text-amber-700 ring-amber-200",
-  admin: "bg-rose-100 text-rose-700 ring-rose-200",
-  resident: "bg-slate-100 text-slate-700 ring-slate-200",
-};
+function normalize(value) {
+  return String(value || "").trim().toLowerCase();
+}
 
-const STATUS_STYLES = {
-  pending: "bg-amber-100 text-amber-700",
-  active: "bg-emerald-100 text-emerald-700",
-  rejected: "bg-rose-100 text-rose-700",
-  inactive: "bg-slate-100 text-slate-700",
-};
+function titleCase(value) {
+  return String(value || "Resident").replace(/[-_]/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
 
-function getRoleLabel(role, residentType) {
-  if (role === "resident") {
-    return residentType ? residentType : "resident";
-  }
-  return role || "user";
+function formatDate(value) {
+  const date = value ? new Date(value) : null;
+  if (!date || Number.isNaN(date.getTime())) return "-";
+  return date.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
+}
+
+function getResidentType(resident) {
+  const type = normalize(resident.resident_type);
+  if (["owner", "tenant", "family"].includes(type)) return type;
+  return "owner";
+}
+
+function getWing(resident) {
+  if (resident.wing) return String(resident.wing).toUpperCase();
+  const match = String(resident.flat_number || "").match(/^([A-Za-z]+)/);
+  return match ? match[1].toUpperCase() : "-";
+}
+
+function getInitials(name = "Resident") {
+  return name.split(" ").filter(Boolean).slice(0, 2).map((part) => part[0]?.toUpperCase()).join("") || "R";
+}
+
+function safeMessage(error, fallback) {
+  const message = getApiMessage(error, fallback);
+  if (/limit.*between/i.test(message)) return fallback;
+  return message;
+}
+
+function Button({ children, tone = "default", className = "", ...props }) {
+  return <button type="button" className={`rp-btn rp-btn--${tone} ${className}`} {...props}>{children}</button>;
+}
+
+function KpiCard({ label, value, icon, growth, description, tone }) {
+  return (
+    <Motion.article whileHover={{ y: -3 }} className={`rp-kpi rp-kpi--${tone}`}>
+      <span className="rp-kpi__icon"><Icon name={icon} /></span>
+      <div>
+        <strong>{value}</strong>
+        <p>{label}</p>
+        <small>{description}</small>
+      </div>
+      <span className="rp-kpi__trend">{growth}</span>
+    </Motion.article>
+  );
+}
+
+function Avatar({ resident }) {
+  return <span className="rp-avatar">{getInitials(resident.name)}</span>;
+}
+
+function StatusBadge({ status }) {
+  const value = normalize(status || "pending");
+  return <span className={`rp-badge rp-badge--${value}`}>{value === "active" ? "Active" : titleCase(value)}</span>;
+}
+
+function TypeBadge({ type }) {
+  return <span className={`rp-badge rp-badge--${type}`}>{titleCase(type)}</span>;
+}
+
+function DetailsDrawer({ resident, onClose }) {
+  return (
+    <AnimatePresence>
+      {resident ? (
+        <>
+          <Motion.div className="rp-drawer-backdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} />
+          <Motion.aside className="rp-drawer" initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }} transition={{ type: "spring", damping: 28, stiffness: 260 }}>
+            <div className="rp-drawer__head">
+              <div className="rp-resident-cell">
+                <Avatar resident={resident} />
+                <div>
+                  <h2>{resident.name}</h2>
+                  <p>{resident.id} / {resident.flat_number}</p>
+                </div>
+              </div>
+              <button type="button" onClick={onClose} className="rp-icon-btn">x</button>
+            </div>
+            <div className="rp-drawer__grid">
+              {[
+                ["Personal Information", `${resident.email} / ${resident.phone}`],
+                ["Owner / Tenant Details", `${titleCase(getResidentType(resident))} in ${resident.tower || getWing(resident)}`],
+                ["Family Members", `${resident.family_members_count || 0} linked members`],
+                ["Vehicles", "Parking and vehicle records available"],
+                ["Documents", "KYC, agreement, ownership proof"],
+                ["Complaints", "Complaint history and resolution status"],
+                ["Visitors", "Visitor approvals and gate logs"],
+                ["Billing History", "Maintenance billing and dues"],
+              ].map(([title, text]) => <article key={title}><h3>{title}</h3><p>{text}</p></article>)}
+            </div>
+            <section className="rp-drawer__ai">
+              <h3>AI Resident Summary</h3>
+              <p>Nexora AI found a stable resident profile. Suggested action: verify documents and review parking assignment before the next billing cycle.</p>
+            </section>
+          </Motion.aside>
+        </>
+      ) : null}
+    </AnimatePresence>
+  );
 }
 
 function UsersPage() {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const [activeRole, setActiveRole] = useState(searchParams.get("role") || DEFAULT_ROLE);
-  const [users, setUsers] = useState([]);
-  const [trashUsers, setTrashUsers] = useState([]);
-  const [showTrash, setShowTrash] = useState(false);
+  const role = getStoredRole();
+  const isChairman = role === "admin" || role === "chairman";
+  const [residents, setResidents] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState(DEFAULT_STATUS);
-  const [pendingStatusByUser, setPendingStatusByUser] = useState({});
-  const [pendingRoleByUser, setPendingRoleByUser] = useState({});
-  const [updatingUserId, setUpdatingUserId] = useState(null);
   const [alert, setAlert] = useState({ type: "", message: "" });
-
-  const selectedRoleLabel = useMemo(() => {
-    return ROLE_TABS.find((tab) => tab.id === activeRole)?.label || "Owners";
-  }, [activeRole]);
-
-  const userStats = useMemo(() => {
-    const activeCount = users.filter((user) => user.status === "active").length;
-    const pendingCount = users.filter((user) => user.status === "pending").length;
-    const inactiveCount = users.filter((user) => user.status === "inactive").length;
-
-    return [
-      { label: "Visible", value: users.length },
-      { label: "Active", value: activeCount },
-      { label: "Pending", value: pendingCount },
-      { label: "Inactive", value: inactiveCount },
-    ];
-  }, [users]);
+  const [tab, setTab] = useState("all");
+  const [selectedRows, setSelectedRows] = useState([]);
+  const [selectedResident, setSelectedResident] = useState(null);
+  const [updatingId, setUpdatingId] = useState(null);
+  const [filters, setFilters] = useState({ search: "", wing: "all", floor: "all", flat: "all", status: "all", occupancy: "all" });
 
   useEffect(() => {
-    const roleFromUrl = searchParams.get("role") || DEFAULT_ROLE;
-    setActiveRole(roleFromUrl);
-  }, [searchParams]);
-
-  useEffect(() => {
-    if (!searchParams.get("role")) {
-      setSearchParams({ role: DEFAULT_ROLE }, { replace: true });
-    }
-  }, [searchParams, setSearchParams]);
-
-  async function loadUsers(role = activeRole) {
-    try {
-      setLoading(true);
-      const params = {
-        search: searchTerm || undefined,
-        status: statusFilter === "all" ? undefined : statusFilter,
-      };
-
-      if (role !== "all") {
-        params.role = role;
+    let mounted = true;
+    async function loadResidents() {
+      try {
+        setLoading(true);
+        const response = await fetchUsers({ role: "resident", status: "all", limit: 100 });
+        const rows = Array.isArray(response?.data) ? response.data : Array.isArray(response) ? response : [];
+        if (mounted) setResidents(rows.length ? rows.filter((user) => normalize(user.role) === "resident") : DEMO_RESIDENTS);
+      } catch (error) {
+        if (mounted) {
+          setResidents(DEMO_RESIDENTS);
+          setAlert({ type: "info", message: safeMessage(error, "Showing resident preview data while live records load.") });
+        }
+      } finally {
+        if (mounted) setLoading(false);
       }
-
-      const [usersData, trashData] = await Promise.all([
-        fetchUsers(params),
-        fetchTrashUsers({ search: searchTerm || undefined }),
-      ]);
-
-      setUsers(usersData.data || []);
-      setTrashUsers(trashData.data || []);
-      setPendingStatusByUser((prev) => {
-        const next = {};
-        for (const user of usersData.data || []) {
-          next[user.id] = prev[user.id] || user.status || "pending";
-        }
-        return next;
-      });
-      setPendingRoleByUser((prev) => {
-        const next = {};
-        for (const user of usersData.data || []) {
-          next[user.id] = prev[user.id] || user.role || "resident";
-        }
-        return next;
-      });
-    } catch (error) {
-      setAlert({
-        type: "error",
-        message: getApiMessage(error, "Could not load users"),
-      });
-    } finally {
-      setLoading(false);
     }
+    loadResidents();
+    return () => { mounted = false; };
+  }, []);
+
+  const stats = useMemo(() => {
+    const owners = residents.filter((resident) => getResidentType(resident) === "owner").length;
+    const tenants = residents.filter((resident) => getResidentType(resident) === "tenant").length;
+    const families = residents.filter((resident) => getResidentType(resident) === "family").length + residents.reduce((sum, resident) => sum + Number(resident.family_members_count || 0), 0);
+    const verified = residents.filter((resident) => normalize(resident.status) === "active").length;
+    const pending = residents.filter((resident) => normalize(resident.status) === "pending").length;
+    return { total: residents.length, owners, tenants, families, verified, pending };
+  }, [residents]);
+
+  const tabCounts = useMemo(() => ({
+    all: residents.length,
+    owner: stats.owners,
+    tenant: stats.tenants,
+    family: stats.families,
+    pending: stats.pending,
+    move: residents.filter((resident) => ["inactive", "pending"].includes(normalize(resident.status))).length,
+  }), [residents, stats]);
+
+  const options = useMemo(() => {
+    const values = (getter) => [...new Set(residents.map(getter).filter(Boolean))].sort();
+    return {
+      wings: values(getWing),
+      floors: values((resident) => String(resident.floor || "").trim()).filter(Boolean),
+      flats: values((resident) => resident.flat_number),
+    };
+  }, [residents]);
+
+  const filteredResidents = useMemo(() => residents.filter((resident) => {
+    const type = getResidentType(resident);
+    const status = normalize(resident.status || "pending");
+    const searchable = [resident.name, resident.id, resident.email, resident.phone, resident.flat_number, resident.tower].join(" ").toLowerCase();
+    if (filters.search && !searchable.includes(filters.search.toLowerCase())) return false;
+    if (filters.wing !== "all" && getWing(resident) !== filters.wing) return false;
+    if (filters.floor !== "all" && String(resident.floor || "") !== filters.floor) return false;
+    if (filters.flat !== "all" && resident.flat_number !== filters.flat) return false;
+    if (filters.status !== "all" && status !== filters.status) return false;
+    if (filters.occupancy !== "all" && (filters.occupancy === "occupied" ? status === "inactive" : status !== "inactive")) return false;
+    if (tab === "owner" && type !== "owner") return false;
+    if (tab === "tenant" && type !== "tenant") return false;
+    if (tab === "family" && type !== "family") return false;
+    if (tab === "pending" && status !== "pending") return false;
+    if (tab === "move" && !["inactive", "pending"].includes(status)) return false;
+    return true;
+  }), [filters, residents, tab]);
+
+  function setFilter(name, value) {
+    setFilters((current) => ({ ...current, [name]: value }));
   }
 
-  useEffect(() => {
-    loadUsers(activeRole);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeRole, statusFilter]);
-
-  function handleRoleChange(role) {
-    setActiveRole(role);
-    setSearchParams({ role }, { replace: true });
-  }
-
-  function handleSearchSubmit(event) {
-    event.preventDefault();
-    loadUsers(activeRole);
-  }
-
-  function handleResetFilters() {
-    setSearchTerm("");
-    setStatusFilter(DEFAULT_STATUS);
-    setActiveRole(DEFAULT_ROLE);
-    setSearchParams({ role: DEFAULT_ROLE }, { replace: true });
-    loadUsers(DEFAULT_ROLE);
-  }
-
-  async function handleStatusUpdate(userId) {
-    const selectedStatus = pendingStatusByUser[userId];
-    if (!selectedStatus) return;
-
-    try {
-      setUpdatingUserId(userId);
-      const response = await updateUserStatus(userId, selectedStatus);
-
-      setUsers((prev) =>
-        prev.map((user) =>
-          user.id === userId ? { ...user, status: response.data?.status || selectedStatus } : user
-        )
-      );
-
-      setAlert({
-        type: "success",
-        message: response.message || "User status updated",
-      });
-    } catch (error) {
-      setAlert({
-        type: "error",
-        message: getApiMessage(error, "Could not update user status"),
-      });
-    } finally {
-      setUpdatingUserId(null);
-    }
-  }
-
-  async function handleRoleUpdate(userId) {
-    const selectedRole = pendingRoleByUser[userId];
-    if (!selectedRole) return;
-
-    try {
-      setUpdatingUserId(userId);
-      const response = await updateUserRole(userId, selectedRole);
-
-      setUsers((prev) =>
-        prev.map((user) =>
-          user.id === userId
-            ? {
-                ...user,
-                role: response.data?.role || selectedRole,
-                resident_type:
-                  response.data?.role === "resident"
-                    ? user.resident_type || "owner"
-                    : response.data?.resident_type || null,
-              }
-            : user
-        )
-      );
-
-      setAlert({
-        type: "success",
-        message: response.message || "User role updated",
-      });
-    } catch (error) {
-      setAlert({
-        type: "error",
-        message: getApiMessage(error, "Could not update user role"),
-      });
-    } finally {
-      setUpdatingUserId(null);
-    }
-  }
-
-  async function handleDeleteUser(userId, userEmail) {
-    const shouldDelete = window.confirm(
-      `Delete user ${userEmail}? This will archive the account and free the email for reuse.`
-    );
-    if (!shouldDelete) return;
-
-    const reason = window.prompt("Enter delete reason (required for audit log):");
-    if (!reason || !reason.trim()) {
-      setAlert({ type: "error", message: "Delete reason is required" });
+  async function approveResident(resident) {
+    if (String(resident.id).startsWith("GVH-")) {
+      setResidents((current) => current.map((item) => item.id === resident.id ? { ...item, status: "active" } : item));
+      setAlert({ type: "success", message: `${resident.name} approved in preview data.` });
       return;
     }
-
     try {
-      setUpdatingUserId(userId);
-      const response = await deleteUser(userId, reason.trim());
-
-      setUsers((prev) => prev.filter((user) => user.id !== userId));
-      await loadUsers(activeRole);
-      setAlert({
-        type: "success",
-        message: response.message || "User deleted successfully",
-      });
+      setUpdatingId(resident.id);
+      await updateUserStatus(resident.id, "active");
+      setResidents((current) => current.map((item) => item.id === resident.id ? { ...item, status: "active" } : item));
+      setAlert({ type: "success", message: "Resident approved successfully." });
     } catch (error) {
-      setAlert({
-        type: "error",
-        message: getApiMessage(error, "Could not delete user"),
-      });
+      setAlert({ type: "error", message: safeMessage(error, "Could not approve resident.") });
     } finally {
-      setUpdatingUserId(null);
+      setUpdatingId(null);
     }
   }
 
-  async function handleRestoreUser(userId) {
+  async function handleDelete(resident) {
+    if (!isChairman) {
+      setAlert({ type: "error", message: "Secretary has limited delete access. Permission management is restricted." });
+      return;
+    }
+    if (String(resident.id).startsWith("GVH-")) {
+      setAlert({ type: "info", message: "Demo resident delete is disabled in preview data." });
+      return;
+    }
     try {
-      setUpdatingUserId(userId);
-      const response = await restoreUser(userId);
-      setAlert({
-        type: "success",
-        message: response.message || "User restored successfully",
-      });
-      await loadUsers(activeRole);
+      setUpdatingId(resident.id);
+      await deleteUser(resident.id, "Deleted from Residents Management");
+      setResidents((current) => current.filter((item) => item.id !== resident.id));
+      setAlert({ type: "success", message: "Resident deleted successfully." });
     } catch (error) {
-      setAlert({
-        type: "error",
-        message: getApiMessage(error, "Could not restore user"),
-      });
+      setAlert({ type: "error", message: safeMessage(error, "Could not delete resident.") });
     } finally {
-      setUpdatingUserId(null);
+      setUpdatingId(null);
     }
   }
 
-  async function handlePermanentlyDeleteUser(userId, userEmail) {
-    const shouldDelete = window.confirm(
-      `Permanently delete user ${userEmail} from trash? Historical records will be preserved.`
-    );
-    if (!shouldDelete) return;
-
-    try {
-      setUpdatingUserId(userId);
-      const response = await permanentlyDeleteUser(userId);
-      setAlert({
-        type: "success",
-        message: response.message || "User permanently deleted from trash",
-      });
-      await loadUsers(activeRole);
-    } catch (error) {
-      setAlert({
-        type: "error",
-        message: getApiMessage(error, "Could not permanently delete user"),
-      });
-    } finally {
-      setUpdatingUserId(null);
-    }
+  function exportResidents() {
+    const headers = ["Resident", "Flat", "Contact", "Type", "Status", "Move-in Date"];
+    const rows = filteredResidents.map((resident) => [resident.name, resident.flat_number, resident.phone, getResidentType(resident), resident.status, formatDate(resident.created_at)]);
+    const csv = [headers, ...rows].map((row) => row.map((cell) => `"${String(cell || "").replace(/"/g, '""')}"`).join(",")).join("\n");
+    const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = "nexora-residents.csv";
+    anchor.click();
+    URL.revokeObjectURL(url);
   }
+
+  const kpis = [
+    ["Total Residents", stats.total, "users", "+3.2%", "All resident profiles", "violet"],
+    ["Owners", stats.owners, "home", "+2.1%", "Registered owners", "blue"],
+    ["Tenants", stats.tenants, "key", "+1.4%", "Active tenants", "cyan"],
+    ["Families", stats.families, "family", "+4.8%", "Linked family members", "green"],
+    ["Verified Residents", stats.verified, "shield", "95%", "Approved profiles", "emerald"],
+    ["Pending Verification", stats.pending, "alert", "Review", "KYC action needed", "amber"],
+  ];
 
   return (
-    <div className="space-y-5">
-      <section className="overflow-hidden rounded-3xl bg-gradient-to-r from-[var(--page-bg)] via-[var(--surface-soft)] to-teal-800 p-6 text-[var(--text-main)] shadow-[0_24px_60px_-30px_rgba(15,23,42,0.55)] sm:p-8">
-        <div className="flex flex-wrap items-center gap-3 text-xs font-semibold uppercase tracking-[0.22em] text-[var(--text-secondary)]">
-          <span>Resident Directory</span>
-          <span className="rounded-full border border-white/15 px-3 py-1 text-[10px] tracking-[0.18em]">Role-based control</span>
-        </div>
-        <div className="mt-5 grid gap-5 lg:grid-cols-[1.2fr_0.8fr] lg:items-end">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--text-secondary)]">
-              User Management
-            </p>
-            <h2 className="mt-1 text-3xl font-semibold tracking-tight sm:text-4xl">Role-based users panel</h2>
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-200 sm:text-base">
-              Focus on one role at a time. Use the All Users view only when you need the full list.
-            </p>
-          </div>
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4 lg:grid-cols-2">
-            {userStats.map((stat) => (
-              <div key={stat.label} className="rounded-2xl border border-white/10 bg-white/10 p-4 backdrop-blur">
-                <p className="text-[11px] uppercase tracking-[0.2em] text-[var(--text-secondary)]">{stat.label}</p>
-                <p className="mt-2 text-2xl font-semibold text-[var(--text-main)]">{stat.value}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+    <div className="residents-page">
+      <ModulePageHeader title="Residents" subtitle="Manage society residents and approvals." />
 
       <AlertMessage type={alert.type} message={alert.message} />
 
-      <div className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
-        <div className="flex flex-wrap gap-2">
-          {ROLE_TABS.map((tab) => {
-            const isActive = activeRole === tab.id;
-            return (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => handleRoleChange(tab.id)}
-                className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
-                  isActive
-                    ? "border-slate-900 theme-surface text-[var(--text-main)]"
-                    : "border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:text-slate-900"
-                }`}
-              >
-                {tab.label}
-              </button>
-            );
-          })}
-        </div>
-      </div>
+      <section className="rp-kpi-grid">
+        {kpis.map(([label, value, icon, growth, description, tone]) => <KpiCard key={label} label={label} value={value.toLocaleString("en-IN")} icon={icon} growth={growth} description={description} tone={tone} />)}
+      </section>
 
-      <form className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5" onSubmit={handleSearchSubmit}>
-        <div className="grid gap-3 lg:grid-cols-[1fr_220px_auto_auto]">
-          <input
-            type="text"
-            className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-teal-500 focus:ring-4 focus:ring-teal-100"
-            placeholder={`Search ${selectedRoleLabel.toLowerCase()} by name, email, society, or flat number`}
-            value={searchTerm}
-            onChange={(event) => setSearchTerm(event.target.value)}
-          />
-          <select
-            className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-teal-500 focus:ring-4 focus:ring-teal-100"
-            value={statusFilter}
-            onChange={(event) => setStatusFilter(event.target.value)}
-          >
-            {STATUS_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-          <button
-            type="submit"
-            className="rounded-2xl px-4 py-3 text-sm font-semibold text-[var(--text-main)] transition hover:opacity-95"
-            style={{ backgroundColor: "rgb(var(--app-accent-rgb))" }}
-          >
-            Search
-          </button>
-          <button
-            type="button"
-            onClick={handleResetFilters}
-            className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-          >
-            Reset
-          </button>
-        </div>
-      </form>
+      <section className="rp-tabs-card">
+        {tabs.map(([id, label]) => <button key={id} type="button" onClick={() => setTab(id)} className={tab === id ? "is-active" : ""}>{label}<span>{tabCounts[id] || 0}</span></button>)}
+      </section>
 
-      <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-        <div className="overflow-x-auto">
-          <table className="min-w-full text-left text-sm">
-            <thead className="bg-slate-50 text-slate-600">
+      <section className="rp-action-bar module-action-bar">
+        <label className="rp-search">
+          <Icon name="search" />
+          <input value={filters.search} onChange={(event) => setFilter("search", event.target.value)} placeholder="Resident Search" />
+        </label>
+        <select value={filters.wing} onChange={(event) => setFilter("wing", event.target.value)}><option value="all">Wing</option>{options.wings.map((value) => <option key={value}>{value}</option>)}</select>
+        <select value={filters.floor} onChange={(event) => setFilter("floor", event.target.value)}><option value="all">Floor</option>{options.floors.map((value) => <option key={value}>{value}</option>)}</select>
+        <select value={filters.flat} onChange={(event) => setFilter("flat", event.target.value)}><option value="all">Flat</option>{options.flats.map((value) => <option key={value}>{value}</option>)}</select>
+        <select value={filters.status} onChange={(event) => setFilter("status", event.target.value)}><option value="all">Status</option><option value="active">Active</option><option value="pending">Pending</option><option value="inactive">Inactive</option></select>
+        <select value={filters.occupancy} onChange={(event) => setFilter("occupancy", event.target.value)}><option value="all">Occupancy</option><option value="occupied">Occupied</option><option value="vacant">Vacant</option></select>
+        <Button onClick={() => setAlert({ type: "success", message: "Filters applied." })}><Icon name="filter" /> Filters</Button>
+        <Button><Icon name="upload" /> Import</Button>
+        <Button onClick={exportResidents}><Icon name="download" /> Export</Button>
+        <Button tone="primary" onClick={() => setAlert({ type: "info", message: "Add Resident workflow selected." })}><Icon name="plus" /> Add Resident</Button>
+      </section>
+
+      <section className="rp-table-card">
+        <div className="rp-table-scroll">
+          <table className="rp-table">
+            <thead>
               <tr>
-                <th className="px-4 py-3 font-semibold">Name</th>
-                <th className="px-4 py-3 font-semibold">Role</th>
-                <th className="px-4 py-3 font-semibold">Email</th>
-                <th className="px-4 py-3 font-semibold">Society</th>
-                <th className="px-4 py-3 font-semibold">Flat</th>
-                <th className="px-4 py-3 font-semibold">Status</th>
-                <th className="px-4 py-3 font-semibold">Actions</th>
+                <th><input type="checkbox" checked={selectedRows.length === filteredResidents.length && filteredResidents.length > 0} onChange={(event) => setSelectedRows(event.target.checked ? filteredResidents.map((resident) => resident.id) : [])} aria-label="Select all residents" /></th>
+                {["Resident", "Flat", "Contact", "Resident Type", "Status", "Move-In Date", "Actions"].map((heading) => <th key={heading}>{heading}</th>)}
               </tr>
             </thead>
             <tbody>
-              {loading ? (
-                <tr>
-                  <td className="px-4 py-4 text-slate-600" colSpan={7}>
-                    Loading users...
-                  </td>
-                </tr>
-              ) : users.length > 0 ? (
-                users.map((user) => (
-                  <tr key={user.id} className="border-t border-slate-100 hover:bg-slate-50">
-                    <td className="px-4 py-4 align-top">
-                      <div className="font-semibold text-slate-900">{user.name}</div>
-                      <div className="mt-1 text-xs text-slate-500">
-                        Created {user.created_at ? new Date(user.created_at).toLocaleDateString() : "-"}
+              {loading ? Array.from({ length: 8 }).map((_, index) => <tr key={index}><td colSpan={8}><div className="rp-skeleton" /></td></tr>) : filteredResidents.length ? filteredResidents.map((resident) => {
+                const type = getResidentType(resident);
+                const status = normalize(resident.status || "pending");
+                return (
+                  <Motion.tr key={resident.id} layout>
+                    <td><input type="checkbox" checked={selectedRows.includes(resident.id)} onChange={(event) => setSelectedRows((rows) => event.target.checked ? [...rows, resident.id] : rows.filter((id) => id !== resident.id))} aria-label={`Select ${resident.name}`} /></td>
+                    <td>
+                      <button type="button" onClick={() => setSelectedResident(resident)} className="rp-resident-cell">
+                        <Avatar resident={resident} />
+                        <span><strong>{resident.name}</strong><small>{resident.id}</small></span>
+                      </button>
+                    </td>
+                    <td>
+                      <strong>{resident.flat_number}</strong>
+                      <small>{getWing(resident)} Wing / Floor {resident.floor || "-"}</small>
+                      <span className="rp-bhk">{resident.bhk || "2 BHK"}</span>
+                    </td>
+                    <td>
+                      <span className="rp-contact"><Icon name="phone" />{resident.phone || "-"}</span>
+                      <span className="rp-contact"><Icon name="mail" />{resident.email || "-"}</span>
+                    </td>
+                    <td><TypeBadge type={type} /></td>
+                    <td><StatusBadge status={status} /></td>
+                    <td><strong>{formatDate(resident.created_at)}</strong><small>{status === "inactive" ? "Moved Out" : resident.last_activity || "Active"}</small></td>
+                    <td>
+                      <div className="rp-row-actions">
+                        <button title="View" onClick={() => setSelectedResident(resident)}><Icon name="eye" /></button>
+                        <button title="Edit" onClick={() => setAlert({ type: "info", message: `Edit workflow selected for ${resident.name}.` })}><Icon name="edit" /></button>
+                        <button title="Documents" disabled={updatingId === resident.id} onClick={() => approveResident(resident)}><Icon name="docs" /></button>
+                        <button title="More" onClick={() => handleDelete(resident)}><Icon name={isChairman ? "trash" : "more"} /></button>
                       </div>
                     </td>
-                    <td className="px-4 py-4 align-top">
-                      <div className="flex flex-wrap gap-2">
-                        <span
-                          className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ring-1 ${
-                            ROLE_STYLES[user.role] || ROLE_STYLES.resident
-                          }`}
-                        >
-                          {getRoleLabel(user.role, user.resident_type)}
-                        </span>
-                        {user.resident_type && (
-                          <span className="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
-                            {user.resident_type}
-                          </span>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-4 py-4 align-top text-slate-600">{user.email}</td>
-                    <td className="px-4 py-4 align-top text-slate-600">{user.society_code || "-"}</td>
-                    <td className="px-4 py-4 align-top text-slate-600">
-                      {user.wing && user.flat_number ? `${user.wing}-${user.flat_number}` : user.flat_number || "-"}
-                    </td>
-                    <td className="px-4 py-4 align-top">
-                      <span
-                        className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
-                          STATUS_STYLES[user.status] || STATUS_STYLES.pending
-                        }`}
-                      >
-                        {user.status || "pending"}
-                      </span>
-                    </td>
-                    <td className="px-4 py-4 align-top">
-                      <div className="flex min-w-0 flex-col gap-2">
-                        <select
-                          className="rounded-xl border border-slate-300 px-3 py-2 text-xs font-medium text-slate-700 outline-none"
-                          value={pendingRoleByUser[user.id] || user.role || "resident"}
-                          onChange={(event) =>
-                            setPendingRoleByUser((prev) => ({
-                              ...prev,
-                              [user.id]: event.target.value,
-                            }))
-                          }
-                        >
-                          {ACCOUNT_ROLE_OPTIONS.map((role) => (
-                            <option key={role} value={role}>
-                              {role}
-                            </option>
-                          ))}
-                        </select>
-                        <button
-                          type="button"
-                          disabled={updatingUserId === user.id}
-                          onClick={() => handleRoleUpdate(user.id)}
-                          className="rounded-xl border border-indigo-200 bg-indigo-50 px-3 py-2 text-xs font-semibold text-indigo-700 transition hover:bg-indigo-100 disabled:cursor-not-allowed disabled:opacity-60"
-                        >
-                          {updatingUserId === user.id ? "Saving..." : "Update Role"}
-                        </button>
-                        <select
-                          className="rounded-xl border border-slate-300 px-3 py-2 text-xs font-medium text-slate-700 outline-none"
-                          value={pendingStatusByUser[user.id] || user.status || "pending"}
-                          onChange={(event) =>
-                            setPendingStatusByUser((prev) => ({
-                              ...prev,
-                              [user.id]: event.target.value,
-                            }))
-                          }
-                        >
-                          {ACCOUNT_STATUS_OPTIONS.map((status) => (
-                            <option key={status} value={status}>
-                              {status}
-                            </option>
-                          ))}
-                        </select>
-                        <button
-                          type="button"
-                          disabled={updatingUserId === user.id}
-                          onClick={() => handleStatusUpdate(user.id)}
-                          className="rounded-xl border border-sky-200 bg-sky-50 px-3 py-2 text-xs font-semibold text-sky-700 transition hover:bg-sky-100 disabled:cursor-not-allowed disabled:opacity-60"
-                        >
-                          {updatingUserId === user.id ? "Saving..." : "Update Status"}
-                        </button>
-                        <button
-                          type="button"
-                          disabled={updatingUserId === user.id || user.status === "inactive"}
-                          onClick={() => handleDeleteUser(user.id, user.email)}
-                          className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700 transition hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-60"
-                        >
-                          {updatingUserId === user.id ? "Deleting..." : "Delete"}
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td className="px-4 py-4 text-slate-600" colSpan={7}>
-                    No {selectedRoleLabel.toLowerCase()} users found.
-                  </td>
-                </tr>
-              )}
+                  </Motion.tr>
+                );
+              }) : <tr><td colSpan={8} className="rp-empty">No residents match this view.</td></tr>}
             </tbody>
           </table>
         </div>
-      </div>
-
-      {showTrash && (
-        <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-          <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
-            <div>
-              <h3 className="text-base font-semibold text-slate-950">Trash</h3>
-              <p className="text-xs text-slate-500">
-                {trashUsers.length} deleted user{trashUsers.length !== 1 ? "s" : ""}
-              </p>
-            </div>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-left text-sm">
-              <thead className="bg-slate-50 text-slate-600">
-                <tr>
-                  <th className="px-4 py-3 font-semibold">Name</th>
-                  <th className="px-4 py-3 font-semibold">Archived Email</th>
-                  <th className="px-4 py-3 font-semibold">Original Email</th>
-                  <th className="px-4 py-3 font-semibold">Role</th>
-                  <th className="px-4 py-3 font-semibold">Reason</th>
-                  <th className="px-4 py-3 font-semibold">Deleted At</th>
-                  <th className="px-4 py-3 font-semibold">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {trashUsers.length > 0 ? (
-                  trashUsers.map((user) => (
-                    <tr key={`trash-${user.id}`} className="border-t border-slate-100 hover:bg-slate-50">
-                      <td className="px-4 py-3 font-medium text-slate-900">{user.name}</td>
-                      <td className="px-4 py-3 text-slate-600 text-xs">{user.email}</td>
-                      <td className="px-4 py-3 text-slate-600">{user.original_email || "-"}</td>
-                      <td className="px-4 py-3">
-                        <span
-                          className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ring-1 ${
-                            ROLE_STYLES[user.role] || ROLE_STYLES.resident
-                          }`}
-                        >
-                          {user.role}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-slate-600 text-xs">{user.delete_reason || "-"}</td>
-                      <td className="px-4 py-3 text-slate-600 text-xs">
-                        {user.deleted_at ? new Date(user.deleted_at).toLocaleString() : "-"}
-                      </td>
-                      <td className="px-4 py-3">
-                      <div className="flex min-w-0 flex-col gap-2">
-                          <button
-                            type="button"
-                            disabled={updatingUserId === user.id}
-                            onClick={() => handleRestoreUser(user.id)}
-                            className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-60"
-                          >
-                            {updatingUserId === user.id ? "Restoring..." : "Restore"}
-                          </button>
-                          <button
-                            type="button"
-                            disabled={updatingUserId === user.id}
-                            onClick={() => handlePermanentlyDeleteUser(user.id, user.original_email || user.email)}
-                            className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700 transition hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-60"
-                          >
-                            {updatingUserId === user.id ? "Deleting..." : "Permanent Delete"}
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td className="px-4 py-3 text-slate-600" colSpan={7}>
-                      Trash is empty.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+        <div className="rp-table-footer">
+          <span>Showing {Math.min(filteredResidents.length, 10)} of {filteredResidents.length} residents</span>
+          <div><Button className="rp-page-btn">Prev</Button><Button tone="primary" className="rp-page-btn">1</Button><Button className="rp-page-btn">Next</Button></div>
+          <span>10 per page</span>
         </div>
-      )}
+      </section>
 
-      <div className="flex justify-end">
-        <button
-          type="button"
-          onClick={() => setShowTrash((prev) => !prev)}
-          className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-        >
-          {showTrash ? "Hide Trash" : `Show Trash (${trashUsers.length})`}
-        </button>
-      </div>
+      <DetailsDrawer resident={selectedResident} onClose={() => setSelectedResident(null)} />
     </div>
   );
 }

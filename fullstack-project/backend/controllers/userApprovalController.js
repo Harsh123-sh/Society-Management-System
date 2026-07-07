@@ -6,6 +6,88 @@
 const db = require("../config/db");
 const UserApprovalModel = require("../models/userApprovalModel");
 
+const CHAIRMAN_ROLES = new Set(["chairman", "admin"]);
+const OPERATIONAL_ROLES = new Set(["resident", "staff", "security"]);
+
+function isChairmanRole(role) {
+  return CHAIRMAN_ROLES.has(String(role || "").toLowerCase());
+}
+
+function isOperationalApproval(user) {
+  const role = String(user?.role || "").toLowerCase();
+  if (!OPERATIONAL_ROLES.has(role)) return false;
+  if (role === "resident") {
+    return ["owner", "tenant"].includes(String(user?.resident_type || "").toLowerCase());
+  }
+  return true;
+}
+
+function canSeeApproval(approver, targetUser, societyId) {
+  const approverRole = String(approver?.role || "").toLowerCase();
+  const sameSociety = Number(approver?.society_id || approver?.societyId) === Number(societyId);
+
+  if (approverRole === "super_admin") {
+    return ["chairman", "admin", "secretary"].includes(String(targetUser?.role || "").toLowerCase());
+  }
+
+  if (!sameSociety) return false;
+
+  if (isChairmanRole(approverRole)) {
+    return String(targetUser?.role || "").toLowerCase() === "secretary" || isOperationalApproval(targetUser);
+  }
+
+  if (approverRole === "secretary") {
+    return isOperationalApproval(targetUser);
+  }
+
+  return false;
+}
+
+function getApprovalAuthorization({ approver, targetUser, societyId }) {
+  const approverRole = String(approver?.role || "").toLowerCase();
+  const targetRole = String(targetUser?.role || "").toLowerCase();
+  const sameSociety = Number(approver?.society_id || approver?.societyId) === Number(societyId);
+
+  if (isChairmanRole(targetRole)) {
+    return {
+      allowed: approverRole === "super_admin",
+      message: "Chairman approval requires Super Admin.",
+    };
+  }
+
+  if (targetRole === "secretary") {
+    return {
+      allowed:
+        approverRole === "super_admin" ||
+        (isChairmanRole(approverRole) && sameSociety && Number(approver?.id) !== Number(targetUser?.id)),
+      message: "Secretary can be approved by Super Admin or Chairman.",
+    };
+  }
+
+  if (isOperationalApproval(targetUser)) {
+    return {
+      allowed: (isChairmanRole(approverRole) || approverRole === "secretary") && sameSociety,
+      message: "Chairman or Secretary can approve same-society owner, tenant, staff, and security registrations.",
+    };
+  }
+
+  return { allowed: false, message: "Unauthorized approval target." };
+}
+
+async function getApprovalTarget(approvalId) {
+  const { rows } = await db.query(
+    `SELECT ua.id, ua.society_id, ua.status AS approval_status,
+            u.id AS user_id, u.role, u.resident_type, u.society_id AS user_society_id
+     FROM user_approvals ua
+     JOIN users u ON u.id = ua.user_id
+     WHERE ua.id = ?
+     LIMIT 1`,
+    [approvalId]
+  );
+
+  return rows[0] || null;
+}
+
 // Get pending approvals for a society
 exports.getPendingApprovals = async (req, res) => {
   try {
@@ -13,10 +95,9 @@ exports.getPendingApprovals = async (req, res) => {
     const userId = req.user.id;
     const { residentType, approvalType } = req.query;
 
-    // Verify authorization - must be secretary or admin
     const { rows: user } = await db.query(
-      `SELECT id FROM users 
-       WHERE id = ? AND society_id = ? AND role IN ('secretary', 'admin', 'super_admin')`,
+      `SELECT id, role, society_id FROM users 
+       WHERE id = ? AND (society_id = ? OR role = 'super_admin') AND role IN ('chairman', 'admin', 'secretary', 'super_admin')`,
       [userId, societyId]
     );
 
@@ -25,15 +106,17 @@ exports.getPendingApprovals = async (req, res) => {
     }
 
     // Get pending approvals
+    const approver = user[0];
     const approvals = await UserApprovalModel.getPendingApprovals(societyId, {
       residentType,
       approvalType
     });
+    const visibleApprovals = approvals.filter((approval) => canSeeApproval(approver, approval, societyId));
 
     res.json({
       message: "Pending approvals fetched",
-      count: approvals.length,
-      approvals
+      count: visibleApprovals.length,
+      approvals: visibleApprovals
     });
   } catch (error) {
     console.error("Error fetching pending approvals:", error);
@@ -47,10 +130,9 @@ exports.getApprovalStats = async (req, res) => {
     const { societyId } = req.params;
     const userId = req.user.id;
 
-    // Verify authorization
     const { rows: user } = await db.query(
-      `SELECT id FROM users 
-       WHERE id = ? AND society_id = ? AND role IN ('secretary', 'admin', 'super_admin')`,
+      `SELECT id, role, society_id FROM users 
+       WHERE id = ? AND (society_id = ? OR role = 'super_admin') AND role IN ('chairman', 'admin', 'secretary', 'super_admin')`,
       [userId, societyId]
     );
 
@@ -78,10 +160,9 @@ exports.approveUser = async (req, res) => {
     const userId = req.user.id;
     const { comments } = req.body;
 
-    // Verify authorization
     const { rows: user } = await db.query(
-      `SELECT id FROM users 
-       WHERE id = ? AND society_id = ? AND role IN ('secretary', 'admin', 'super_admin')`,
+      `SELECT id, role, society_id FROM users 
+       WHERE id = ? AND (society_id = ? OR role = 'super_admin') AND role IN ('chairman', 'admin', 'secretary', 'super_admin')`,
       [userId, societyId]
     );
 
@@ -89,7 +170,21 @@ exports.approveUser = async (req, res) => {
       return res.status(403).json({ message: "Unauthorized" });
     }
 
-    // Approve user
+    const target = await getApprovalTarget(approvalId);
+    if (!target || Number(target.society_id) !== Number(societyId)) {
+      return res.status(404).json({ message: "Approval not found" });
+    }
+
+    const authorization = getApprovalAuthorization({
+      approver: user[0],
+      targetUser: { id: target.user_id, role: target.role, resident_type: target.resident_type },
+      societyId,
+    });
+
+    if (!authorization.allowed) {
+      return res.status(403).json({ message: authorization.message });
+    }
+
     const approval = await UserApprovalModel.approveUser(approvalId, userId, comments);
 
     if (!approval) {
@@ -117,10 +212,9 @@ exports.rejectUser = async (req, res) => {
       return res.status(400).json({ message: "Rejection reason is required" });
     }
 
-    // Verify authorization
     const { rows: user } = await db.query(
-      `SELECT id FROM users 
-       WHERE id = ? AND society_id = ? AND role IN ('secretary', 'admin', 'super_admin')`,
+      `SELECT id, role, society_id FROM users 
+       WHERE id = ? AND (society_id = ? OR role = 'super_admin') AND role IN ('chairman', 'admin', 'secretary', 'super_admin')`,
       [userId, societyId]
     );
 
@@ -128,7 +222,21 @@ exports.rejectUser = async (req, res) => {
       return res.status(403).json({ message: "Unauthorized" });
     }
 
-    // Reject user
+    const target = await getApprovalTarget(approvalId);
+    if (!target || Number(target.society_id) !== Number(societyId)) {
+      return res.status(404).json({ message: "Approval not found" });
+    }
+
+    const authorization = getApprovalAuthorization({
+      approver: user[0],
+      targetUser: { id: target.user_id, role: target.role, resident_type: target.resident_type },
+      societyId,
+    });
+
+    if (!authorization.allowed) {
+      return res.status(403).json({ message: authorization.message });
+    }
+
     const approval = await UserApprovalModel.rejectUser(approvalId, userId, reason);
 
     if (!approval) {
@@ -158,8 +266,8 @@ exports.bulkApproveUsers = async (req, res) => {
 
     // Verify authorization
     const { rows: user } = await db.query(
-      `SELECT id FROM users 
-       WHERE id = ? AND society_id = ? AND role IN ('secretary', 'admin', 'super_admin')`,
+      `SELECT id, role, society_id FROM users 
+       WHERE id = ? AND (society_id = ? OR role = 'super_admin') AND role IN ('chairman', 'admin', 'secretary', 'super_admin')`,
       [userId, societyId]
     );
 
@@ -167,13 +275,29 @@ exports.bulkApproveUsers = async (req, res) => {
       return res.status(403).json({ message: "Unauthorized" });
     }
 
-    // Bulk approve
-    const results = await UserApprovalModel.bulkApproveUsers(
-      userIds,
-      societyId,
-      userId,
-      comments
-    );
+    const results = [];
+    for (const targetUserId of userIds) {
+      const { rows: approvalRows } = await db.query(
+        `SELECT ua.id, u.id AS user_id, u.role, u.resident_type
+         FROM user_approvals ua
+         JOIN users u ON u.id = ua.user_id
+         WHERE ua.user_id = ? AND ua.society_id = ? AND ua.status = 'pending'
+         LIMIT 1`,
+        [targetUserId, societyId]
+      );
+      const target = approvalRows[0];
+      if (!target) continue;
+
+      const authorization = getApprovalAuthorization({
+        approver: user[0],
+        targetUser: { id: target.user_id, role: target.role, resident_type: target.resident_type },
+        societyId,
+      });
+      if (!authorization.allowed) continue;
+
+      const approval = await UserApprovalModel.approveUser(target.id, userId, comments);
+      if (approval) results.push(approval);
+    }
 
     res.json({
       message: "Users approved successfully",

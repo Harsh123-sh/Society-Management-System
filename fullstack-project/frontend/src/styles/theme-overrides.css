@@ -658,7 +658,7 @@ button {
   --app-primary-rgb: var(--role-accent-rgb);
 }
 
-.role-dashboard--chairman {
+.role-dashboard--admin {
   --role-accent-rgb: 20 184 166;
   --role-accent-2-rgb: 37 99 235;
 }
@@ -700,7 +700,7 @@ button {
   border-radius: 18px !important;
 }
 
-.dashboard-main .chairman-dashboard-surface,
+.dashboard-main .admin-dashboard-surface,
 .dashboard-main .secretary-dashboard-surface,
 .dashboard-main .resident-dashboard-surface,
 .dashboard-main .staff-dashboard-surface {
@@ -995,7 +995,7 @@ tbody tr:hover td {
     padding: 0.75rem !important;
   }
 
-  .dashboard-main .chairman-dashboard-surface,
+  .dashboard-main .admin-dashboard-surface,
   .dashboard-main .secretary-dashboard-surface,
   .dashboard-main .resident-dashboard-surface,
   .dashboard-main .staff-dashboard-surface {
@@ -1518,7 +1518,7 @@ tbody tr:hover {
   padding: clamp(1rem, 2vw, 2rem) !important;
 }
 
-.chairman-dashboard-surface,
+.admin-dashboard-surface,
 .secretary-dashboard-surface,
 .resident-dashboard-surface,
 .staff-dashboard-surface,
@@ -1532,7 +1532,7 @@ tbody tr:hover {
     var(--enterprise-card) !important;
 }
 
-.role-dashboard--chairman {
+.role-dashboard--admin {
   --role-accent-rgb: 37 99 235;
   --role-accent-2-rgb: 20 184 166;
 }
@@ -1705,3 +1705,4 @@ tbody tr:hover {
     white-space: nowrap;
   }
 }
+

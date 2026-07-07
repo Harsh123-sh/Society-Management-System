@@ -6,8 +6,8 @@ const DEFAULT_THEME_STATE = {
   density: 'comfortable',
   layoutMode: 'glass',
   fontFamily: 'Manrope',
-  logoUrl: '',
-  faviconUrl: '',
+  logoUrl: '/nexora-logo.png',
+  faviconUrl: '/nexora-favicon.png',
   primaryColor: '#4f46e5',
   secondaryColor: '#2563eb',
   accentColor: '79 70 229',
@@ -25,24 +25,24 @@ const DEFAULT_THEME_STATE = {
 };
 
 const LIGHT_THEME_TOKENS = {
-  appBg: '#f8fafc',
-  pageBg: '#f8fafc',
+  appBg: '#f6f8fc',
+  pageBg: '#f6f8fc',
   surface: '#ffffff',
   surfaceSoft: '#f1f5f9',
   cardBg: 'rgba(255, 255, 255, 0.88)',
   heroBg: 'linear-gradient(135deg, #ffffff, #f1f5f9)',
-  sidebarBg: '#f8fafc',
+  sidebarBg: '#ffffff',
   navbarBg: '#ffffff',
-  textMain: '#0f172a',
+  textMain: '#0b1220',
   textSecondary: '#334155',
   textMuted: '#475569',
   border: 'rgba(15, 23, 42, 0.12)',
   inputBg: '#ffffff',
-  inputText: '#0f172a',
+  inputText: '#0b1220',
   modalBg: '#ffffff',
   tableBg: '#ffffff',
   tableHeaderBg: '#f1f5f9',
-  buttonPrimaryBg: '#06b6d4',
+  buttonPrimaryBg: '#4f46e5',
   buttonPrimaryText: '#ffffff',
   shadow: '0 12px 30px rgba(15, 23, 42, 0.08)',
 };
@@ -50,11 +50,11 @@ const LIGHT_THEME_TOKENS = {
 const DARK_THEME_TOKENS = {
   appBg: '#020617',
   pageBg: '#020617',
-  surface: '#0f172a',
+  surface: '#0b1220',
   surfaceSoft: '#1e293b',
-  cardBg: 'rgba(15, 23, 42, 0.72)',
+  cardBg: 'rgba(15, 23, 42, 0.86)',
   heroBg: 'linear-gradient(135deg, #020617, #0f766e)',
-  sidebarBg: '#020617',
+  sidebarBg: '#0b1220',
   navbarBg: '#0f172a',
   textMain: '#f8fafc',
   textSecondary: '#cbd5e1',
@@ -65,7 +65,7 @@ const DARK_THEME_TOKENS = {
   modalBg: '#0f172a',
   tableBg: '#0f172a',
   tableHeaderBg: '#1e293b',
-  buttonPrimaryBg: '#06b6d4',
+  buttonPrimaryBg: '#6366f1',
   buttonPrimaryText: '#ffffff',
   shadow: '0 12px 30px rgba(0, 0, 0, 0.35)',
 };
@@ -258,6 +258,16 @@ function applyThemeState(partialState) {
   root.style.setProperty('--input-placeholder', isDark ? '#94a3b8' : '#64748b');
   root.style.setProperty('--button-bg', tokens.buttonPrimaryBg);
   root.style.setProperty('--button-text', tokens.buttonPrimaryText);
+  root.style.setProperty('--primary', tokens.buttonPrimaryBg);
+  root.style.setProperty('--surface-muted', tokens.surfaceSoft);
+  root.style.setProperty('--sidebar-card', tokens.cardBg);
+  root.style.setProperty('--sidebar-text', isDark ? '#e5edf7' : '#0b1220');
+  root.style.setProperty('--sidebar-text-muted', isDark ? '#cbd5e1' : '#334155');
+  root.style.setProperty('--sidebar-icon', isDark ? '#d8d9ff' : '#4f46e5');
+  root.style.setProperty('--active', 'linear-gradient(135deg, #6d5ef6 0%, #2563eb 100%)');
+  root.style.setProperty('--active-text', '#ffffff');
+  root.style.setProperty('--accent', isDark ? '#8b5cf6' : '#6d5ef6');
+  root.style.setProperty('--text-disabled', isDark ? '#64748b' : '#94a3b8');
   root.style.setProperty('--table-row-bg', tokens.tableBg);
   root.style.setProperty('--shadow-color', isDark ? 'rgba(0, 0, 0, 0.45)' : 'rgba(15, 23, 42, 0.10)');
   root.style.setProperty('--background', tokens.appBg);

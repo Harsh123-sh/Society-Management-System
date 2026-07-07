@@ -7,6 +7,7 @@ import AuthPasswordInput from "../components/AuthPasswordInput";
 import AuthButton from "../components/AuthButton";
 import AuthLink from "../components/AuthLink";
 import { getApiMessage, resetSuperAdminPassword } from "../services/authApi";
+import resetPasswordHero from "../assets/auth/reset-password-hero.webp";
 
 const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,128}$/;
 
@@ -99,6 +100,9 @@ function SuperAdminResetPasswordPage() {
         ["Verified", "OTP required"],
         ["Protected", "Strong password"],
       ]}
+      heroImageSrc={resetPasswordHero}
+      heroImageAlt="Nexora reset password security preview"
+      heroImageType="reset"
     >
       <AlertMessage type={alert.type} message={alert.message} />
 

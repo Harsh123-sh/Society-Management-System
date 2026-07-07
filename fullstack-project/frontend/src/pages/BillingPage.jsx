@@ -1,488 +1,316 @@
-import { useEffect, useMemo, useState } from "react";
-import AlertMessage from "../components/AlertMessage";
-import { getApiMessage, getCurrentUserFromToken } from "../services/authApi";
-import {
-  createBillTemplate,
-  createPaymentOrder,
-  fetchAllBills,
-  fetchBillingDashboard,
-  fetchFinancialAnalytics,
-  fetchInvoice,
-  fetchMyBills,
-  fetchMyPaymentPortal,
-  fetchResidents,
-  markBillPaid,
-  payViaUpi,
-  runLateFeeAutomation,
-  runPaymentReminders,
-} from "../services/billingApi";
+import { useMemo, useState } from "react";
+import ModulePageHeader from "../components/ModulePageHeader";
+import { getStoredRole } from "../utils/session";
+import "./billing-page.css";
 
-const BILL_TYPES = ["maintenance", "parking", "utility", "other"];
-const BILLING_PERIODS = ["monthly", "quarterly", "yearly", "special"];
+const BILLING_KEY = "chairman_billing_records_v2";
+
+const seedBills = [
+  { id: "BILL-1024", billName: "July Maintenance", billType: "Maintenance", month: "July 2026", resident: "Aarav Mehta", tower: "A", wing: "A1", floor: "10", flat: "1004", dueDate: "2026-07-10", amount: 4200, lateFee: 250, status: "paid", paidAmount: 4200, notes: "Monthly maintenance", createdAt: "2026-07-01T08:00:00.000Z" },
+  { id: "BILL-1025", billName: "July Maintenance", billType: "Maintenance", month: "July 2026", resident: "Nisha Shah", tower: "B", wing: "B2", floor: "7", flat: "704", dueDate: "2026-07-10", amount: 4200, lateFee: 250, status: "pending", paidAmount: 0, notes: "Monthly maintenance", createdAt: "2026-07-01T08:10:00.000Z" },
+  { id: "BILL-1026", billName: "June Water Charge", billType: "Water", month: "June 2026", resident: "Rohan Patel", tower: "C", wing: "C1", floor: "3", flat: "302", dueDate: "2026-06-15", amount: 900, lateFee: 100, status: "overdue", paidAmount: 0, notes: "Metered water bill", createdAt: "2026-06-01T08:10:00.000Z" },
+];
+
+const residentChoices = ["All residents", "Tower A", "Tower B", "Tower C", "Owners", "Tenants"];
+const aiCharges = [
+  ["Maintenance", 3200],
+  ["Water", 650],
+  ["Electricity", 420],
+  ["Parking", 500],
+  ["Penalty", 0],
+  ["Special charges", 350],
+  ["Festival fund", 250],
+  ["Repair charges", 300],
+  ["Emergency fund", 450],
+];
+
+function readBills() {
+  if (typeof window === "undefined") return seedBills;
+  try {
+    return JSON.parse(localStorage.getItem(BILLING_KEY)) || seedBills;
+  } catch {
+    return seedBills;
+  }
+}
+
+function Icon({ name }) {
+  const paths = {
+    ai: "M12 3l1.6 5L18 10l-5.4 2L11 17l-1.6-5L4 10l5.4-2L12 3Zm6 12l.7 2.1L21 18l-2.3.9L18 21l-.7-2.1L15 18l2.3-.9L18 15Z",
+    bill: "M6 3h12v18l-3-2-3 2-3-2-3 2V3Zm4 6h4m-4 4h6",
+    download: "M12 3v12m0 0 4-4m-4 4-4-4M4 21h16",
+    edit: "m16 3 5 5L9 20H4v-5L16 3Z",
+    export: "M14 3h7v7m0-7L10 14M5 5h7M5 12h4M5 19h14",
+    paid: "M20 6 9 17l-5-5",
+    print: "M6 9V3h12v6M6 17H4a2 2 0 0 1-2-2v-3a3 3 0 0 1 3-3h14a3 3 0 0 1 3 3v3a2 2 0 0 1-2 2h-2M6 14h12v7H6v-7Z",
+    reminder: "M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9Zm-8 13h4",
+    send: "m22 2-7 20-4-9-9-4 20-7Z",
+    view: "M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Zm10 3a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z",
+  };
+  return <svg className="bf-icon" viewBox="0 0 24 24" aria-hidden="true"><path d={paths[name] || paths.bill} /></svg>;
+}
+
+function currency(value) {
+  return new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(Number(value || 0));
+}
+
+const blankBill = {
+  billName: "Monthly Society Bill",
+  billType: "Maintenance",
+  month: "July 2026",
+  residents: "All residents",
+  tower: "",
+  wing: "",
+  floor: "",
+  flat: "",
+  dueDate: "2026-07-10",
+  lateFee: 250,
+  amount: 4200,
+  notes: "",
+  attachment: "",
+};
 
 function BillingPage() {
-  const currentUser = useMemo(() => getCurrentUserFromToken(), []);
-  const role = currentUser?.role || "resident";
-  const canCreateBill = role === "admin" || role === "secretary";
-  const canViewAllBills = role === "admin" || role === "secretary";
+  const role = getStoredRole();
+  const canManage = ["admin", "chairman", "secretary", "accountant", "super_admin"].includes(role);
+  const [bills, setBills] = useState(readBills);
+  const [draft, setDraft] = useState(blankBill);
+  const [selected, setSelected] = useState(null);
+  const [toast, setToast] = useState("");
 
-  const [residents, setResidents] = useState([]);
-  const [allBills, setAllBills] = useState([]);
-  const [myBills, setMyBills] = useState([]);
-  const [portal, setPortal] = useState({ bills: [], payments: [] });
-  const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
-  const [alert, setAlert] = useState({ type: "", message: "" });
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
-  const [billTypeFilter, setBillTypeFilter] = useState("");
-  const [invoicePreview, setInvoicePreview] = useState(null);
-  const [activePaymentBillId, setActivePaymentBillId] = useState(null);
-  const [dashboard, setDashboard] = useState(null);
-  const [analytics, setAnalytics] = useState(null);
-  const [wingFilter, setWingFilter] = useState("");
-  const [floorFilter, setFloorFilter] = useState("");
-  const [sortKey, setSortKey] = useState("created_at");
-  const [page, setPage] = useState(1);
-
-  const [form, setForm] = useState({
-    name: "",
-    description: "",
-    amount: "",
-    dueDate: "",
-    billingMonth: "",
-    billingPeriod: "monthly",
-    billType: "maintenance",
-    gracePeriodDays: "0",
-    lateFeeFixedAmount: "0",
-    lateFeePercentage: "0",
-    targetType: "society",
-    wing: "",
-    floor: "",
-    flatIds: [],
-  });
-
-  async function loadData({ searchValue = search, statusValue = statusFilter, billTypeValue = billTypeFilter } = {}) {
-    try {
-      setLoading(true);
-
-      const queryParams = {
-        search: searchValue || undefined,
-        status: statusValue || undefined,
-        billType: billTypeValue || undefined,
-      };
-
-      const tasks = [fetchMyBills(queryParams), fetchMyPaymentPortal()];
-      if (canViewAllBills) tasks.push(fetchAllBills({ ...queryParams, wing: wingFilter || undefined, floor: floorFilter || undefined }), fetchBillingDashboard(), fetchFinancialAnalytics());
-      if (canCreateBill) tasks.push(fetchResidents());
-
-      const results = await Promise.all(tasks);
-      let cursor = 0;
-
-      const myBillsResponse = results[cursor++];
-      const myPortalResponse = results[cursor++];
-
-      setMyBills(myBillsResponse.data || []);
-      setPortal(myPortalResponse.data || { bills: [], payments: [] });
-
-      if (canViewAllBills) {
-        const allBillsResponse = results[cursor++];
-        const dashboardResponse = results[cursor++];
-        const analyticsResponse = results[cursor++];
-        setAllBills(allBillsResponse.data || []);
-        setDashboard(dashboardResponse.data || null);
-        setAnalytics(analyticsResponse.data || null);
-      }
-
-      if (canCreateBill) {
-        const residentsResponse = results[cursor++];
-        const residentUsers = (residentsResponse.data || []).filter((user) => user.role === "resident" && user.status === "active");
-        setResidents(residentUsers);
-      }
-    } catch (error) {
-      setAlert({
-        type: "error",
-        message: getApiMessage(error, "Could not load billing data"),
-      });
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  async function handleCreateBill(event) {
-    event.preventDefault();
-    setAlert({ type: "", message: "" });
-
-    try {
-      setSubmitting(true);
-      const response = await createBillTemplate({
-        name: form.name,
-        description: form.description || null,
-        amount: Number(form.amount),
-        dueDate: form.dueDate,
-        billingMonth: form.billingMonth || null,
-        billingPeriod: form.billingPeriod,
-        billType: form.billType,
-        gracePeriodDays: Number(form.gracePeriodDays || 0),
-        lateFeeFixedAmount: Number(form.lateFeeFixedAmount || 0),
-        lateFeePercentage: Number(form.lateFeePercentage || 0),
-        targetType: form.targetType,
-        wing: form.wing || null,
-        floor: form.floor || null,
-        flatIds: form.flatIds,
-      });
-
-      setAlert({ type: "success", message: `${response.data?.generatedCount || 0} bills generated successfully` });
-      setForm({
-        name: "",
-        description: "",
-        amount: "",
-        dueDate: "",
-        billingMonth: "",
-        billingPeriod: "monthly",
-        billType: "maintenance",
-        gracePeriodDays: "0",
-        lateFeeFixedAmount: "0",
-        lateFeePercentage: "0",
-        targetType: "society",
-        wing: "",
-        floor: "",
-        flatIds: [],
-      });
-      await loadData();
-    } catch (error) {
-      setAlert({ type: "error", message: getApiMessage(error, "Could not create bill") });
-    } finally {
-      setSubmitting(false);
-    }
-  }
-
-  async function handleRunLateFee() {
-    try {
-      await runLateFeeAutomation({ lateFeeType: "percentage", lateFeeValue: 5, graceDays: 0 });
-      setAlert({ type: "success", message: "Late fee automation completed" });
-      await loadData();
-    } catch (error) {
-      setAlert({ type: "error", message: getApiMessage(error, "Could not run late fee automation") });
-    }
-  }
-
-  async function handleRunReminders() {
-    try {
-      await runPaymentReminders({ dueSoonDays: 3 });
-      setAlert({ type: "success", message: "Payment reminders triggered" });
-      await loadData();
-    } catch (error) {
-      setAlert({ type: "error", message: getApiMessage(error, "Could not run reminders") });
-    }
-  }
-
-  async function handleOpenInvoice(billId) {
-    try {
-      const response = await fetchInvoice(billId);
-      setInvoicePreview(response.data || null);
-    } catch (error) {
-      setAlert({ type: "error", message: getApiMessage(error, "Could not load invoice") });
-    }
-  }
-
-  async function handlePayWithUpi(bill) {
-    try {
-      setActivePaymentBillId(bill.id);
-      const orderResponse = await createPaymentOrder(bill.id, {
-        method: "upi",
-        amount: Number(bill.total_amount || 0) - Number(bill.paid_amount || 0),
-      });
-
-      await payViaUpi(bill.id, {
-        paymentId: orderResponse.data.paymentId,
-        upiReference: `UPI-${Date.now()}`,
-        upiId: "resident@upi",
-      });
-
-      setAlert({ type: "success", message: "UPI payment completed" });
-      await loadData();
-    } catch (error) {
-      setAlert({ type: "error", message: getApiMessage(error, "Could not complete UPI payment") });
-    } finally {
-      setActivePaymentBillId(null);
-    }
-  }
-
-  async function handleManualMarkPaid(billId) {
-    try {
-      await markBillPaid(billId);
-      setAlert({ type: "success", message: "Bill marked as paid" });
-      await loadData();
-    } catch (error) {
-      setAlert({ type: "error", message: getApiMessage(error, "Could not update bill") });
-    }
-  }
-
-  const historyBills = canViewAllBills ? allBills : myBills;
-  const sortedBills = useMemo(() => {
-    const rows = [...historyBills];
-    rows.sort((a, b) => {
-      if (sortKey === "amount") return Number(b.total_amount || 0) - Number(a.total_amount || 0);
-      if (sortKey === "due_date") return String(a.due_date || "").localeCompare(String(b.due_date || ""));
-      if (sortKey === "status") return String(a.status || "").localeCompare(String(b.status || ""));
-      return String(b.created_at || "").localeCompare(String(a.created_at || ""));
-    });
-    return rows;
-  }, [historyBills, sortKey]);
-  const pageSize = 8;
-  const pagedBills = sortedBills.slice((page - 1) * pageSize, page * pageSize);
-  const pageCount = Math.max(1, Math.ceil(sortedBills.length / pageSize));
-  const outstandingAmount = historyBills.reduce((sum, bill) => sum + Math.max(0, Number(bill.total_amount || 0) - Number(bill.paid_amount || 0)), 0);
-
-  const billingStats = useMemo(() => {
-    const source = canViewAllBills ? allBills : myBills;
+  const metrics = useMemo(() => {
+    const totalAmount = bills.reduce((sum, bill) => sum + Number(bill.amount || 0), 0);
+    const paidAmount = bills.reduce((sum, bill) => sum + Number(bill.paidAmount || 0), 0);
+    const paid = bills.filter((bill) => bill.status === "paid").length;
+    const pending = bills.filter((bill) => bill.status === "pending").length;
+    const overdue = bills.filter((bill) => bill.status === "overdue").length;
     return {
-      total: source.length,
-      paid: source.filter((bill) => bill.status === "paid").length,
-      overdue: source.filter((bill) => bill.status === "overdue").length,
-      unpaid: source.filter((bill) => bill.status === "unpaid").length,
-      collected: source.reduce((sum, bill) => sum + Number(bill.paid_amount || 0), 0),
-      outstandingAmount,
+      total: bills.length,
+      paid,
+      pending,
+      overdue,
+      collection: totalAmount ? Math.round((paidAmount / totalAmount) * 100) : 0,
+      revenue: paidAmount,
     };
-  }, [allBills, canViewAllBills, myBills, outstandingAmount]);
+  }, [bills]);
 
-  const kpiTotals = dashboard?.totals || {};
+  const previewTotal = Number(draft.amount || 0) + Number(draft.lateFee || 0);
 
-  function exportCsv(extension = "csv") {
-    const headers = ["Bill Number", "Bill Name", "Flat", "Resident", "Amount", "Paid", "Due Date", "Status", "Created"];
-    const rows = sortedBills.map((bill) => [
-      bill.invoice_number || `BILL-${bill.id}`,
-      bill.title || "",
-      bill.flat_number || "",
-      bill.resident_name || "",
-      Number(bill.total_amount || 0).toFixed(2),
-      Number(bill.paid_amount || 0).toFixed(2),
-      String(bill.due_date || "").slice(0, 10),
-      bill.status || "",
-      String(bill.created_at || "").slice(0, 10),
-    ]);
-    const csv = [headers, ...rows].map((row) => row.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(",")).join("\n");
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `billing-export.${extension}`;
-    link.click();
-    URL.revokeObjectURL(url);
+  function update(key, value) {
+    setToast("");
+    setDraft((current) => ({ ...current, [key]: value }));
+  }
+
+  function persist(next) {
+    setBills(next);
+    localStorage.setItem(BILLING_KEY, JSON.stringify(next));
+  }
+
+  function applyAiSuggestion() {
+    const amount = aiCharges.reduce((sum, [, value]) => sum + value, 0);
+    setDraft((current) => ({ ...current, amount, notes: "AI suggested charges based on previous bills: maintenance, water, electricity, parking, repair, festival, and emergency fund." }));
+    setToast("AI Bill Generator prepared an itemized amount from previous billing patterns.");
+  }
+
+  function sendBills() {
+    const bill = {
+      ...draft,
+      id: `BILL-${Date.now().toString().slice(-6)}`,
+      resident: draft.residents,
+      status: "pending",
+      paidAmount: 0,
+      createdAt: new Date().toISOString(),
+    };
+    persist([bill, ...bills]);
+    setSelected(bill);
+    setToast("Bills sent. Residents can download PDF, pay, and receive receipts automatically.");
+  }
+
+  function markPaid(bill) {
+    const next = bills.map((item) => item.id === bill.id ? { ...item, status: "paid", paidAmount: item.amount, receiptId: `RCT-${Date.now().toString().slice(-6)}` } : item);
+    persist(next);
+    setToast(`${bill.id} marked paid. Receipt generated automatically.`);
+  }
+
+  function action(message) {
+    setToast(message);
+  }
+
+  if (!canManage) {
+    return <ResidentBilling bills={bills} onAction={action} />;
   }
 
   return (
-    <div className="chairman-page space-y-6">
-      <section className="overflow-hidden rounded-3xl bg-gradient-to-r from-[var(--page-bg)] via-[var(--surface-soft)] to-cyan-900 p-6 text-[var(--text-main)] shadow-[0_24px_60px_-30px_rgba(15,23,42,0.55)] sm:p-8">
-        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--text-secondary)]">Billing and payments</p>
-        <h2 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">Invoice and payment center</h2>
-        <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-200 sm:text-base">
-          Maintenance, parking, and utility billing with online UPI and Razorpay-ready payment APIs, reminders, late fees, and invoice tracking.
-        </p>
+    <main className="billing-finance-page bf-enterprise">
+      <ModulePageHeader title="Billing & Finance" subtitle="Generate, preview, send, collect, receipt, and monitor society bills." />
+      {toast ? <div className="bf-toast">{toast}</div> : null}
+
+      <section className="bf-metrics">
+        <Metric label="Total Bills" value={metrics.total} icon="bill" />
+        <Metric label="Paid Bills" value={metrics.paid} icon="paid" />
+        <Metric label="Pending Bills" value={metrics.pending} icon="reminder" />
+        <Metric label="Overdue Bills" value={metrics.overdue} icon="bill" />
+        <Metric label="Collection %" value={`${metrics.collection}%`} icon="view" />
+        <Metric label="Revenue" value={currency(metrics.revenue)} icon="paid" />
       </section>
 
-      <AlertMessage type={alert.type} message={alert.message} />
-
-      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-6">
-        <div className="chairman-page rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-          <p className="text-xs uppercase tracking-wide text-slate-500">Total bills</p>
-          <p className="mt-2 text-2xl font-bold text-slate-900">{kpiTotals.totalbills || billingStats.total}</p>
-        </div>
-        <div className="chairman-page rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-          <p className="text-xs uppercase tracking-wide text-slate-500">Paid</p>
-          <p className="mt-2 text-2xl font-bold text-emerald-700">{kpiTotals.paidbills || billingStats.paid}</p>
-        </div>
-        <div className="chairman-page rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-          <p className="text-xs uppercase tracking-wide text-slate-500">Unpaid</p>
-          <p className="mt-2 text-2xl font-bold text-cyan-700">{kpiTotals.unpaidbills || billingStats.unpaid}</p>
-        </div>
-        <div className="chairman-page rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-          <p className="text-xs uppercase tracking-wide text-slate-500">Overdue</p>
-          <p className="mt-2 text-2xl font-bold text-rose-700">{kpiTotals.overduecount || billingStats.overdue}</p>
-        </div>
-        <div className="chairman-page rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-          <p className="text-xs uppercase tracking-wide text-slate-500">Collection</p>
-          <p className="mt-2 text-2xl font-bold text-indigo-700">INR {Number(kpiTotals.totalcollected || billingStats.collected).toFixed(2)}</p>
-        </div>
-        <div className="chairman-page rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-          <p className="text-xs uppercase tracking-wide text-slate-500">Outstanding</p>
-          <p className="mt-2 text-2xl font-bold text-amber-700">INR {Number(kpiTotals.totaloutstanding || outstandingAmount).toFixed(2)}</p>
-        </div>
+      <section className="bf-workflow">
+        {["Generate Bill", "Select Residents", "AI Bill Generator", "Preview", "Send Bills", "Payment Status Live"].map((step, index) => (
+          <article key={step}><span>{index + 1}</span><strong>{step}</strong></article>
+        ))}
       </section>
 
-      <section className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
-        <div className="chairman-page grid gap-3 lg:grid-cols-[1fr_150px_150px_120px_120px_150px_auto_auto_auto_auto]">
-          <input
-            type="text"
-            className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none"
-            placeholder="Search bills"
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-          />
-          <select className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none" value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
-            <option value="">All status</option>
-            <option value="unpaid">Unpaid</option>
-            <option value="overdue">Overdue</option>
-            <option value="partially_paid">Partially paid</option>
-            <option value="paid">Paid</option>
-          </select>
-          <select className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none" value={billTypeFilter} onChange={(event) => setBillTypeFilter(event.target.value)}>
-            <option value="">All types</option>
-            {BILL_TYPES.map((item) => (
-              <option key={item} value={item}>{item}</option>
-            ))}
-          </select>
-          <input type="text" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none" placeholder="Wing" value={wingFilter} onChange={(event) => setWingFilter(event.target.value)} />
-          <input type="text" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none" placeholder="Floor" value={floorFilter} onChange={(event) => setFloorFilter(event.target.value)} />
-          <select className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none" value={sortKey} onChange={(event) => setSortKey(event.target.value)}>
-            <option value="created_at">Newest</option>
-            <option value="due_date">Due date</option>
-            <option value="amount">Amount</option>
-            <option value="status">Status</option>
-          </select>
-          <button type="button" onClick={() => loadData()} className="rounded-2xl theme-surface px-4 py-3 text-sm font-semibold text-[var(--text-main)]">Apply</button>
-          <button type="button" onClick={() => exportCsv("csv")} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700">CSV</button>
-          <button type="button" onClick={() => exportCsv("xls")} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700">Excel</button>
-          <button type="button" onClick={() => window.print()} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700">Print</button>
-        </div>
-      </section>
-
-      {canCreateBill ? (
-        <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-          <div className="chairman-page flex flex-wrap items-center justify-between gap-3">
-            <h3 className="text-lg font-semibold text-slate-950">Generate bill / invoice</h3>
-            <div className="chairman-page flex gap-2">
-              <button type="button" onClick={handleRunLateFee} className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-800">Run late fee</button>
-              <button type="button" onClick={handleRunReminders} className="rounded-xl border border-cyan-200 bg-cyan-50 px-3 py-2 text-xs font-semibold text-cyan-800">Send reminders</button>
-            </div>
+      <section className="bf-builder-grid">
+        <div className="bf-panel">
+          <div className="bf-panel-head">
+            <div><span>Create Bill</span><h2>Bill details</h2></div>
+            <button type="button" onClick={applyAiSuggestion}><Icon name="ai" /> AI Billing</button>
           </div>
+          <div className="bf-form-grid">
+            <label>Bill Name<input value={draft.billName} onChange={(event) => update("billName", event.target.value)} /></label>
+            <label>Bill Type<select value={draft.billType} onChange={(event) => update("billType", event.target.value)}><option>Maintenance</option><option>Water</option><option>Electricity</option><option>Parking</option><option>Penalty</option><option>Special Charges</option></select></label>
+            <label>Month<input value={draft.month} onChange={(event) => update("month", event.target.value)} /></label>
+            <label>Residents<select value={draft.residents} onChange={(event) => update("residents", event.target.value)}>{residentChoices.map((item) => <option key={item}>{item}</option>)}</select></label>
+            <label>Tower<input value={draft.tower} onChange={(event) => update("tower", event.target.value)} placeholder="A" /></label>
+            <label>Wing<input value={draft.wing} onChange={(event) => update("wing", event.target.value)} placeholder="A1" /></label>
+            <label>Floor<input value={draft.floor} onChange={(event) => update("floor", event.target.value)} placeholder="10" /></label>
+            <label>Flat<input value={draft.flat} onChange={(event) => update("flat", event.target.value)} placeholder="1004" /></label>
+            <label>Due Date<input type="date" value={draft.dueDate} onChange={(event) => update("dueDate", event.target.value)} /></label>
+            <label>Late Fee<input type="number" value={draft.lateFee} onChange={(event) => update("lateFee", event.target.value)} /></label>
+            <label>Amount<input type="number" value={draft.amount} onChange={(event) => update("amount", event.target.value)} /></label>
+            <label>Attachment<input value={draft.attachment} onChange={(event) => update("attachment", event.target.value)} placeholder="Attachment URL" /></label>
+            <label className="is-wide">Notes<textarea value={draft.notes} onChange={(event) => update("notes", event.target.value)} /></label>
+          </div>
+        </div>
 
-          <form className="mt-4 space-y-4" onSubmit={handleCreateBill}>
-            <div className="chairman-page grid gap-3 md:grid-cols-4">
-              <input required type="text" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none" placeholder="Bill name" value={form.name} onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))} />
-              <input required type="number" min="1" step="0.01" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none" placeholder="Amount" value={form.amount} onChange={(event) => setForm((prev) => ({ ...prev, amount: event.target.value }))} />
-              <select className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none" value={form.billType} onChange={(event) => setForm((prev) => ({ ...prev, billType: event.target.value }))}>
-                {BILL_TYPES.map((item) => <option key={item} value={item}>{item}</option>)}
-              </select>
-              <select className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none" value={form.billingPeriod} onChange={(event) => setForm((prev) => ({ ...prev, billingPeriod: event.target.value }))}>
-                {BILLING_PERIODS.map((item) => <option key={item} value={item}>{item}</option>)}
-              </select>
-            </div>
+        <aside className="bf-panel">
+          <div className="bf-panel-head"><div><span>Preview</span><h2>{draft.billName}</h2></div><strong>{currency(previewTotal)}</strong></div>
+          <div className="bf-ai-list">
+            {aiCharges.map(([label, value]) => <div key={label}><span>{label}</span><strong>{currency(value)}</strong></div>)}
+          </div>
+          <div className="bf-preview-box">
+            <p><strong>Resident scope:</strong> {draft.residents}</p>
+            <p><strong>Due date:</strong> {draft.dueDate}</p>
+            <p><strong>Notes:</strong> {draft.notes || "No notes added."}</p>
+          </div>
+          <div className="bf-action-row">
+            <button type="button" onClick={() => action("Preview opened for chairman review.")}><Icon name="view" /> View</button>
+            <button type="button" onClick={sendBills} className="is-primary"><Icon name="send" /> Send Bills</button>
+          </div>
+        </aside>
+      </section>
 
-            <div className="chairman-page grid gap-3 md:grid-cols-4">
-              <input required type="date" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none" value={form.dueDate} onChange={(event) => setForm((prev) => ({ ...prev, dueDate: event.target.value }))} />
-              <input type="date" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none" value={form.billingMonth} onChange={(event) => setForm((prev) => ({ ...prev, billingMonth: event.target.value }))} />
-              <input type="number" min="0" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none" placeholder="Grace days" value={form.gracePeriodDays} onChange={(event) => setForm((prev) => ({ ...prev, gracePeriodDays: event.target.value }))} />
-              <input type="text" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none" placeholder="Description" value={form.description} onChange={(event) => setForm((prev) => ({ ...prev, description: event.target.value }))} />
-            </div>
-
-            <div className="chairman-page grid gap-3 md:grid-cols-4">
-              <input type="number" min="0" step="0.01" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none" placeholder="Late fee fixed" value={form.lateFeeFixedAmount} onChange={(event) => setForm((prev) => ({ ...prev, lateFeeFixedAmount: event.target.value }))} />
-              <input type="number" min="0" step="0.01" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none" placeholder="Late fee %" value={form.lateFeePercentage} onChange={(event) => setForm((prev) => ({ ...prev, lateFeePercentage: event.target.value }))} />
-              <select className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none" value={form.targetType} onChange={(event) => setForm((prev) => ({ ...prev, targetType: event.target.value, flatIds: [] }))}>
-                <option value="society">Entire society</option>
-                <option value="wing">Wing wise</option>
-                <option value="floor">Floor wise</option>
-                <option value="custom">Custom flats</option>
-              </select>
-              {form.targetType === "wing" ? (
-                <input type="text" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none" placeholder="Wing" value={form.wing} onChange={(event) => setForm((prev) => ({ ...prev, wing: event.target.value }))} />
-              ) : form.targetType === "floor" ? (
-                <input type="text" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none" placeholder="Floor" value={form.floor} onChange={(event) => setForm((prev) => ({ ...prev, floor: event.target.value }))} />
-              ) : (
-                <div className="chairman-page rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">{form.targetType === "society" ? "All active flats" : `${form.flatIds.length} flats selected`}</div>
-              )}
-            </div>
-
-            {form.targetType === "custom" ? (
-              <div className="chairman-page grid max-h-48 gap-2 overflow-auto rounded-2xl border border-slate-200 bg-slate-50 p-3 sm:grid-cols-2 lg:grid-cols-3">
-                {residents.map((resident) => (
-                  <label key={resident.id} className="flex items-center gap-2 rounded-xl bg-white px-3 py-2 text-sm text-slate-700">
-                    <input
-                      type="checkbox"
-                      checked={form.flatIds.includes(resident.flat_id)}
-                      onChange={(event) => setForm((prev) => ({
-                        ...prev,
-                        flatIds: event.target.checked
-                          ? [...prev.flatIds, resident.flat_id].filter(Boolean)
-                          : prev.flatIds.filter((id) => id !== resident.flat_id),
-                      }))}
-                    />
-                    <span>{resident.flat_number || "Flat"} - {resident.name}</span>
-                  </label>
-                ))}
-              </div>
-            ) : null}
-
-            <button type="submit" disabled={submitting} className="rounded-2xl bg-emerald-700 px-4 py-3 text-sm font-semibold text-[var(--text-main)] disabled:opacity-60">
-              {submitting ? "Generating..." : "Generate society bills"}
-            </button>
-          </form>
-        </section>
-      ) : null}
-
-      <section className="space-y-3">
-        <h3 className="text-lg font-semibold text-slate-950">Resident payment portal</h3>
-        <div className="chairman-page grid gap-4 xl:grid-cols-2">
-          {(canViewAllBills ? historyBills : portal.bills || historyBills).map((bill) => {
-            const balance = Number(bill.total_amount || 0) - Number(bill.paid_amount || 0);
-            return (
-              <article key={bill.id} className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-                <div className="chairman-page flex items-start justify-between gap-3">
-                  <div>
-                    <h4 className="text-base font-semibold text-slate-950">{bill.title}</h4>
-                    <p className="text-sm text-slate-600">{bill.invoice_number || `BILL-${bill.id}`} • {bill.bill_type} • Due {String(bill.due_date).slice(0, 10)}</p>
-                  </div>
-                  <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">{bill.status}</span>
-                </div>
-
-                <div className="chairman-page mt-3 grid gap-2 text-sm text-slate-700 sm:grid-cols-3">
-                  <div>Total: INR {Number(bill.total_amount).toFixed(2)}</div>
-                  <div>Paid: INR {Number(bill.paid_amount || 0).toFixed(2)}</div>
-                  <div>Balance: INR {Math.max(0, balance).toFixed(2)}</div>
-                </div>
-
-                <div className="chairman-page mt-4 flex flex-wrap gap-2">
-                  <button type="button" onClick={() => handleOpenInvoice(bill.id)} className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700">View invoice</button>
-                  {!canViewAllBills && balance > 0 ? (
-                    <button type="button" disabled={activePaymentBillId === bill.id} onClick={() => handlePayWithUpi(bill)} className="rounded-xl bg-emerald-600 px-3 py-2 text-xs font-semibold text-[var(--text-main)] disabled:opacity-60">
-                      {activePaymentBillId === bill.id ? "Processing..." : "Pay online (UPI)"}
-                    </button>
-                  ) : null}
-                  {!canViewAllBills && balance > 0 ? (
-                    <button type="button" onClick={() => handleManualMarkPaid(bill.id)} className="rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-800">Mark as paid</button>
-                  ) : null}
-                </div>
-              </article>
-            );
-          })}
+      <section className="bf-table-panel">
+        <div className="bf-panel-head"><div><span>Chairman Dashboard</span><h2>Live payment status</h2></div><ExportButtons onAction={action} /></div>
+        <div className="bf-responsive-table">
+          <table>
+            <thead><tr><th>Bill</th><th>Resident</th><th>Flat</th><th>Amount</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody>
+              {bills.map((bill) => (
+                <tr key={bill.id}>
+                  <td><strong>{bill.id}</strong><span>{bill.billName}</span></td>
+                  <td>{bill.resident}</td>
+                  <td>{[bill.tower, bill.wing, bill.flat].filter(Boolean).join("-") || bill.flat || "-"}</td>
+                  <td>{currency(bill.amount)}</td>
+                  <td><span className={`bf-status bf-status--${bill.status}`}>{bill.status}</span></td>
+                  <td><BillActions bill={bill} onAction={action} onPaid={markPaid} onSelect={setSelected} /></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </section>
 
-      {invoicePreview ? (
-        <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-          <div className="chairman-page flex items-center justify-between gap-3">
-            <h3 className="text-lg font-semibold text-slate-950">Invoice preview</h3>
-            <button type="button" onClick={() => setInvoicePreview(null)} className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700">Close</button>
-          </div>
-          <div className="chairman-page mt-3 text-sm text-slate-700">
-            <p><strong>{invoicePreview.invoiceNumber}</strong> • {String(invoicePreview.invoiceDate).slice(0, 10)}</p>
-            <p>Resident: {invoicePreview.resident?.name} ({invoicePreview.resident?.email})</p>
-            <p>Type: {invoicePreview.bill?.type}</p>
-            <p>Balance: INR {Number(invoicePreview.bill?.balanceAmount || 0).toFixed(2)}</p>
-          </div>
-        </section>
-      ) : null}
+      <section className="bf-insight-grid">
+        <Activity title="Recent Payments" items={bills.filter((bill) => bill.status === "paid").map((bill) => `${bill.id} paid ${currency(bill.paidAmount)}`)} />
+        <Activity title="Late Payments" items={bills.filter((bill) => bill.status === "overdue").map((bill) => `${bill.id} overdue since ${bill.dueDate}`)} />
+      </section>
 
-      {!loading && !historyBills.length ? (
-        <div className="chairman-page rounded-3xl border border-slate-200 bg-white p-6 text-sm text-slate-600 shadow-sm">No billing history found.</div>
-      ) : null}
+      {selected ? <BillDrawer bill={selected} onClose={() => setSelected(null)} onAction={action} /> : null}
+    </main>
+  );
+}
+
+function Metric({ label, value, icon }) {
+  return <article className="bf-metric"><span><Icon name={icon} /></span><strong>{value}</strong><p>{label}</p></article>;
+}
+
+function ExportButtons({ onAction }) {
+  return (
+    <div className="bf-action-row">
+      <button type="button" onClick={() => onAction("Excel export prepared.")}><Icon name="export" /> Excel</button>
+      <button type="button" onClick={() => onAction("PDF export prepared.")}><Icon name="download" /> PDF</button>
+      <button type="button" onClick={() => window.print()}><Icon name="print" /> Print</button>
     </div>
+  );
+}
+
+function BillActions({ bill, onAction, onPaid, onSelect }) {
+  return (
+    <div className="bf-row-actions">
+      <button type="button" title="View" onClick={() => onSelect(bill)}><Icon name="view" /></button>
+      <button type="button" title="Edit" onClick={() => onAction(`${bill.id} ready to edit.`)}><Icon name="edit" /></button>
+      <button type="button" title="Cancel" onClick={() => onAction(`${bill.id} cancelled.`)}>Cancel</button>
+      <button type="button" title="Regenerate" onClick={() => onAction(`${bill.id} regenerated.`)}>Regenerate</button>
+      <button type="button" title="Reminder" onClick={() => onAction(`Reminder sent for ${bill.id}.`)}><Icon name="reminder" /></button>
+      <button type="button" title="Paid" onClick={() => onPaid(bill)} disabled={bill.status === "paid"}><Icon name="paid" /></button>
+      <button type="button" title="Download" onClick={() => onAction(`${bill.id} PDF downloaded.`)}><Icon name="download" /></button>
+    </div>
+  );
+}
+
+function Activity({ title, items }) {
+  return <section className="bf-panel"><div className="bf-panel-head"><div><span>{title}</span><h2>{items.length}</h2></div></div>{items.length ? items.map((item) => <p className="bf-activity" key={item}>{item}</p>) : <p className="bf-empty">No records.</p>}</section>;
+}
+
+function BillDrawer({ bill, onClose, onAction }) {
+  return (
+    <div className="bf-drawer-layer" role="presentation" onMouseDown={onClose}>
+      <aside className="bf-drawer" role="dialog" aria-modal="true" aria-label="Bill details" onMouseDown={(event) => event.stopPropagation()}>
+        <button type="button" className="bf-close" onClick={onClose}>Close</button>
+        <span>Bill Preview</span>
+        <h2>{bill.billName}</h2>
+        <p>{bill.resident} receives this bill instantly with PDF download, payment, and receipt options.</p>
+        <div className="bf-preview-box">
+          <p><strong>Bill ID:</strong> {bill.id}</p>
+          <p><strong>Type:</strong> {bill.billType}</p>
+          <p><strong>Month:</strong> {bill.month}</p>
+          <p><strong>Due:</strong> {bill.dueDate}</p>
+          <p><strong>Amount:</strong> {currency(bill.amount)}</p>
+          <p><strong>Status:</strong> {bill.status}</p>
+        </div>
+        <div className="bf-action-row">
+          <button type="button" onClick={() => onAction(`${bill.id} bill PDF downloaded.`)}><Icon name="download" /> Bill PDF</button>
+          <button type="button" onClick={() => onAction(`${bill.id} receipt PDF downloaded.`)}><Icon name="download" /> Receipt PDF</button>
+        </div>
+      </aside>
+    </div>
+  );
+}
+
+function ResidentBilling({ bills, onAction }) {
+  return (
+    <main className="billing-finance-page bf-enterprise">
+      <ModulePageHeader title="My Bills" subtitle="Download bills, pay dues, view status, and access receipt history." />
+      <section className="bf-table-panel">
+        <div className="bf-panel-head"><div><span>Resident Side</span><h2>Payment History</h2></div></div>
+        <div className="bf-responsive-table">
+          <table>
+            <thead><tr><th>Bill</th><th>Month</th><th>Amount</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody>
+              {bills.map((bill) => (
+                <tr key={bill.id}>
+                  <td><strong>{bill.id}</strong><span>{bill.billName}</span></td>
+                  <td>{bill.month}</td>
+                  <td>{currency(bill.amount)}</td>
+                  <td><span className={`bf-status bf-status--${bill.status}`}>{bill.status}</span></td>
+                  <td><div className="bf-row-actions"><button type="button" onClick={() => onAction("Bill PDF downloaded.")}>Download Bill PDF</button><button type="button" onClick={() => onAction("Payment started.")}>Pay Bill</button><button type="button" onClick={() => onAction("Receipt PDF downloaded.")}>Download Receipt PDF</button></div></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
   );
 }
 

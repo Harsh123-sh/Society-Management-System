@@ -31,7 +31,7 @@ class GeminiAIService {
       this.client = new GoogleGenerativeAI(apiKey);
       this.model = this.client.getGenerativeModel({ 
         model: "gemini-1.5-flash",
-        systemInstruction: `You are an intelligent AI assistant for a Smart Society Management platform.
+        systemInstruction: `You are an intelligent AI assistant for a NEXORA Management platform.
 You help users with society-related tasks, complaints, notices, and general questions.
 Always be professional, helpful, and context-aware.
 Follow the user's society permissions and only provide information they're authorized to access.

@@ -1,6 +1,8 @@
 import AuthCard from "./AuthCard";
 import AuthHero from "./AuthHero";
+import AuthHeroImage from "./AuthHeroImage";
 import ThemeToggle from "./ThemeToggle";
+import BrandLogo from "./BrandLogo";
 import { MotionConfig, motion } from "framer-motion";
 
 export const authLabelClass = "auth-label";
@@ -9,13 +11,16 @@ function AuthLayout({
   title,
   subtitle,
   children,
-  eyebrow = "Society Pro",
+  eyebrow = "NEXORA",
   insightTitle = "Secure auth with society-aware intelligence.",
   insightSubtitle = "One unified sign-in experience across login, registration, verification, and reset workflows.",
   insightMeta = [
     ["AI-ready", "Contextual onboarding"],
-    ["Role-aware", "Chairman to resident flows"],
+    ["Role-aware", "Admin to resident flows"],
   ],
+  heroImageSrc = null,
+  heroImageAlt = "Nexora authentication preview",
+  heroImageType = "login",
 }) {
   return (
     <MotionConfig transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}>
@@ -28,6 +33,8 @@ function AuthLayout({
             <div className="auth-side__top">
               <AuthHero />
             </div>
+
+            <AuthHeroImage src={heroImageSrc} alt={heroImageAlt} type={heroImageType} />
 
             <motion.div
               className="auth-insight-card"
@@ -51,6 +58,7 @@ function AuthLayout({
 
           <main className="auth-main">
             <div className="auth-main__toolbar">
+              <BrandLogo variant="compact" />
               <ThemeToggle />
             </div>
 

@@ -1,5 +1,7 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
+import BrandLogo from "./BrandLogo";
+import { BRAND } from "../config/brand";
 
 export default function AuthHero() {
   return (
@@ -10,18 +12,10 @@ export default function AuthHero() {
         animate={{ opacity: 1, y: 0 }}
       >
         <div className="auth-hero__brand">
-          <div className="auth-hero__mark">
-            SP
-          </div>
-          <div>
-            <Link to="/login">
-              Society Pro
-            </Link>
-            <p>Enterprise AI for communities</p>
-          </div>
+          <BrandLogo to="/login" variant="full" />
         </div>
         <div className="auth-hero__pill">
-          unified auth
+          encrypted access
         </div>
       </motion.div>
 
@@ -32,13 +26,13 @@ export default function AuthHero() {
         transition={{ delay: 0.12 }}
       >
         <div className="auth-hero__eyebrow">
-          AI-powered onboarding
+          {BRAND.tagline}
         </div>
         <h1>
-          Modern authentication for every society.
+          Secure access for every society role.
         </h1>
         <p>
-          A polished, role-aware entry experience for committee members, residents, staff, security, and platform admins.
+          A polished, role-aware entry experience for chairmen, secretaries, owners, tenants, staff, security and platform administrators.
         </p>
       </motion.div>
 
@@ -53,8 +47,25 @@ export default function AuthHero() {
           <span>Encrypted sessions</span>
         </div>
         <div>
-          <strong>6 roles</strong>
-          <span>One auth surface</span>
+          <strong>7 roles</strong>
+          <span>Smart detection</span>
+        </div>
+      </motion.div>
+
+      <motion.div
+        className="auth-platform-preview"
+        initial={{ opacity: 0, y: 24 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+      >
+        <div className="auth-platform-preview__header">
+          <span>Live society access</span>
+          <strong>Protected</strong>
+        </div>
+        <div className="auth-platform-preview__grid">
+          {["Resident KYC", "Gate Pass", "Billing", "AI Health"].map((item) => (
+            <div key={item}>{item}</div>
+          ))}
         </div>
       </motion.div>
     </div>

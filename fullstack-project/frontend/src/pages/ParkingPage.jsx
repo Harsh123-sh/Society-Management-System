@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import AlertMessage from "../components/AlertMessage";
+import ModulePageHeader from "../components/ModulePageHeader";
 import { getApiMessage } from "../services/authApi";
 import { createParkingSlot, getParkingSlots, getParkingStats } from "../services/parkingApi";
 
@@ -71,12 +72,19 @@ function ParkingPage() {
 
   return (
     <div className="chairman-page space-y-6">
-      <div>
-        <h2 className="text-xl font-bold text-slate-900">Parking Management</h2>
-        <p className="text-sm text-slate-600">
-          Assign slots, track vehicles, and maintain visitor parking visibility.
-        </p>
-      </div>
+      <ModulePageHeader
+        title="Parking"
+        subtitle="Manage parking slots and shared facility assignments."
+        actions={(
+          <button
+            type="button"
+            onClick={() => document.querySelector("[data-slot-number]")?.focus()}
+            className="rounded-lg theme-surface px-4 py-2 text-sm font-medium text-[var(--text-main)] hover:theme-surface"
+          >
+            Add Parking Slot
+          </button>
+        )}
+      />
 
       <AlertMessage type={alert.type} message={alert.message} />
 
@@ -104,6 +112,7 @@ function ParkingPage() {
         <form className="mt-4 grid gap-3 md:grid-cols-5" onSubmit={handleAddSlot}>
           <input
             type="text"
+            data-slot-number
             className="rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none ring-blue-500 focus:ring"
             placeholder="Slot number (A-12)"
             value={form.slot_number}

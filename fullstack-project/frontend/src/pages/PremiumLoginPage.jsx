@@ -159,7 +159,7 @@ const PremiumLoginPage = () => {
                 className="text-5xl font-bold text-text leading-tight"
                 variants={itemVariants}
               >
-                Modern Society Management
+                Modern NEXORA
               </motion.h2>
 
               <motion.p

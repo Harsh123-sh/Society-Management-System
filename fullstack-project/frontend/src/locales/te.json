@@ -1,0 +1,86 @@
+{
+  "common": {
+    "language": "భాష",
+    "menu": "మెనూ",
+    "soon": "త్వరలో",
+    "live": "లైవ్",
+    "backToHome": "హోంకి తిరిగి వెళ్ళండి",
+    "selectedSociety": "ఎంచుకున్న సొసైటీ",
+    "code": "కోడ్",
+    "chooseDifferentSociety": "మరొక సొసైటీని ఎంచుకోండి",
+    "rememberMe": "నన్ను గుర్తుంచుకో",
+    "forgotPassword": "పాస్‌వర్డ్ మర్చిపోయారా?",
+    "role": "పాత్ర",
+    "mode": "మోడ్",
+    "signingIn": "సైన్ ఇన్ అవుతోంది...",
+    "loading": "లోడ్ అవుతోంది",
+    "search": "వెతుకు",
+    "settings": "సెట్టింగులు",
+    "save": "సేవ్",
+    "cancel": "రద్దు"
+  },
+  "brand": { "eyebrow": "మల్టీ-సొసైటీ SaaS", "title": "NEXORA" },
+  "actions": {
+    "lightMode": "లైట్ మోడ్",
+    "darkMode": "డార్క్ మోడ్",
+    "systemMode": "సిస్టమ్ మోడ్",
+    "signIn": "సైన్ ఇన్",
+    "startFreeTrial": "ఉచిత ట్రయల్ ప్రారంభించండి",
+    "createAccount": "ఖాతా సృష్టించండి",
+    "openPortal": "పోర్టల్ తెరవండి"
+  },
+  "nav": {
+    "dashboard": "డ్యాష్‌బోర్డ్",
+    "billing": "బిల్లింగ్",
+    "maintenance": "నిర్వహణ",
+    "complaints": "ఫిర్యాదులు",
+    "visitors": "సందర్శకులు",
+    "documents": "పత్రాలు",
+    "analytics": "విశ్లేషణలు",
+    "settings": "సెట్టింగులు",
+    "aiAssistant": "AI సహాయకుడు",
+    "messages": "సందేశాలు"
+  },
+  "role": {
+    "admin": "చైర్మన్",
+    "secretary": "సెక్రటరీ",
+    "super_admin": "సూపర్ అడ్మిన్",
+    "resident": "నివాసి",
+    "staff": "సిబ్బంది",
+    "security": "భద్రత"
+  },
+  "dashboard": { "title": "{{role}} డ్యాష్‌బోర్డ్" },
+  "society": {
+    "switcher": "సొసైటీ స్విచర్",
+    "searchPlaceholder": "సొసైటీ పేరు లేదా కోడ్ వెతుకు",
+    "recent": "ఇటీవలి సొసైటీలు",
+    "favorites": "ఇష్టమైన సొసైటీలు",
+    "allSocieties": "అన్ని సొసైటీలు",
+    "switchSociety": "సొసైటీ మార్చండి",
+    "openSociety": "సొసైటీ తెరవండి",
+    "viewAnalytics": "విశ్లేషణలు చూడండి",
+    "manageSociety": "సొసైటీ నిర్వహించండి",
+    "residentCount": "నివాసులు",
+    "occupancyRate": "నివాస శాతం",
+    "pendingComplaints": "పెండింగ్ ఫిర్యాదులు",
+    "monthlyCollections": "నెలవారీ వసూళ్లు",
+    "dataIsolation": "డేటా ఈ సొసైటీకి మాత్రమే పరిమితం"
+  },
+  "theme": { "title": "థీమ్", "light": "లైట్", "dark": "డార్క్", "system": "సిస్టమ్" },
+  "language": { "title": "భాష", "subtitle": "మొత్తం వెబ్‌సైట్ భాషను మార్చండి" },
+  "auth": {
+    "welcomeBack": "తిరిగి స్వాగతం",
+    "login": "లాగిన్",
+    "register": "రిజిస్టర్",
+    "email": "ఇమెయిల్",
+    "password": "పాస్‌వర్డ్",
+    "societyCode": "సొసైటీ కోడ్",
+    "verifyOtp": "OTP ధృవీకరించండి"
+  },
+  "messages": {
+    "maintenancePayment": "నిర్వహణ చెల్లింపు",
+    "success": "విజయం",
+    "error": "లోపం",
+    "empty": "డేటా లేదు"
+  }
+}
