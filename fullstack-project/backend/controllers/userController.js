@@ -1,6 +1,7 @@
 const userModel = require("../models/userModel");
 const bcrypt = require("bcrypt");
 const flatModel = require("../models/flatModel");
+const UserApprovalModel = require("../models/userApprovalModel");
 const { sendAccountDeletionEmail } = require("../utils/mailer");
 
 const CHAIRMAN_ROLES = new Set(["chairman", "admin"]);
@@ -101,7 +102,7 @@ async function getUsers(req, res) {
       registrationTo,
       page,
       limit,
-      societyId: req.user?.societyId || null,
+      societyId: getSocietyIdFromRequest(req),
     });
 
     let rows = directory.rows;
@@ -139,7 +140,7 @@ async function getDeletedUsers(req, res) {
     const search = req.query.search ? String(req.query.search).trim() : "";
     const users = await userModel.getDeletedUsers({
       search,
-      societyId: req.user?.societyId || null,
+      societyId: getSocietyIdFromRequest(req),
     });
     res.json({ success: true, data: users });
   } catch (error) {
@@ -164,7 +165,7 @@ async function getUsersByCategory(req, res) {
     const users = await userModel.getUsersByCategory(category, {
       search,
       status,
-      societyId: req.user?.societyId || null,
+      societyId: getSocietyIdFromRequest(req),
     });
     res.json({
       success: true,
@@ -203,7 +204,7 @@ async function createUser(req, res) {
       residentType,
       status: role === "resident" ? "pending" : status || "active",
       isVerified: role === "resident" ? false : true,
-      societyId: req.user?.societyId || null,
+      societyId: getSocietyIdFromRequest(req),
       flatId: flatId || null,
       flatNumber: flatNumber || null,
       phone: phone || null,
@@ -263,7 +264,23 @@ async function updateUserStatus(req, res) {
       });
     }
 
-    const updatedUser = await userModel.updateUserStatusById(userId, status);
+    let updatedUser = null;
+    if (["active", "rejected"].includes(String(status).toLowerCase())) {
+      const pendingApprovals = await UserApprovalModel.getPendingApprovals(requestSocietyId);
+      const pendingApproval = pendingApprovals.find((approval) => Number(approval.user_id) === Number(userId));
+      if (pendingApproval) {
+        if (String(status).toLowerCase() === "active") {
+          await UserApprovalModel.approveUser(pendingApproval.id, req.user.id, req.body?.comments || null);
+        } else {
+          await UserApprovalModel.rejectUser(pendingApproval.id, req.user.id, req.body?.reason || "Rejected by society admin.");
+        }
+        updatedUser = await userModel.getUserById(userId);
+      }
+    }
+
+    if (!updatedUser) {
+      updatedUser = await userModel.updateUserStatusById(userId, status);
+    }
 
       let assignedFlat = null;
       if (updatedUser && updatedUser.role === "resident" && status === "active") {

@@ -48,6 +48,50 @@ function normalizeSocietyCode(value) {
   return String(value || "").trim().toUpperCase();
 }
 
+function getRegistrationApprovalType({ requestedRole, userRole, residentType }) {
+  const normalizedRequestedRole = String(requestedRole || "").trim().toLowerCase();
+  const normalizedUserRole = String(userRole || "").trim().toLowerCase();
+
+  if (normalizedRequestedRole === "chairman") return "chairman_registration";
+  if (normalizedRequestedRole === "secretary") return "secretary_registration";
+  if (normalizedUserRole === "resident" || ["owner", "tenant"].includes(normalizedRequestedRole)) return "resident_registration";
+  if (normalizedRequestedRole === "staff") return "staff_registration";
+  if (normalizedRequestedRole === "security") return "security_registration";
+  if (residentType) return "resident_registration";
+  return "registration";
+}
+
+async function getActiveOfficerCount(societyId, roles = ["chairman", "admin", "secretary"]) {
+  const activeOfficerRows = await userModel.getUserCountsByRolesAndStatus({
+    societyId,
+    roles,
+    statuses: ["active"],
+  });
+  return Number(activeOfficerRows?.count || 0);
+}
+
+async function ensureRegistrationApproval({ userId, societyId, requestedRole, userRole, residentType, requestedBy = null, documents = null }) {
+  await UserApprovalModel.ensureSchema();
+  const approvalType = getRegistrationApprovalType({ requestedRole, userRole, residentType });
+  const existing = await UserApprovalModel.getPendingApprovals(societyId, { approvalType });
+  const existingForUser = existing.find((approval) => Number(approval.user_id) === Number(userId));
+  if (existingForUser) {
+    console.log("[Approval record already exists]", { userId, societyId, approvalType, approvalId: existingForUser.id });
+    return existingForUser;
+  }
+
+  console.log("[Approval record created]", { userId, societyId, approvalType, requestedBy });
+  const approval = await UserApprovalModel.createApprovalRequest({
+    userId,
+    societyId,
+    approvalType,
+    requestedBy,
+    documents,
+  });
+  console.log("[Approval inserted successfully]", { userId, societyId, approvalType, approvalId: approval?.id || null });
+  return approval;
+}
+
 function getOtpExpiryDate() {
   const expiresAt = new Date();
   expiresAt.setMinutes(expiresAt.getMinutes() + OTP_VALIDITY_MINUTES);
@@ -545,15 +589,8 @@ async function register(req, res) {
     }
 
     const isResidentRole = ["owner", "tenant"].includes(requestedRole);
-    const isOfficerRole = ["chairman", "secretary"].includes(requestedRole);
-    const normalizedRole = requestedRole === "chairman" ? "admin" : requestedRole;
-
-    if (isResidentRole && (!wing || !flatNumber)) {
-      return res.status(400).json({
-        success: false,
-        message: "wing and flatNumber are required for resident roles",
-      });
-    }
+    const isOfficerRole = requestedRole === "secretary";
+    const normalizedRole = requestedRole;
 
     const society = await societyModel.getSocietyByCode(societyCode);
     if (!society) {
@@ -563,7 +600,7 @@ async function register(req, res) {
       });
     }
 
-    if (society.status !== "active") {
+    if (["deleted", "archived", "suspended", "rejected"].includes(String(society.status || "").toLowerCase())) {
       return res.status(403).json({
         success: false,
         message: "This society is not active",
@@ -583,12 +620,15 @@ async function register(req, res) {
       });
     }
 
-    const activeOfficerRows = await userModel.getUserCountsByRolesAndStatus({
-      societyId: society.id,
-      roles: ["admin", "secretary"],
-      statuses: ["active"],
-    });
-    const activeOfficerCount = Number(activeOfficerRows?.count || 0);
+    const activeChairmanCount = await getActiveOfficerCount(society.id, ["chairman", "admin"]);
+    const activeOfficerCount = await getActiveOfficerCount(society.id, ["chairman", "admin", "secretary"]);
+
+    if (requestedRole === "secretary" && activeChairmanCount === 0) {
+      return res.status(403).json({
+        success: false,
+        message: "Secretary registration opens after Chairman is approved.",
+      });
+    }
 
     if (!isOfficerRole && activeOfficerCount === 0) {
       return res.status(403).json({
@@ -617,23 +657,23 @@ async function register(req, res) {
     let matchedFlat = null;
 
     if (isResidentRole) {
-      normalizedFlatNumber = String(flatNumber).trim();
-      const normalizedWing = String(wing).trim().toUpperCase();
-      matchedFlat = await flatModel.getFlatByWingAndFlatNumber({
-        societyId: society.id,
-        wing: normalizedWing,
-        flatNumber: normalizedFlatNumber,
-      });
-
-      if (!matchedFlat) {
-        return res.status(400).json({
-          success: false,
-          message: "No flat found for the selected wing and flat number",
+      residentType = requestedRole;
+      if (wing && flatNumber) {
+        normalizedFlatNumber = String(flatNumber).trim();
+        const normalizedWing = String(wing).trim().toUpperCase();
+        matchedFlat = await flatModel.getFlatByWingAndFlatNumber({
+          societyId: society.id,
+          wing: normalizedWing,
+          flatNumber: normalizedFlatNumber,
         });
-      }
 
-      const hasOwner = await userModel.hasOwnerForFlatId(matchedFlat.id);
-      residentType = hasOwner ? "tenant" : "owner";
+        if (!matchedFlat) {
+          return res.status(400).json({
+            success: false,
+            message: "No flat found for the selected wing and flat number",
+          });
+        }
+      }
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -645,7 +685,7 @@ async function register(req, res) {
       password: hashedPassword,
       role: userRole,
       residentType,
-      status: "pending",
+      status: "pending_approval",
       isVerified: false,
       societyId: society.id,
       flatId: matchedFlat?.id || null,
@@ -653,15 +693,27 @@ async function register(req, res) {
       phone: phone || null,
       address: address || null,
     });
-    if (isOfficerRole) {
-      await UserApprovalModel.createApprovalRequest({
-        userId: user.id,
-        societyId: society.id,
-        approvalType: "registration",
-        requestedBy: null,
-        documents: idProofUrl ? { idProofUrl } : null,
-      });
-    }
+    console.log("[Registration created]", {
+      userId: user.id,
+      societyId: society.id,
+      role: userRole,
+      residentType,
+      status: user.status,
+    });
+    await ensureRegistrationApproval({
+      userId: user.id,
+      societyId: society.id,
+      requestedRole,
+      userRole,
+      residentType,
+      requestedBy: user.id,
+      documents: {
+        requestedRole,
+        residentType,
+        phone: phone || null,
+        idProofUrl: idProofUrl || null,
+      },
+    });
 
     if (residentType === "owner") {
       await userModel.syncOwnerPropertyMapping(user.id, matchedFlat?.id || null);
@@ -993,6 +1045,20 @@ async function verifyEmailOtp(req, res) {
     await userModel.verifyUserById(user.id);
     const verifiedUser = await userModel.getUserById(user.id);
     const responseUser = verifiedUser || { ...user, is_verified: true };
+    const responseRole = String(responseUser.role || user.role || "").toLowerCase();
+    const responseResidentType = responseUser.resident_type || user.resident_type || null;
+    const requestedRole = responseRole === "resident" ? responseResidentType : responseRole;
+    await ensureRegistrationApproval({
+      userId: responseUser.id,
+      societyId: society.id,
+      requestedRole,
+      userRole: responseRole,
+      residentType: responseResidentType,
+      requestedBy: responseUser.id,
+      documents: { requestedRole, residentType: responseResidentType },
+    }).catch((approvalError) => {
+      console.warn("[verifyEmailOtp] failed to ensure approval", approvalError.message);
+    });
     await logVerificationActivity(responseUser, "email_verified", { otpId: activeOtp.id });
 
     res.json({
@@ -1409,8 +1475,8 @@ async function completeOAuthProfile(req, res) {
     if (!society) {
       return res.status(400).json({ success: false, message: "Society code not found." });
     }
-    if (society.status !== "active") {
-      return res.status(403).json({ success: false, message: "Access denied." });
+    if (["deleted", "archived", "suspended", "rejected"].includes(String(society.status || "").toLowerCase())) {
+      return res.status(403).json({ success: false, message: "This society is not active" });
     }
 
     const existingInSociety = await userModel.getUserByEmail(profile.email, society.id);
@@ -1430,19 +1496,36 @@ async function completeOAuthProfile(req, res) {
     let normalizedFlatNumber = null;
 
     if (isResidentRole) {
-      if (!wing || !flatNumber) {
-        return res.status(400).json({ success: false, message: "Flat details are required." });
-      }
-      normalizedFlatNumber = String(flatNumber).trim();
-      matchedFlat = await flatModel.getFlatByWingAndFlatNumber({
-        societyId: society.id,
-        wing: String(wing).trim().toUpperCase(),
-        flatNumber: normalizedFlatNumber,
-      });
-      if (!matchedFlat) {
-        return res.status(400).json({ success: false, message: "Flat details are invalid." });
-      }
       residentType = requestedRole;
+      if (wing && flatNumber) {
+        normalizedFlatNumber = String(flatNumber).trim();
+        matchedFlat = await flatModel.getFlatByWingAndFlatNumber({
+          societyId: society.id,
+          wing: String(wing).trim().toUpperCase(),
+          flatNumber: normalizedFlatNumber,
+        });
+        if (!matchedFlat) {
+          return res.status(400).json({ success: false, message: "Flat details are invalid." });
+        }
+      }
+    }
+
+    const activeChairmanCount = await getActiveOfficerCount(society.id, ["chairman", "admin"]);
+    const activeOfficerCount = await getActiveOfficerCount(society.id, ["chairman", "admin", "secretary"]);
+
+    if (requestedRole === "secretary" && activeChairmanCount === 0) {
+      return res.status(403).json({
+        success: false,
+        message: "Secretary registration opens after Chairman is approved.",
+      });
+    }
+
+    if (!isOfficerRole && activeOfficerCount === 0) {
+      return res.status(403).json({
+        success: false,
+        message:
+          "Only Chairman or Secretary can register first for this society. Member registration opens after one of them is approved.",
+      });
     }
 
     const userRole = isResidentRole ? "resident" : normalizedRole;
@@ -1452,7 +1535,7 @@ async function completeOAuthProfile(req, res) {
       password: await createOAuthPasswordHash(),
       role: userRole,
       residentType,
-      status: "pending",
+      status: "pending_approval",
       isVerified: true,
       emailVerified: true,
       societyId: society.id,
@@ -1465,13 +1548,28 @@ async function completeOAuthProfile(req, res) {
       department,
       designation,
     });
-
-    await UserApprovalModel.createApprovalRequest({
+    console.log("[Registration created]", {
       userId: user.id,
       societyId: society.id,
-      approvalType: "registration",
-      requestedBy: null,
-      documents: idProofUrl ? { idProofUrl } : null,
+      role: userRole,
+      residentType,
+      status: user.status,
+      provider: profile.provider,
+    });
+
+    await ensureRegistrationApproval({
+      userId: user.id,
+      societyId: society.id,
+      requestedRole,
+      userRole,
+      residentType,
+      requestedBy: user.id,
+      documents: {
+        requestedRole,
+        residentType,
+        phone: phone || mobile || null,
+        idProofUrl: idProofUrl || null,
+      },
     }).catch(() => null);
 
     if (residentType === "owner") {

@@ -888,7 +888,7 @@ async function getPendingApprovals(req, res) {
        JOIN users u ON u.id = ua.user_id
        JOIN societies s ON s.id = ua.society_id
        WHERE ua.status = 'pending'
-         AND ua.approval_type IN ('registration', 'chairman_registration')
+         AND ua.approval_type IN ('registration', 'chairman_registration', 'secretary_registration')
          AND u.role IN ('chairman', 'admin', 'secretary')${approvalRoleClause}
        ORDER BY ua.created_at ASC`,
       approvalParams
@@ -956,7 +956,7 @@ async function approvePendingUser(req, res) {
       const { rows: approvalUserRows } = await db.query(`SELECT id, role, society_id, is_verified FROM users WHERE id = $1 LIMIT 1`, [approvalRow.user_id]);
       const approvalUser = approvalUserRows[0] || null;
       const approvalUserRole = approvalUser?.role || null;
-      if (!["chairman", "admin", "secretary"].includes(approvalUserRole) || !["registration", "chairman_registration"].includes(approvalRow.approval_type)) {
+      if (!["chairman", "admin", "secretary"].includes(approvalUserRole) || !["registration", "chairman_registration", "secretary_registration"].includes(approvalRow.approval_type)) {
         return res.status(403).json({
           success: false,
           message: "Super admin can approve only chairman/secretary registration requests",
@@ -1028,7 +1028,17 @@ async function approvePendingUser(req, res) {
       }
     }
 
-    await db.query(`UPDATE users SET status = 'active', is_verified = TRUE WHERE id = $1`, [directUser.id]);
+    await UserApprovalModel.ensureSchema();
+    await db.query(
+      `UPDATE users
+       SET status = 'active',
+           is_verified = TRUE,
+           approval_status = 'approved',
+           approved_by = $2,
+           approved_at = CURRENT_TIMESTAMP
+       WHERE id = $1`,
+      [directUser.id, req.user.id]
+    );
     if (isChairmanRole(directUser.role)) {
       await societyModel.updateSocietyById(directUser.society_id, {
         status: "active",
@@ -1175,7 +1185,7 @@ async function rejectPendingUser(req, res) {
     if (approvalRow) {
       const { rows: approvalUserRows } = await db.query(`SELECT role FROM users WHERE id = $1 LIMIT 1`, [approvalRow.user_id]);
       const approvalUserRole = approvalUserRows[0]?.role || null;
-      if (!["chairman", "admin", "secretary"].includes(approvalUserRole) || !["registration", "chairman_registration"].includes(approvalRow.approval_type)) {
+      if (!["chairman", "admin", "secretary"].includes(approvalUserRole) || !["registration", "chairman_registration", "secretary_registration"].includes(approvalRow.approval_type)) {
         return res.status(403).json({
           success: false,
           message: "Super admin can reject only chairman/secretary registration requests",
@@ -1198,7 +1208,16 @@ async function rejectPendingUser(req, res) {
       return res.status(404).json({ success: false, message: "Approval not found" });
     }
 
-    await db.query(`UPDATE users SET status = 'rejected' WHERE id = $1`, [directUser.id]);
+    await UserApprovalModel.ensureSchema();
+    await db.query(
+      `UPDATE users
+       SET status = 'rejected',
+           approval_status = 'rejected',
+           rejected_by = $2,
+           rejected_at = CURRENT_TIMESTAMP
+       WHERE id = $1`,
+      [directUser.id, req.user.id]
+    );
     const response = { user_id: directUser.id, role: directUser.role, status: "rejected", rejected_by: req.user.id, rejection_reason: reason };
 
     return res.json({ success: true, message: "User rejected successfully", data: response });

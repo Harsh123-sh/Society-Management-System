@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import AlertMessage from "../components/AlertMessage";
 import BrandLogo from "../components/BrandLogo";
 import NexoraAuthVisual from "../components/NexoraAuthVisual";
-import { getApiMessage, loginUser } from "../services/authApi";
+import { fetchCurrentUser, getApiMessage, loginUser } from "../services/authApi";
 import { getBackendBaseUrl } from "../services/runtimeUrls";
 import {
   clearAuthSession,
@@ -122,7 +122,18 @@ export default function LoginPage() {
       clearAuthSession();
       clearSelectedSociety();
       const response = await loginUser(payload);
-      const user = response.user || response.data;
+      const accessToken = response.accessToken || response.access_token || response.token;
+      const initialUser = response.user || response.data;
+      saveAuthSession({
+        accessToken,
+        refreshToken: response.refreshToken || response.refresh_token,
+        user: initialUser,
+        societyId: initialUser?.societyId || initialUser?.society_id,
+        societyName: initialUser?.societyName || initialUser?.society_name,
+      });
+      const profileResponse = await fetchCurrentUser();
+      const profileUser = profileResponse.user || profileResponse.data || {};
+      const user = { ...initialUser, ...profileUser };
       if (!hasRequiredSocietyContext(user)) {
         clearAuthSession();
         clearSelectedSociety();
@@ -130,7 +141,7 @@ export default function LoginPage() {
         return;
       }
       saveAuthSession({
-        accessToken: response.accessToken || response.access_token || response.token,
+        accessToken,
         refreshToken: response.refreshToken || response.refresh_token,
         user,
         societyId: user?.societyId || user?.society_id,
@@ -161,9 +172,9 @@ export default function LoginPage() {
       return;
     }
 
-    const user = response.user || response.data;
+    const initialUser = response.user || response.data;
     const accessToken = response.accessToken || response.access_token || response.token;
-    if (!accessToken || !hasRequiredSocietyContext(user)) {
+    if (!accessToken || !hasRequiredSocietyContext(initialUser)) {
       clearAuthSession();
       clearSelectedSociety();
       setAlert({ type: "error", message: "Society access not found. Please login again." });
@@ -173,11 +184,34 @@ export default function LoginPage() {
     saveAuthSession({
       accessToken,
       refreshToken: response.refreshToken || response.refresh_token,
-      user,
-      societyId: user?.societyId || user?.society_id,
-      societyName: user?.societyName || user?.society_name,
+      user: initialUser,
+      societyId: initialUser?.societyId || initialUser?.society_id,
+      societyName: initialUser?.societyName || initialUser?.society_name,
     });
-    navigate(getRoleHomePath(user?.role), { replace: true });
+    fetchCurrentUser()
+      .then((profileResponse) => {
+        const profileUser = profileResponse.user || profileResponse.data || {};
+        const user = { ...initialUser, ...profileUser };
+        if (!hasRequiredSocietyContext(user)) {
+          clearAuthSession();
+          clearSelectedSociety();
+          setAlert({ type: "error", message: "Society access not found. Please login again." });
+          return;
+        }
+        saveAuthSession({
+          accessToken,
+          refreshToken: response.refreshToken || response.refresh_token,
+          user,
+          societyId: user?.societyId || user?.society_id,
+          societyName: user?.societyName || user?.society_name,
+        });
+        navigate(getRoleHomePath(user?.role), { replace: true });
+      })
+      .catch((error) => {
+        clearAuthSession();
+        clearSelectedSociety();
+        setAlert({ type: "error", message: getApiMessage(error, "Login failed") });
+      });
   }
 
   function requestBackendOAuthResult(provider) {

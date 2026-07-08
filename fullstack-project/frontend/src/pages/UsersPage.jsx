@@ -9,19 +9,6 @@ import "./users-page.css";
 
 const Motion = motion;
 
-const DEMO_RESIDENTS = [
-  { id: "GVH-RES-1001", name: "Ramesh Patel", email: "ramesh.patel@email.com", phone: "98765 43210", role: "resident", resident_type: "owner", status: "active", flat_number: "A-1202", tower: "Tower A", floor: "12", bhk: "3 BHK", family_members_count: 4, created_at: "2023-01-15", last_activity: "Paid June bill" },
-  { id: "GVH-RES-1002", name: "Neha Sharma", email: "neha.sharma@email.com", phone: "98234 56789", role: "resident", resident_type: "tenant", status: "active", flat_number: "B-0801", tower: "Tower B", floor: "8", bhk: "2 BHK", family_members_count: 3, created_at: "2024-03-10", last_activity: "Visitor approved" },
-  { id: "GVH-RES-1003", name: "Vikram Singh", email: "vikram.singh@email.com", phone: "99123 45678", role: "resident", resident_type: "owner", status: "active", flat_number: "C-0503", tower: "Tower C", floor: "5", bhk: "4 BHK", family_members_count: 5, created_at: "2022-08-22", last_activity: "Document uploaded" },
-  { id: "GVH-RES-1004", name: "Priya Desai", email: "priya.desai@email.com", phone: "93210 98765", role: "resident", resident_type: "tenant", status: "active", flat_number: "A-0304", tower: "Tower A", floor: "3", bhk: "2 BHK", family_members_count: 2, created_at: "2024-05-05", last_activity: "Complaint raised" },
-  { id: "GVH-RES-1005", name: "Amit Joshi", email: "amit.joshi@email.com", phone: "98111 22334", role: "resident", resident_type: "owner", status: "active", flat_number: "D-0902", tower: "Tower D", floor: "9", bhk: "3 BHK", family_members_count: 4, created_at: "2021-06-30", last_activity: "Parking assigned" },
-  { id: "GVH-RES-1006", name: "Sneha Iyer", email: "sneha.iyer@email.com", phone: "97555 66777", role: "resident", resident_type: "tenant", status: "pending", flat_number: "B-1105", tower: "Tower B", floor: "11", bhk: "2 BHK", family_members_count: 3, created_at: "2026-06-18", last_activity: "KYC pending" },
-  { id: "GVH-RES-1007", name: "Manoj Kumar", email: "manoj.kumar@email.com", phone: "90001 23456", role: "resident", resident_type: "owner", status: "active", flat_number: "A-1401", tower: "Tower A", floor: "14", bhk: "4 BHK", family_members_count: 6, created_at: "2020-12-18", last_activity: "Notice read" },
-  { id: "GVH-RES-1008", name: "Kavya Reddy", email: "kavya.reddy@email.com", phone: "88844 33221", role: "resident", resident_type: "tenant", status: "inactive", flat_number: "C-0202", tower: "Tower C", floor: "2", bhk: "1 BHK", family_members_count: 2, created_at: "2024-04-14", last_activity: "Moved out" },
-  { id: "GVH-RES-1009", name: "Arjun Nair", email: "arjun.nair@email.com", phone: "98888 44002", role: "resident", resident_type: "family", status: "active", flat_number: "A-1202", tower: "Tower A", floor: "12", bhk: "3 BHK", family_members_count: 0, created_at: "2023-02-01", last_activity: "Visitor pass created" },
-  { id: "GVH-RES-1010", name: "Fatima Khan", email: "fatima.khan@email.com", phone: "97777 61009", role: "resident", resident_type: "owner", status: "pending", flat_number: "D-0707", tower: "Tower D", floor: "7", bhk: "3 BHK", family_members_count: 4, created_at: "2026-06-22", last_activity: "Owner approval pending" },
-];
-
 const tabs = [
   ["all", "All Residents"],
   ["owner", "Owners"],
@@ -185,11 +172,11 @@ function UsersPage() {
         setLoading(true);
         const response = await fetchUsers({ role: "resident", status: "all", limit: 100 });
         const rows = Array.isArray(response?.data) ? response.data : Array.isArray(response) ? response : [];
-        if (mounted) setResidents(rows.length ? rows.filter((user) => normalize(user.role) === "resident") : DEMO_RESIDENTS);
+        if (mounted) setResidents(rows.filter((user) => normalize(user.role) === "resident"));
       } catch (error) {
         if (mounted) {
-          setResidents(DEMO_RESIDENTS);
-          setAlert({ type: "info", message: safeMessage(error, "Showing resident preview data while live records load.") });
+          setResidents([]);
+          setAlert({ type: "error", message: safeMessage(error, "Could not load live resident records.") });
         }
       } finally {
         if (mounted) setLoading(false);
@@ -249,11 +236,6 @@ function UsersPage() {
   }
 
   async function approveResident(resident) {
-    if (String(resident.id).startsWith("GVH-")) {
-      setResidents((current) => current.map((item) => item.id === resident.id ? { ...item, status: "active" } : item));
-      setAlert({ type: "success", message: `${resident.name} approved in preview data.` });
-      return;
-    }
     try {
       setUpdatingId(resident.id);
       await updateUserStatus(resident.id, "active");
@@ -269,10 +251,6 @@ function UsersPage() {
   async function handleDelete(resident) {
     if (!isChairman) {
       setAlert({ type: "error", message: "Secretary has limited delete access. Permission management is restricted." });
-      return;
-    }
-    if (String(resident.id).startsWith("GVH-")) {
-      setAlert({ type: "info", message: "Demo resident delete is disabled in preview data." });
       return;
     }
     try {

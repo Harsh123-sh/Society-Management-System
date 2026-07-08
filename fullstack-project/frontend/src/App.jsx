@@ -26,6 +26,7 @@ const ChairmanDashboard = lazyPage(() => import("./pages/ChairmanDashboard"));
 const AccountantDashboardPage = lazyPage(() => import("./pages/AccountantDashboardPage"));
 const AnalyticsDashboard = lazyPage(() => import("./pages/AnalyticsDashboard"));
 const SecretaryHomePage = lazyPage(() => import("./pages/SecretaryHomePage"));
+const SecretaryApprovalsPage = lazyPage(() => import("./pages/SecretaryApprovalsPage"));
 const StaffHomePage = lazyPage(() => import("./pages/StaffHomePage"));
 const StaffLayout = lazyPage(() => import("./pages/StaffHomePage").then((module) => ({ default: module.StaffLayout })));
 const StaffTasksPage = lazyPage(() => import("./pages/StaffHomePage").then((module) => ({ default: module.StaffTasksPage })));
@@ -161,6 +162,7 @@ function App() {
         <Route path="/secretary" element={<DashboardLayout basePath="/secretary" />}>
           <Route index element={<Navigate to="dashboard" replace />} />
           <Route path="dashboard" element={<SecretaryHomePage />} />
+          <Route path="approvals" element={<SecretaryApprovalsPage />} />
           <Route path="users" element={<UsersPage />} />
           <Route path="residents" element={<Navigate to="/secretary/users" replace />} />
           <Route path="documents" element={<DocumentsPage />} />

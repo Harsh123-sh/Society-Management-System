@@ -105,6 +105,7 @@ const navGroups = [
 const allItems = navGroups.flatMap((group) => group.items.map((item) => ({ ...item, group: group.title })));
 
 const legacyPathMap = {
+  approvals: "pending-chairman-tasks",
   billing: "maintenance-bills",
   community: "active-complaints",
   complaints: "active-complaints",
@@ -278,8 +279,8 @@ const featureConfig = {
     breadcrumb: "Chairman / Approvals",
     primaryAction: "Review Queue",
     filters: ["All approvals", "Resident", "Document", "Staff", "Security", "Vehicle"],
-    columns: ["name", "type", "role", "approval_type", "status", "created_at"],
-    emptyTitle: "No approval records found.",
+    columns: ["name", "email", "phone", "role", "society_name", "request_type", "requested_date", "status"],
+    emptyTitle: "No pending approvals.",
     kpis: [
       ["Pending", (rows) => countByStatus(rows, ["pending", "pending_approval", "verification_pending"])],
       ["Residents", (rows) => countByText(rows, ["resident", "owner", "tenant"])],
@@ -437,26 +438,16 @@ function clearChairmanBrowserSession() {
 }
 
 function makeApprovalRows(data) {
-  const users = data?.users || [];
-  const pending = users.filter((row) => ["pending", "pending_approval", "verification_pending"].includes(getStatus(row)));
-  const typeMap = [
-    ["Resident Registration", (row) => ["owner", "resident", "user"].includes(String(row.role || row.resident_type || "").toLowerCase())],
-    ["Tenant Verification", (row) => String(row.role || row.resident_type || "").toLowerCase() === "tenant"],
-    ["Staff Approval", (row) => String(row.role || row.staff_role || "").toLowerCase() === "staff"],
-    ["Security Approval", (row) => String(row.role || row.staff_role || "").toLowerCase().includes("security")],
-  ];
-  const rows = typeMap.map(([label, predicate]) => {
-    const row = pending.find(predicate);
-    return row ? {
-      id: row.id || row.user_id || label,
-      type: label,
-      title: getRowTitle(row, label),
-      status: getStatus(row),
-      priority: row.priority || (label.includes("Security") ? "High" : "Medium"),
-      date: row.created_at || row.updated_at,
-      row,
-    } : null;
-  }).filter(Boolean);
+  const approvals = (data?.approvals || []).filter((row) => ["pending", "pending_approval", "verification_pending"].includes(getStatus(row)));
+  const rows = approvals.map((row) => ({
+    id: row.id || row.approval_id || row.user_id,
+    type: titleize(row.approval_type || row.role || "Approval"),
+    title: getRowTitle(row, "Approval"),
+    status: getStatus(row),
+    priority: row.priority || (String(row.role || "").toLowerCase() === "security" ? "High" : "Medium"),
+    date: row.created_at || row.updated_at,
+    row,
+  }));
   const vehicle = (data?.alerts || []).find((row) => ["pending", "pending_approval"].includes(getStatus(row)));
   if (vehicle) {
     rows.push({
@@ -1573,7 +1564,7 @@ function StaffSecurityModule({ item }) {
   );
 }
 
-function ModulePage({ item }) {
+export function ModulePage({ item }) {
   const [rows, setRows] = useState([]);
   const [stats, setStats] = useState({});
   const [state, setState] = useState("loading");

@@ -1,5 +1,7 @@
 import { motion } from "framer-motion";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { api } from "../../services/authApi";
 import "./society-admin-dashboard.css";
 
 const MotionArticle = motion.article;
@@ -8,19 +10,11 @@ const kpis = [
   { label: "Total Residents", value: "1,248", trend: "+3.2%", note: "verified profiles", icon: "users", tone: "violet", to: "users" },
   { label: "Occupied Flats", value: "392", trend: "+1.8%", note: "active homes", icon: "building", tone: "blue", to: "flats" },
   { label: "Vacant Flats", value: "28", trend: "-6.1%", note: "available units", icon: "home", tone: "cyan", to: "flats" },
-  { label: "Pending Approvals", value: "27", trend: "+9", note: "need action", icon: "check", tone: "amber", to: "dashboard#approvals" },
+  { label: "Pending Approvals", value: "0", trend: "Live", note: "need action", icon: "check", tone: "amber", to: "approvals" },
   { label: "Monthly Collection", value: "INR 84.6L", trend: "+18%", note: "month to date", icon: "rupee", tone: "green", to: "billing" },
   { label: "Pending Dues", value: "INR 12.8L", trend: "-8%", note: "48 flats", icon: "receipt", tone: "rose", to: "billing" },
   { label: "Open Complaints", value: "42", trend: "-11%", note: "8 urgent", icon: "message", tone: "violet", to: "complaints" },
   { label: "Active Staff", value: "64", trend: "+4", note: "on duty today", icon: "staff", tone: "blue", to: "staff" },
-];
-
-const approvals = [
-  { type: "Resident Registration", count: "8 pending", owner: "KYC review", age: "Today" },
-  { type: "Tenant Verification", count: "6 pending", owner: "Move-in approval", age: "2h" },
-  { type: "Vehicle Approval", count: "4 pending", owner: "Parking allocation", age: "4h" },
-  { type: "Vendor Approval", count: "2 pending", owner: "Contract access", age: "1d" },
-  { type: "Document Approval", count: "7 pending", owner: "Ownership proofs", age: "Today" },
 ];
 
 const activities = [
@@ -37,7 +31,7 @@ const quickActions = [
   { label: "Add Flat", icon: "home", to: "flats" },
   { label: "Generate Bill", icon: "rupee", to: "billing" },
   { label: "Create Notice", icon: "message", to: "notices" },
-  { label: "Approve Requests", icon: "check", to: "dashboard#approvals" },
+  { label: "Approve Requests", icon: "check", to: "approvals" },
   { label: "View Reports", icon: "receipt", to: "analytics" },
 ];
 
@@ -64,8 +58,32 @@ function Icon({ name, className = "sad-icon" }) {
 
 function SocietyAdminDashboard({ role = "chairman" }) {
   const navigate = useNavigate();
+  const [pendingApprovals, setPendingApprovals] = useState([]);
   const activeRole = role === "secretary" ? "secretary" : "chairman";
   const basePath = activeRole === "secretary" ? "/secretary" : "/admin";
+  const liveKpis = useMemo(() => kpis.map((item) => (
+    item.label === "Pending Approvals"
+      ? { ...item, value: pendingApprovals.length.toLocaleString("en-IN"), trend: pendingApprovals.length ? "Review" : "Clear" }
+      : item
+  )), [pendingApprovals.length]);
+  const approvalRows = useMemo(() => pendingApprovals.slice(0, 5).map((item) => ({
+    type: String(item.request_type || item.approval_type || item.role || "Approval").replace(/_/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase()),
+    count: "1 pending",
+    owner: item.name || item.email || "Pending user",
+    age: item.requested_date || item.created_at ? new Date(item.requested_date || item.created_at).toLocaleDateString("en-IN", { day: "2-digit", month: "short" }) : "New",
+  })), [pendingApprovals]);
+
+  useEffect(() => {
+    let mounted = true;
+    api.get("/approvals/pending")
+      .then(({ data }) => {
+        if (mounted) setPendingApprovals(data?.approvals || data?.data || []);
+      })
+      .catch(() => {
+        if (mounted) setPendingApprovals([]);
+      });
+    return () => { mounted = false; };
+  }, []);
 
   function openModule(to) {
     if (!to) return;
@@ -79,7 +97,7 @@ function SocietyAdminDashboard({ role = "chairman" }) {
   return (
     <div className={`society-admin-dashboard sad-${activeRole}`}>
       <section className="sad-kpi-grid" aria-label="Executive KPI summary">
-        {kpis.map((item, index) => (
+        {liveKpis.map((item, index) => (
           <MotionArticle
             key={item.label}
             className={`sad-card sad-kpi sad-kpi--${item.tone}`}
@@ -114,19 +132,19 @@ function SocietyAdminDashboard({ role = "chairman" }) {
           </div>
 
           <div className="sad-approval-list">
-            {approvals.map((item) => (
+            {approvalRows.length ? approvalRows.map((item) => (
               <article key={item.type}>
                 <div>
                   <strong>{item.type}</strong>
                   <span>{item.count} / {item.owner} / {item.age}</span>
                 </div>
                 <div className="sad-row-actions">
-                  <button type="button" className="sad-ghost-button"><Icon name="eye" />View</button>
-                  <button type="button">Approve</button>
-                  <button type="button" className="sad-danger-button"><Icon name="close" />Reject</button>
+                  <button type="button" className="sad-ghost-button" onClick={() => openModule("approvals")}><Icon name="eye" />View</button>
+                  <button type="button" onClick={() => openModule("approvals")}>Approve</button>
+                  <button type="button" className="sad-danger-button" onClick={() => openModule("approvals")}><Icon name="close" />Reject</button>
                 </div>
               </article>
-            ))}
+            )) : <article><div><strong>No pending approvals.</strong><span>All same-society approval requests are clear.</span></div></article>}
           </div>
         </section>
 

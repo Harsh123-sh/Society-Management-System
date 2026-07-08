@@ -51,6 +51,7 @@ const navByRole = {
   admin: [
     { label: "Dashboard", to: "dashboard", icon: "dashboard" },
     { label: "Residents", to: "users", icon: "residents" },
+    { label: "Approvals", to: "approvals", icon: "approval" },
     { label: "Flats & Properties", to: "flats", icon: "property" },
     { label: "Visitors", to: "visitors", icon: "visitors" },
     { label: "Billing & Finance", to: "billing", icon: "billing" },
@@ -64,6 +65,7 @@ const navByRole = {
   secretary: [
     { label: "Dashboard", to: "dashboard", icon: "dashboard" },
     { label: "Residents", to: "users", icon: "residents" },
+    { label: "Approvals", to: "approvals", icon: "approval" },
     { label: "Flats & Properties", to: "flats", icon: "property" },
     { label: "Visitors", to: "visitors", icon: "visitors" },
     { label: "Billing & Finance", to: "billing", icon: "billing" },

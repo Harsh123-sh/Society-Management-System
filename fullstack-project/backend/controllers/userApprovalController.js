@@ -5,9 +5,16 @@
 
 const db = require("../config/db");
 const UserApprovalModel = require("../models/userApprovalModel");
+const societyModel = require("../models/societyModel");
 
 const CHAIRMAN_ROLES = new Set(["chairman", "admin"]);
-const OPERATIONAL_ROLES = new Set(["resident", "staff", "security"]);
+const OPERATIONAL_ROLES = new Set(["resident", "owner", "tenant", "staff", "security"]);
+const CHAIRMAN_VISIBLE_APPROVAL_TYPES = new Set([
+  "secretary_registration",
+  "resident_registration",
+  "staff_registration",
+  "security_registration",
+]);
 
 function isChairmanRole(role) {
   return CHAIRMAN_ROLES.has(String(role || "").toLowerCase());
@@ -15,11 +22,45 @@ function isChairmanRole(role) {
 
 function isOperationalApproval(user) {
   const role = String(user?.role || "").toLowerCase();
+  if (["owner", "tenant"].includes(role)) return true;
   if (!OPERATIONAL_ROLES.has(role)) return false;
   if (role === "resident") {
     return ["owner", "tenant"].includes(String(user?.resident_type || "").toLowerCase());
   }
   return true;
+}
+
+function getApprovalTypeForUser(user) {
+  const role = String(user?.role || "").toLowerCase();
+  if (["owner", "tenant"].includes(role)) return "resident_registration";
+  if (role === "secretary") return "secretary_registration";
+  if (role === "resident") return "resident_registration";
+  if (role === "staff") return "staff_registration";
+  if (role === "security") return "security_registration";
+  return "registration";
+}
+
+function isChairmanVisibleApproval(approval) {
+  const role = String(approval?.role || "").toLowerCase();
+  if (role === "secretary") return true;
+  if (["owner", "tenant"].includes(role)) return true;
+  if (role === "resident") return ["owner", "tenant"].includes(String(approval?.resident_type || "").toLowerCase());
+  if (role === "staff" || role === "security") return true;
+  return CHAIRMAN_VISIBLE_APPROVAL_TYPES.has(String(approval?.approval_type || "").toLowerCase());
+}
+
+function isSecretaryVisibleApproval(approval) {
+  const role = String(approval?.role || "").toLowerCase();
+  if (["owner", "tenant"].includes(role)) return true;
+  if (role === "resident") return ["owner", "tenant"].includes(String(approval?.resident_type || "").toLowerCase());
+  return role === "staff" || role === "security";
+}
+
+function isVisibleApprovalForApprover(approver, approval) {
+  const role = String(approver?.role || "").toLowerCase();
+  if (isChairmanRole(role)) return isChairmanVisibleApproval(approval);
+  if (role === "secretary") return isSecretaryVisibleApproval(approval);
+  return false;
 }
 
 function canSeeApproval(approver, targetUser, societyId) {
@@ -87,6 +128,226 @@ async function getApprovalTarget(approvalId) {
 
   return rows[0] || null;
 }
+
+async function getCurrentApprovalApprover(req, roles = ["chairman", "admin", "secretary"]) {
+  const userId = req.user?.id || req.user?.userId;
+  const societyId = req.user?.society_id || req.user?.societyId;
+
+  if (!userId || !societyId) return null;
+
+  const placeholders = roles.map(() => "?").join(", ");
+  const { rows } = await db.query(
+    `SELECT id, role, society_id
+     FROM users
+     WHERE id = ?
+       AND society_id = ?
+       AND role IN (${placeholders})
+       AND status = 'active'
+     LIMIT 1`,
+    [userId, societyId, ...roles]
+  );
+
+  return rows[0] || null;
+}
+
+async function getChairmanApprover(req) {
+  return getCurrentApprovalApprover(req, ["chairman", "admin"]);
+}
+
+async function backfillMissingPendingApprovals(societyId) {
+  await UserApprovalModel.ensureSchema();
+  const { rows } = await db.query(
+    `SELECT u.id, u.name, u.email, COALESCE(u.mobile, u.phone) AS phone,
+            u.role, u.resident_type, u.society_id, u.status
+     FROM users u
+     LEFT JOIN user_approvals ua
+       ON ua.user_id = u.id
+      AND ua.society_id = u.society_id
+      AND ua.status = 'pending'
+     WHERE u.society_id = ?
+       AND u.status = 'pending_approval'
+       AND (
+         u.role IN ('secretary', 'staff', 'security', 'owner', 'tenant')
+         OR (u.role = 'resident' AND u.resident_type IN ('owner', 'tenant'))
+       )
+       AND ua.id IS NULL`,
+    [societyId]
+  );
+
+  for (const user of rows) {
+    const approvalType = getApprovalTypeForUser(user);
+    await UserApprovalModel.createApprovalRequest({
+      userId: user.id,
+      societyId,
+      approvalType,
+      requestedBy: null,
+      documents: {
+        repairedBy: "chairman_pending_approvals",
+        role: user.role,
+        residentType: user.resident_type || null,
+      },
+    });
+    console.log("[Approval inserted successfully]", {
+      userId: user.id,
+      societyId,
+      approvalType,
+      source: "chairman_pending_backfill",
+    });
+  }
+
+  return rows.length;
+}
+
+async function loadVisiblePendingApprovals(req, res, allowedRoles = ["chairman", "admin", "secretary"]) {
+  console.log("[Approval page API called]", {
+    userId: req.user?.id || req.user?.userId || null,
+    role: req.user?.role || null,
+    societyId: req.user?.society_id || req.user?.societyId || null,
+  });
+
+  const approver = await getCurrentApprovalApprover(req, allowedRoles);
+  if (!approver) {
+    return res.status(403).json({ success: false, message: "Unauthorized" });
+  }
+
+  const societyId = approver.society_id;
+  const repairedCount = await backfillMissingPendingApprovals(societyId);
+  const approvals = await UserApprovalModel.getPendingApprovals(societyId);
+  const visibleApprovals = approvals
+    .filter((approval) => canSeeApproval(approver, approval, societyId))
+    .filter((approval) => isVisibleApprovalForApprover(approver, approval))
+    .map((approval) => ({
+      ...approval,
+      role: approval.role === "resident" ? approval.resident_type || approval.role : approval.role,
+      request_type: approval.approval_type,
+      requested_date: approval.created_at,
+    }));
+
+  console.log("[Pending records count]", {
+    userId: approver.id,
+    role: approver.role,
+    societyId,
+    count: visibleApprovals.length,
+    repairedCount,
+  });
+
+  return res.json({
+    success: true,
+    message: "Pending approvals fetched",
+    count: visibleApprovals.length,
+    approvals: visibleApprovals,
+    data: visibleApprovals,
+  });
+}
+
+exports.getCurrentUserPendingApprovals = async (req, res) => {
+  try {
+    return await loadVisiblePendingApprovals(req, res);
+  } catch (error) {
+    console.error("Error fetching pending approvals:", error);
+    return res.status(500).json({ success: false, message: "Failed to fetch approvals" });
+  }
+};
+
+exports.approveCurrentUserApproval = async (req, res) => {
+  try {
+    const approver = await getCurrentApprovalApprover(req);
+    if (!approver) {
+      return res.status(403).json({ success: false, message: "Unauthorized" });
+    }
+
+    req.params.societyId = String(approver.society_id);
+    return exports.approveUser(req, res);
+  } catch (error) {
+    console.error("Error approving pending approval:", error);
+    return res.status(500).json({ success: false, message: "Failed to approve user" });
+  }
+};
+
+exports.rejectCurrentUserApproval = async (req, res) => {
+  try {
+    const approver = await getCurrentApprovalApprover(req);
+    if (!approver) {
+      return res.status(403).json({ success: false, message: "Unauthorized" });
+    }
+
+    req.params.societyId = String(approver.society_id);
+    return exports.rejectUser(req, res);
+  } catch (error) {
+    console.error("Error rejecting pending approval:", error);
+    return res.status(500).json({ success: false, message: "Failed to reject user" });
+  }
+};
+
+exports.getChairmanPendingApprovals = async (req, res) => {
+  try {
+    console.log("[Chairman Approval API called]", {
+      userId: req.user?.id || req.user?.userId || null,
+      societyId: req.user?.society_id || req.user?.societyId || null,
+    });
+
+    const approver = await getChairmanApprover(req);
+    if (!approver) {
+      return res.status(403).json({ success: false, message: "Unauthorized" });
+    }
+
+    const societyId = approver.society_id;
+    console.log("[Society ID matched]", { chairmanId: approver.id, societyId });
+
+    const repairedCount = await backfillMissingPendingApprovals(societyId);
+    const approvals = await UserApprovalModel.getPendingApprovals(societyId);
+    const visibleApprovals = approvals
+      .filter((approval) => canSeeApproval(approver, approval, societyId))
+      .filter(isChairmanVisibleApproval);
+
+    console.log("[Pending records found]", {
+      societyId,
+      count: visibleApprovals.length,
+      repairedCount,
+    });
+
+    return res.json({
+      success: true,
+      message: "Pending approvals fetched",
+      count: visibleApprovals.length,
+      approvals: visibleApprovals,
+      data: visibleApprovals,
+    });
+  } catch (error) {
+    console.error("Error fetching chairman pending approvals:", error);
+    return res.status(500).json({ success: false, message: "Failed to fetch approvals" });
+  }
+};
+
+exports.approveChairmanApproval = async (req, res) => {
+  try {
+    const approver = await getChairmanApprover(req);
+    if (!approver) {
+      return res.status(403).json({ success: false, message: "Unauthorized" });
+    }
+
+    req.params.societyId = String(approver.society_id);
+    return exports.approveUser(req, res);
+  } catch (error) {
+    console.error("Error approving chairman approval:", error);
+    return res.status(500).json({ success: false, message: "Failed to approve user" });
+  }
+};
+
+exports.rejectChairmanApproval = async (req, res) => {
+  try {
+    const approver = await getChairmanApprover(req);
+    if (!approver) {
+      return res.status(403).json({ success: false, message: "Unauthorized" });
+    }
+
+    req.params.societyId = String(approver.society_id);
+    return exports.rejectUser(req, res);
+  } catch (error) {
+    console.error("Error rejecting chairman approval:", error);
+    return res.status(500).json({ success: false, message: "Failed to reject user" });
+  }
+};
 
 // Get pending approvals for a society
 exports.getPendingApprovals = async (req, res) => {
@@ -191,6 +452,21 @@ exports.approveUser = async (req, res) => {
       return res.status(404).json({ message: "Approval not found" });
     }
 
+    console.log("[Approval status updated]", {
+      approvalId,
+      targetUserId: target.user_id,
+      approverId: userId,
+      status: "approved",
+    });
+
+    if (isChairmanRole(target.role)) {
+      await societyModel.ensureChairmanColumn();
+      await societyModel.updateSocietyById(target.society_id, {
+        status: "active",
+        chairmanId: target.user_id,
+      });
+    }
+
     res.json({
       message: "User approved successfully",
       approval
@@ -242,6 +518,13 @@ exports.rejectUser = async (req, res) => {
     if (!approval) {
       return res.status(404).json({ message: "Approval not found" });
     }
+
+    console.log("[Approval status updated]", {
+      approvalId,
+      targetUserId: target.user_id,
+      approverId: userId,
+      status: "rejected",
+    });
 
     res.json({
       message: "User rejected successfully",

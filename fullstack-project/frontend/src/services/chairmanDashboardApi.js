@@ -1,5 +1,6 @@
 import { fetchAiDashboardWidgets } from "./aiApi";
 import { fetchAnalyticsDashboardBundle } from "./analyticsApi";
+import { api } from "./authApi";
 import { fetchBillingDashboard, fetchAllBills } from "./billingApi";
 import { fetchAllComplaints, updateComplaintStatus } from "./complaintApi";
 import { fetchAllDocuments, reviewDocument } from "./documentApi";
@@ -59,8 +60,18 @@ function onlyResidents(rows) {
 function onlyPendingApprovals(rows) {
   return rows.filter((row) => {
     const status = String(row?.status || row?.approval_status || "").toLowerCase();
-    return rejectLeadershipUsers(row) && ["pending", "pending_approval", "verification_pending", "submitted"].includes(status);
+    return ["pending", "pending_approval", "verification_pending", "submitted"].includes(status);
   });
+}
+
+async function fetchPendingSocietyApprovals(params = {}) {
+  const { data } = await api.get("/approvals/pending", { params });
+  const approvals = data?.approvals || data?.data || [];
+  return approvals.map((row) => ({
+    ...row,
+    role: row.role === "resident" ? row.resident_type || row.role : row.role,
+    requested_date: row.created_at,
+  }));
 }
 
 function hasAny(row, keys) {
@@ -101,6 +112,7 @@ export async function fetchChairmanHome() {
     alerts,
     notices,
     ai,
+    approvals,
   ] = await Promise.allSettled([
     fetchAnalyticsDashboardBundle({ days: 180 }),
     fetchUsers(),
@@ -114,6 +126,7 @@ export async function fetchChairmanHome() {
     fetchVisitorEmergencyAlerts(),
     fetchNotices(),
     fetchAiDashboardWidgets(),
+    fetchPendingSocietyApprovals(),
   ]);
 
   return {
@@ -129,6 +142,7 @@ export async function fetchChairmanHome() {
     alerts: normalizeRows(settled(alerts, [])),
     notices: normalizeRows(settled(notices, [])),
     ai: unwrap(settled(ai, {})) || {},
+    approvals: normalizeRows(settled(approvals, [])),
   };
 }
 
@@ -158,14 +172,22 @@ export async function fetchChairmanSection(sectionKey) {
       return onlyResidents(normalizeRows(await fetchUsers()));
     case "pending-registrations":
     case "resident-approval":
+    case "resident-approvals":
     case "move-in-out":
-      return onlyPendingApprovals(normalizeRows(await fetchUsers({ status: "pending" })));
+      return onlyPendingApprovals(normalizeRows(await fetchPendingSocietyApprovals()));
     case "pending-chairman-tasks":
-      return onlyPendingApprovals(normalizeRows(await fetchUsers({ status: "pending" })));
+      return normalizeRows(await fetchPendingSocietyApprovals());
+    case "secretary-approvals":
+      return normalizeRows(await fetchPendingSocietyApprovals({ approvalType: "secretary_registration" }));
     case "vehicle-approval":
     case "gate-passes":
       return normalizeRows(await fetchSecurityPreapprovals());
     case "staff-approval":
+    case "staff-approvals":
+      return normalizeRows(await fetchPendingSocietyApprovals({ approvalType: "staff_registration" }));
+    case "security-approval":
+    case "security-approvals":
+      return normalizeRows(await fetchPendingSocietyApprovals({ approvalType: "security_registration" }));
     case "staff-management":
     case "staff-register":
     case "security-register":
@@ -226,6 +248,12 @@ export async function fetchChairmanStats(sectionKey) {
 }
 
 export async function runChairmanRowAction(action, row) {
+  if (action === "approve-user" && row?.approval_type) {
+    return api.post(`/approvals/${row.id || row.approval_id}/approve`, {});
+  }
+  if (action === "reject-user" && row?.approval_type) {
+    return api.post(`/approvals/${row.id || row.approval_id}/reject`, { reason: "Rejected by society admin." });
+  }
   if (action === "approve-user") return updateUserStatus(row.user_id || row.id, "active");
   if (action === "reject-user") return updateUserStatus(row.user_id || row.id, "rejected");
   if (action === "approve-flat") return approveFlat(row.id);

@@ -308,6 +308,11 @@ export async function loginUser(payload) {
   return data;
 }
 
+export async function fetchCurrentUser() {
+  const { data } = await api.get("/auth/me");
+  return data;
+}
+
 export async function oauthLogin(payload) {
   const { data } = await api.post("/auth/oauth/login", payload);
   return data;

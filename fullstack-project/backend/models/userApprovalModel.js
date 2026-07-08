@@ -18,10 +18,17 @@ async function ensureApprovalColumns() {
   await db.query(`ALTER TABLE user_approvals ADD COLUMN IF NOT EXISTS requested_by INT NULL`);
   await db.query(`ALTER TABLE user_approvals ADD COLUMN IF NOT EXISTS approved_by INT NULL`);
   await db.query(`ALTER TABLE user_approvals ADD COLUMN IF NOT EXISTS approved_at TIMESTAMP NULL`);
+  await db.query(`ALTER TABLE user_approvals ADD COLUMN IF NOT EXISTS rejected_by INT NULL`);
+  await db.query(`ALTER TABLE user_approvals ADD COLUMN IF NOT EXISTS rejected_at TIMESTAMP NULL`);
   await db.query(`ALTER TABLE user_approvals ADD COLUMN IF NOT EXISTS approval_comments TEXT`);
   await db.query(`ALTER TABLE user_approvals ADD COLUMN IF NOT EXISTS rejection_reason TEXT`);
   await db.query(`ALTER TABLE user_approvals ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP`);
   await db.query(`ALTER TABLE user_approvals ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP`);
+  await db.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS approval_status VARCHAR(50) DEFAULT 'pending'`);
+  await db.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS approved_by INT NULL`);
+  await db.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS approved_at TIMESTAMP NULL`);
+  await db.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS rejected_by INT NULL`);
+  await db.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS rejected_at TIMESTAMP NULL`);
   approvalColumnsEnsured = true;
 }
 
@@ -40,6 +47,14 @@ class UserApprovalModel {
   }) {
     try {
       await ensureApprovalColumns();
+      await db.query(
+        `UPDATE users
+         SET approval_status = 'pending'
+         WHERE id = $1
+           AND status = 'pending_approval'
+           AND (approval_status IS NULL OR approval_status <> 'pending')`,
+        [userId]
+      );
       const { rows: result } = await db.query(
         `INSERT INTO user_approvals (
           user_id, society_id, approval_type, requested_by, 
@@ -54,6 +69,14 @@ class UserApprovalModel {
         ]
       );
 
+      console.log("[Approval inserted successfully]", {
+        approvalId: result[0]?.id || null,
+        userId,
+        societyId,
+        approvalType,
+        requestedBy,
+      });
+
       return this.getApprovalById(result[0]?.id);
     } catch (error) {
       throw error;
@@ -67,7 +90,8 @@ class UserApprovalModel {
       const { rows } = await db.query(
         `SELECT id, user_id, society_id, approval_type, status,
                 requested_by, approved_by, approval_comments,
-                rejection_reason, documents_json, created_at, approved_at, updated_at
+                rejection_reason, documents_json, created_at, approved_at,
+                rejected_by, rejected_at, updated_at
          FROM user_approvals
          WHERE id = $1`,
         [approvalId]
@@ -118,10 +142,12 @@ class UserApprovalModel {
 
       const { rows } = await db.query(
         `SELECT ua.id, ua.user_id, ua.approval_type, ua.status,
-                u.name, u.email, u.phone, u.role, u.resident_type,
-                u.flat_number, ua.created_at, ua.requested_by
+                u.name, u.email, COALESCE(u.mobile, u.phone) AS phone, u.role, u.resident_type,
+                u.flat_number, ua.created_at, ua.requested_by,
+                s.name AS society_name, s.code AS society_code
          FROM user_approvals ua
          JOIN users u ON u.id = ua.user_id
+         LEFT JOIN societies s ON s.id = ua.society_id
          WHERE ${whereClause}
          ORDER BY ua.created_at ASC`,
         params
@@ -153,9 +179,15 @@ class UserApprovalModel {
       // Update user status and verification
       await db.query(
         `UPDATE users
-         SET status = 'active', is_verified = TRUE
+         SET status = 'active',
+             is_verified = TRUE,
+             approval_status = 'approved',
+             approved_by = $2,
+             approved_at = CURRENT_TIMESTAMP,
+             rejected_by = NULL,
+             rejected_at = NULL
          WHERE id = $1`,
-        [approval.user_id]
+        [approval.user_id, approvedBy]
       );
 
       return this.getApprovalById(approvalId);
@@ -173,8 +205,11 @@ class UserApprovalModel {
       // Update approval
       await db.query(
         `UPDATE user_approvals 
-         SET status = 'rejected', approved_by = $1, 
-             approval_comments = $2, rejection_reason = $2, approved_at = CURRENT_TIMESTAMP,
+         SET status = 'rejected',
+             rejected_by = $1,
+             approval_comments = $2,
+             rejection_reason = $2,
+             rejected_at = CURRENT_TIMESTAMP,
              updated_at = CURRENT_TIMESTAMP
          WHERE id = $3`,
         [rejectedBy, reason, approvalId]
@@ -183,9 +218,12 @@ class UserApprovalModel {
       // Update user status
       await db.query(
         `UPDATE users
-         SET status = 'rejected'
+         SET status = 'rejected',
+             approval_status = 'rejected',
+             rejected_by = $2,
+             rejected_at = CURRENT_TIMESTAMP
          WHERE id = $1`,
-        [approval.user_id]
+        [approval.user_id, rejectedBy]
       );
 
       return this.getApprovalById(approvalId);
