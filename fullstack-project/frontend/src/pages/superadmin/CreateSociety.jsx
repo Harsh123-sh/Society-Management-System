@@ -17,7 +17,7 @@ export default function CreateSociety({ onCreated }) {
     contact_phone: "",
     subscription_plan: "starter",
     default_language: "en",
-    status: "active",
+    status: "pending_chairman_registration",
   };
   const [form, setForm] = useState(emptyForm);
   const [loading, setLoading] = useState(false);
@@ -41,12 +41,26 @@ export default function CreateSociety({ onCreated }) {
     setFeedback({ type: "", message: "" });
 
     const societyCode = normalizeSocietyCode(form.societyCode);
+    const email = form.contact_email.trim();
+    const phone = form.contact_phone.trim();
     if (!societyCode) {
       setFeedback({ type: "error", message: "Society code is required." });
       return;
     }
+    if (!form.name.trim()) {
+      setFeedback({ type: "error", message: "Society name is required." });
+      return;
+    }
     if (societyCode.length < 2 || societyCode.length > 30 || !/^[A-Z0-9-]+$/.test(societyCode)) {
       setFeedback({ type: "error", message: "Society code must be 2 to 30 characters and use only uppercase letters, numbers, and hyphens." });
+      return;
+    }
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setFeedback({ type: "error", message: "Enter a valid contact email." });
+      return;
+    }
+    if (phone && !/^[0-9+\-\s()]{7,18}$/.test(phone)) {
+      setFeedback({ type: "error", message: "Enter a valid contact phone number." });
       return;
     }
 
@@ -61,15 +75,15 @@ export default function CreateSociety({ onCreated }) {
         city: form.city.trim(),
         state: form.state.trim(),
         pincode: form.pincode.trim(),
-        contactEmail: form.contact_email.trim(),
-        contactPhone: form.contact_phone.trim(),
-        contact_email: form.contact_email.trim(),
-        contact_phone: form.contact_phone.trim(),
+        contactEmail: email,
+        contactPhone: phone,
+        contact_email: email,
+        contact_phone: phone,
         subscriptionPlan: form.subscription_plan,
         subscription_plan: form.subscription_plan,
         defaultLanguage: form.default_language,
         default_language: form.default_language,
-        status: form.status,
+        status: "pending_chairman_registration",
       });
       setFeedback({ type: "success", message: res?.message || "Society created successfully." });
       setForm(emptyForm);
@@ -87,7 +101,7 @@ export default function CreateSociety({ onCreated }) {
       <section className="sa-page-head">
         <div>
           <h1>Create Society</h1>
-          <p>Create a Supabase-backed society with a unique code and subscription settings.</p>
+          <p>Create a Supabase-backed society with a unique code. New societies start in pending chairman registration.</p>
         </div>
       </section>
       <section className="sa-panel">
@@ -107,7 +121,7 @@ export default function CreateSociety({ onCreated }) {
         <label>Subscription Plan
           <select value={form.subscription_plan} onChange={(e) => updateField("subscription_plan", e.target.value)}>
             <option value="starter">Starter</option>
-            <option value="premium">Premium</option>
+            <option value="professional">Professional</option>
             <option value="enterprise">Enterprise</option>
           </select>
         </label>
@@ -118,15 +132,7 @@ export default function CreateSociety({ onCreated }) {
             <option value="gu">Gujarati</option>
           </select>
         </label>
-        <label>Status
-          <select value={form.status} onChange={(e) => updateField("status", e.target.value)}>
-            <option value="active">Active</option>
-            <option value="trial">Trial</option>
-            <option value="pending_chairman_registration">Pending Chairman Registration</option>
-            <option value="pending_approval">Pending Approval</option>
-            <option value="suspended">Suspended</option>
-          </select>
-        </label>
+        <label>Status<input value="Pending Chairman Registration" disabled /></label>
         {feedback.message ? <p role="status" className={`sa-feedback ${feedback.type}`}>{feedback.message}</p> : null}
         <div className="sa-form-wide" style={{ marginTop: 4 }}>
           <button className="sa-btn" type="submit" disabled={loading}>{loading ? "Creating..." : "Create Society"}</button>

@@ -21,6 +21,7 @@ const SOCIETY_STATUSES = new Set([
 
 const PLAN_PRICING = {
   starter: 4999,
+  professional: 12999,
   premium: 12999,
   enterprise: 29999,
 };
@@ -1271,7 +1272,7 @@ async function getSubscriptions(req, res) {
               soc.name AS society_name, soc.code AS society_code, soc.status AS society_status,
               CASE
                 WHEN s.plan_name = 'enterprise' THEN ${PLAN_PRICING.enterprise}
-                WHEN s.plan_name = 'premium' THEN ${PLAN_PRICING.premium}
+                WHEN s.plan_name IN ('professional', 'premium') THEN ${PLAN_PRICING.professional}
                 ELSE ${PLAN_PRICING.starter}
               END AS monthly_value
        FROM society_subscriptions s
@@ -1474,6 +1475,327 @@ async function getSocietyAnalytics(req, res) {
   }
 }
 
+async function tableExists(tableName) {
+  const { rows } = await db.query("SELECT to_regclass($1) AS table_name", [`public.${tableName}`]);
+  return Boolean(rows[0]?.table_name);
+}
+
+async function listUsers(req, res) {
+  try {
+    if (!(await ensureSuperAdmin(req, res))) return;
+
+    const page = parsePositiveInt(req.query.page, 1);
+    const pageSize = Math.min(parsePositiveInt(req.query.pageSize, 25), 100);
+    const offset = (page - 1) * pageSize;
+    const search = normalizeText(req.query.search);
+    const role = normalizeText(req.query.role);
+    const status = normalizeText(req.query.status);
+    const sortBy = normalizeText(req.query.sortBy) || "created_at";
+    const sortOrder = String(req.query.sortOrder || "desc").toLowerCase() === "asc" ? "ASC" : "DESC";
+    const allowedSorts = new Set(["created_at", "name", "email", "role", "status"]);
+    const orderColumn = allowedSorts.has(sortBy) ? sortBy : "created_at";
+
+    const filters = ["u.deleted_at IS NULL"];
+    const params = [];
+
+    if (search) {
+      const like = `%${search}%`;
+      filters.push(`(u.name ILIKE $${params.length + 1} OR u.email ILIKE $${params.length + 2} OR s.name ILIKE $${params.length + 3} OR s.code ILIKE $${params.length + 4})`);
+      params.push(like, like, like, like);
+    }
+
+    if (role) {
+      filters.push(`u.role = $${params.length + 1}`);
+      params.push(role);
+    }
+
+    if (status) {
+      filters.push(`u.status = $${params.length + 1}`);
+      params.push(status);
+    }
+
+    const whereClause = `WHERE ${filters.join(" AND ")}`;
+    const { rows: countRows } = await db.query(
+      `SELECT COUNT(*) AS count
+       FROM users u
+       LEFT JOIN societies s ON s.id = u.society_id
+       ${whereClause}`,
+      params
+    );
+
+    const { rows } = await db.query(
+      `SELECT u.id, u.name, u.email, u.phone, u.role, u.status, u.is_verified, u.society_id, u.created_at,
+              s.name AS society_name, s.code AS society_code
+       FROM users u
+       LEFT JOIN societies s ON s.id = u.society_id
+       ${whereClause}
+       ORDER BY u.${orderColumn} ${sortOrder}
+       LIMIT $${params.length + 1} OFFSET $${params.length + 2}`,
+      [...params, pageSize, offset]
+    );
+
+    return res.json({
+      success: true,
+      data: rows,
+      pagination: buildPagination({ page, pageSize, total: Number(countRows[0]?.count || 0) }),
+    });
+  } catch (error) {
+    console.error("[SuperAdmin] listUsers failed", error.message || error);
+    return res.status(500).json({ success: false, message: "Failed to fetch users" });
+  }
+}
+
+async function updateUserStatus(req, res) {
+  try {
+    if (!(await ensureSuperAdmin(req, res))) return;
+
+    const userId = Number.parseInt(req.params.id, 10);
+    const status = normalizeText(req.body?.status)?.toLowerCase();
+    const allowedStatuses = new Set(["active", "pending", "pending_approval", "suspended", "rejected", "inactive"]);
+
+    if (!Number.isInteger(userId) || userId <= 0) {
+      return res.status(400).json({ success: false, message: "Invalid user id" });
+    }
+    if (!allowedStatuses.has(status)) {
+      return res.status(400).json({ success: false, message: "Invalid user status" });
+    }
+
+    const { rows } = await db.query(
+      `UPDATE users
+       SET status = $1, updated_at = CURRENT_TIMESTAMP
+       WHERE id = $2 AND deleted_at IS NULL
+       RETURNING id, name, email, role, status`,
+      [status, userId]
+    );
+
+    if (!rows.length) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    await auditModel.createAuditLog({
+      userId: req.user.id,
+      action: `user_${status}`,
+      resourceType: "user",
+      resourceId: userId,
+      details: { status },
+      status: "success",
+    });
+
+    return res.json({ success: true, message: "User status updated", data: rows[0] });
+  } catch (error) {
+    console.error("[SuperAdmin] updateUserStatus failed", error.message || error);
+    return res.status(500).json({ success: false, message: "Failed to update user status" });
+  }
+}
+
+async function deleteUser(req, res) {
+  try {
+    if (!(await ensureSuperAdmin(req, res))) return;
+
+    const userId = Number.parseInt(req.params.id, 10);
+    if (!Number.isInteger(userId) || userId <= 0) {
+      return res.status(400).json({ success: false, message: "Invalid user id" });
+    }
+
+    const { rows } = await db.query(
+      `UPDATE users
+       SET deleted_at = CURRENT_TIMESTAMP, status = 'inactive', updated_at = CURRENT_TIMESTAMP
+       WHERE id = $1 AND deleted_at IS NULL
+       RETURNING id`,
+      [userId]
+    );
+
+    if (!rows.length) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    await auditModel.createAuditLog({
+      userId: req.user.id,
+      action: "user_deleted",
+      resourceType: "user",
+      resourceId: userId,
+      details: {},
+      status: "success",
+    });
+
+    return res.json({ success: true, message: "User deleted" });
+  } catch (error) {
+    console.error("[SuperAdmin] deleteUser failed", error.message || error);
+    return res.status(500).json({ success: false, message: "Failed to delete user" });
+  }
+}
+
+async function getRevenueStats(req, res) {
+  try {
+    if (!(await ensureSuperAdmin(req, res))) return;
+
+    const hasPayments = await tableExists("bill_payments");
+    const hasBills = await tableExists("bills");
+    if (!hasPayments || !hasBills) {
+      return res.json({ success: true, data: { summary: {}, invoices: [], trend: [] } });
+    }
+
+    const { rows: summaryRows } = await db.query(`
+      SELECT
+        COALESCE(SUM(CASE WHEN bp.status IN ('authorized', 'captured') OR bp.gateway_payment_id IS NOT NULL THEN bp.amount ELSE 0 END), 0) AS monthly_revenue,
+        COUNT(CASE WHEN bp.status IN ('authorized', 'captured') OR bp.gateway_payment_id IS NOT NULL THEN 1 END) AS paid_payments,
+        COUNT(CASE WHEN b.payment_status IN ('pending', 'unpaid') THEN 1 END) AS pending_payments,
+        COUNT(CASE WHEN b.due_date < CURRENT_DATE AND b.payment_status <> 'paid' THEN 1 END) AS expired_payments
+      FROM bills b
+      LEFT JOIN bill_payments bp ON bp.bill_id = b.id
+      WHERE b.created_at >= date_trunc('month', CURRENT_DATE)
+    `);
+
+    const { rows: trend } = await db.query(`
+      SELECT to_char(bp.created_at, 'YYYY-MM') AS period, COALESCE(SUM(bp.amount), 0) AS total
+      FROM bill_payments bp
+      WHERE bp.status IN ('authorized', 'captured') OR bp.gateway_payment_id IS NOT NULL
+      GROUP BY period
+      ORDER BY period DESC
+      LIMIT 12
+    `);
+
+    const { rows: invoices } = await db.query(`
+      SELECT b.id, b.title, b.total_amount AS amount, b.payment_status, b.due_date, b.created_at,
+             s.name AS society_name, s.code AS society_code
+      FROM bills b
+      LEFT JOIN societies s ON s.id = b.society_id
+      ORDER BY b.created_at DESC
+      LIMIT 25
+    `);
+
+    return res.json({
+      success: true,
+      data: {
+        summary: summaryRows[0] || {},
+        trend: trend.reverse(),
+        invoices,
+      },
+    });
+  } catch (error) {
+    console.error("[SuperAdmin] getRevenueStats failed", error.message || error);
+    return res.status(500).json({ success: false, message: "Failed to fetch revenue stats" });
+  }
+}
+
+async function getSupportTickets(req, res) {
+  try {
+    if (!(await ensureSuperAdmin(req, res))) return;
+
+    const hasComplaints = await tableExists("complaints");
+    if (!hasComplaints) {
+      return res.json({ success: true, data: [], summary: { open: 0, in_progress: 0, resolved: 0, escalated: 0 } });
+    }
+
+    const status = normalizeText(req.query.status);
+    const filters = [];
+    const params = [];
+    if (status) {
+      filters.push(`c.status = $${params.length + 1}`);
+      params.push(status);
+    }
+    const whereClause = filters.length ? `WHERE ${filters.join(" AND ")}` : "";
+
+    const { rows } = await db.query(
+      `SELECT c.id, c.title, c.description, c.status, c.category, c.created_at, c.updated_at,
+              u.name AS requester_name, u.email AS requester_email,
+              s.name AS society_name, s.code AS society_code
+       FROM complaints c
+       LEFT JOIN users u ON u.id = c.resident_id
+       LEFT JOIN societies s ON s.id = COALESCE(c.society_id, u.society_id)
+       ${whereClause}
+       ORDER BY c.created_at DESC
+       LIMIT 100`,
+      params
+    );
+
+    const summary = rows.reduce((acc, row) => {
+      const key = row.status || "open";
+      acc[key] = (acc[key] || 0) + 1;
+      return acc;
+    }, { open: 0, pending: 0, in_progress: 0, resolved: 0, escalated: 0 });
+
+    return res.json({ success: true, data: rows, summary });
+  } catch (error) {
+    console.error("[SuperAdmin] getSupportTickets failed", error.message || error);
+    return res.status(500).json({ success: false, message: "Failed to fetch support tickets" });
+  }
+}
+
+async function updateSupportTicketStatus(req, res) {
+  try {
+    if (!(await ensureSuperAdmin(req, res))) return;
+
+    const hasComplaints = await tableExists("complaints");
+    if (!hasComplaints) {
+      return res.status(404).json({ success: false, message: "Support table not found" });
+    }
+
+    const ticketId = Number.parseInt(req.params.id, 10);
+    const status = normalizeText(req.body?.status)?.toLowerCase();
+    const allowedStatuses = new Set(["open", "pending", "in_progress", "resolved", "closed", "escalated"]);
+    if (!Number.isInteger(ticketId) || ticketId <= 0 || !allowedStatuses.has(status)) {
+      return res.status(400).json({ success: false, message: "Invalid ticket update" });
+    }
+
+    const { rows } = await db.query(
+      `UPDATE complaints
+       SET status = $1, updated_at = CURRENT_TIMESTAMP
+       WHERE id = $2
+       RETURNING id, status`,
+      [status, ticketId]
+    );
+
+    if (!rows.length) {
+      return res.status(404).json({ success: false, message: "Ticket not found" });
+    }
+
+    return res.json({ success: true, message: "Ticket updated", data: rows[0] });
+  } catch (error) {
+    console.error("[SuperAdmin] updateSupportTicketStatus failed", error.message || error);
+    return res.status(500).json({ success: false, message: "Failed to update support ticket" });
+  }
+}
+
+async function getSystemHealth(req, res) {
+  try {
+    if (!(await ensureSuperAdmin(req, res))) return;
+
+    const started = Date.now();
+    const { rows: dbRows } = await db.query("SELECT NOW() AS checked_at");
+    const latencyMs = Date.now() - started;
+    const hasAuditLogs = await tableExists("audit_logs");
+
+    let failedLogins = 0;
+    let activeSessions = 0;
+    if (hasAuditLogs) {
+      const { rows } = await db.query(`
+        SELECT
+          COUNT(CASE WHEN status = 'failed' OR action ILIKE '%failed%' THEN 1 END) AS failed_logins,
+          COUNT(CASE WHEN created_at >= NOW() - INTERVAL '24 hours' AND action ILIKE '%login%' THEN 1 END) AS active_sessions
+        FROM audit_logs
+      `);
+      failedLogins = Number(rows[0]?.failed_logins || 0);
+      activeSessions = Number(rows[0]?.active_sessions || 0);
+    }
+
+    return res.json({
+      success: true,
+      data: {
+        backend: { status: "operational", uptimeSeconds: Math.round(process.uptime()) },
+        database: { status: "connected", checkedAt: dbRows[0]?.checked_at, latencyMs },
+        api: { status: latencyMs < 800 ? "healthy" : "degraded", latencyMs },
+        storage: { status: "available", usagePercent: null },
+        sessions: { active: activeSessions, failedLogins },
+        supabase: { status: "connected", host: db.getDatabaseHost ? db.getDatabaseHost() : "configured" },
+      },
+    });
+  } catch (error) {
+    console.error("[SuperAdmin] getSystemHealth failed", error.message || error);
+    return res.status(500).json({ success: false, message: "Failed to fetch system health" });
+  }
+}
+
 module.exports = {
   getPlatformStats,
   listSocieties,
@@ -1490,8 +1812,15 @@ module.exports = {
   exportSocieties,
   bulkUpdateSocieties,
   searchUsers,
+  listUsers,
+  updateUserStatus,
+  deleteUser,
   getActivityLogs,
   getSubscriptions,
+  getRevenueStats,
+  getSupportTickets,
+  updateSupportTicketStatus,
+  getSystemHealth,
   getPlatformAnalytics,
   getSocietyAnalytics,
 };

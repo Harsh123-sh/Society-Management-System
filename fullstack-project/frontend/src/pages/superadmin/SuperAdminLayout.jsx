@@ -31,6 +31,8 @@ const TABS = [
 
 export default function SuperAdminLayout() {
   const [active, setActive] = useState("overview");
+  const [query, setQuery] = useState("");
+  const [mobileOpen, setMobileOpen] = useState(false);
   const activeTab = TABS.find((tab) => tab.key === active) || TABS[0];
 
   useEffect(() => {
@@ -75,12 +77,26 @@ export default function SuperAdminLayout() {
   }
 
   const [collapsed, setCollapsed] = React.useState(false);
+  function changeTab(key) {
+    setActive(key);
+    setMobileOpen(false);
+    window.location.hash = key;
+  }
 
   return (
     <div className="sa-shell">
-      <Sidebar activeKey={active} onChange={setActive} collapsed={collapsed} onToggle={() => setCollapsed(!collapsed)} />
+      <Sidebar
+        activeKey={active}
+        onChange={changeTab}
+        collapsed={collapsed}
+        onToggle={() => setCollapsed(!collapsed)}
+        search={query}
+        onSearch={setQuery}
+        mobileOpen={mobileOpen}
+        onCloseMobile={() => setMobileOpen(false)}
+      />
       <div className="sa-content">
-        <Topbar title={activeTab.label} />
+        <Topbar title={activeTab.label} query={query} onQuery={setQuery} onOpenMenu={() => setMobileOpen(true)} />
         <main className="sa-main">
           <SuperAdminErrorBoundary resetKey={active}>
             {renderActive()}

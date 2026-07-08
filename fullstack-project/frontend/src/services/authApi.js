@@ -428,6 +428,41 @@ export async function fetchSuperAdminSubscriptions() {
   return data;
 }
 
+export async function fetchSuperAdminUsers(params = {}) {
+  const { data } = await superAdminApi.get("/super-admin/users", { params });
+  return data;
+}
+
+export async function updateSuperAdminUserStatus(userId, payload) {
+  const { data } = await superAdminApi.put(`/super-admin/users/${userId}/status`, payload);
+  return data;
+}
+
+export async function deleteSuperAdminUser(userId) {
+  const { data } = await superAdminApi.delete(`/super-admin/users/${userId}`);
+  return data;
+}
+
+export async function fetchSuperAdminRevenueStats(params = {}) {
+  const { data } = await superAdminApi.get("/super-admin/revenue-stats", { params });
+  return data;
+}
+
+export async function fetchSuperAdminSupportTickets(params = {}) {
+  const { data } = await superAdminApi.get("/super-admin/support-tickets", { params });
+  return data;
+}
+
+export async function updateSuperAdminSupportTicketStatus(ticketId, payload) {
+  const { data } = await superAdminApi.put(`/super-admin/support-tickets/${ticketId}/status`, payload);
+  return data;
+}
+
+export async function fetchSuperAdminSystemHealth() {
+  const { data } = await superAdminApi.get("/super-admin/system-health");
+  return data;
+}
+
 export async function fetchSuperAdminAnalytics() {
   const { data } = await superAdminApi.get("/super-admin/analytics");
   return data;

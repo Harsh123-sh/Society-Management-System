@@ -1,5 +1,6 @@
 import React from "react";
-import { Bell, ChevronDown, Globe2, Moon, Search, Sun } from "lucide-react";
+import { Bell, ChevronDown, Globe2, LogOut, Menu, Moon, Search, Settings, Shield, Sun, UserCircle } from "lucide-react";
+import { clearSuperAdminSession } from "../../utils/session";
 
 function Clock() {
   const [time, setTime] = React.useState(new Date());
@@ -17,7 +18,7 @@ function Clock() {
   );
 }
 
-export default function Topbar({ title = "Dashboard Overview" }) {
+export default function Topbar({ title = "Dashboard Overview", query = "", onQuery, onOpenMenu }) {
   const [theme, setTheme] = React.useState(() => localStorage.getItem("superAdminTheme") || "light");
   const [notificationsOpen, setNotificationsOpen] = React.useState(false);
   const [profileOpen, setProfileOpen] = React.useState(false);
@@ -33,16 +34,24 @@ export default function Topbar({ title = "Dashboard Overview" }) {
     localStorage.setItem("language", value);
   }
 
+  function logout() {
+    clearSuperAdminSession();
+    window.location.assign("/super-admin/login");
+  }
+
   return (
     <header className="sa-topbar">
+      <button className="sa-mobile-menu" type="button" onClick={onOpenMenu} aria-label="Open sidebar">
+        <Menu size={19} />
+      </button>
       <div className="sa-topbar-title">
-        <span>Super Admin</span>
+        <span>Super Admin / {title}</span>
         <strong>{title}</strong>
       </div>
 
       <label className="sa-global-search">
         <Search size={17} />
-        <input placeholder="Search societies, users, tickets..." />
+        <input value={query} onChange={(event) => onQuery?.(event.target.value)} placeholder="Search societies, users, tickets..." />
       </label>
 
       <div className="sa-topbar-right">
@@ -80,9 +89,10 @@ export default function Topbar({ title = "Dashboard Overview" }) {
           </button>
           {profileOpen ? (
             <div className="sa-popover sa-profile-menu">
-              <button type="button">Profile</button>
-              <button type="button">Settings</button>
-              <button type="button">Audit Trail</button>
+              <button type="button" onClick={() => { window.location.hash = "settings"; setProfileOpen(false); }}><UserCircle size={16} /> My Profile</button>
+              <button type="button" onClick={() => { window.location.hash = "settings"; setProfileOpen(false); }}><Settings size={16} /> Account Settings</button>
+              <button type="button" onClick={() => { window.location.hash = "settings"; setProfileOpen(false); }}><Shield size={16} /> Security</button>
+              <button type="button" onClick={logout}><LogOut size={16} /> Logout</button>
             </div>
           ) : null}
         </div>

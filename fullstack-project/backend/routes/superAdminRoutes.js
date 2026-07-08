@@ -76,8 +76,16 @@ router.post("/pending-approvals/:approvalId/approve", superAdminController.appro
 router.post("/pending-approvals/:approvalId/reject", superAdminController.rejectPendingUser);
 router.post("/societies/:id/assign-chairman", superAdminController.assignChairman);
 router.get("/users/search", superAdminController.searchUsers);
+router.get("/users", superAdminController.listUsers);
+router.put("/users/:id/status", superAdminController.updateUserStatus);
+router.delete("/users/:id", superAdminController.deleteUser);
 router.get("/activity-logs", superAdminController.getActivityLogs);
+router.get("/audit-logs", superAdminController.getActivityLogs);
 router.get("/subscriptions", superAdminController.getSubscriptions);
+router.get("/revenue-stats", superAdminController.getRevenueStats);
+router.get("/support-tickets", superAdminController.getSupportTickets);
+router.put("/support-tickets/:id/status", superAdminController.updateSupportTicketStatus);
+router.get("/system-health", superAdminController.getSystemHealth);
 router.get("/analytics", superAdminController.getPlatformAnalytics);
 
 module.exports = router;
