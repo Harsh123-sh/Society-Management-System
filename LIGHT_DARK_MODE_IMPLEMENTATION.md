@@ -1,7 +1,7 @@
 # Smart Society Management - Light/Dark Mode Complete Implementation
 
 ## Overview
-This document describes the complete light/dark mode theming system implemented for the Smart Society Management System. The system provides true global theme switching with professional light and dark palettes that apply to all shell components, cards, forms, and UI elements.
+This document describes the complete light/dark mode theming system implemented for the Smart Nexora. The system provides true global theme switching with professional light and dark palettes that apply to all shell components, cards, forms, and UI elements.
 
 ---
 

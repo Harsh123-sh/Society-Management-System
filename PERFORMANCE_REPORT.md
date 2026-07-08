@@ -1,7 +1,7 @@
 # Performance Report
 
 ## Summary
-This report reviews current performance readiness and optimization gaps for the Society Management System SaaS.
+This report reviews current performance readiness and optimization gaps for the Nexora SaaS.
 
 ## What Was Verified
 - Backend startup modules load successfully after current code fixes.

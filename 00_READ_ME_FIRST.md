@@ -328,7 +328,7 @@ THEN: Deploy to Render
 
 ## ✨ CONCLUSION
 
-Your Society Management System SaaS has:
+Your Nexora SaaS has:
 - ✅ **Solid Architecture** - Multi-tenant, role-based, real-time ready
 - ✅ **Good UI** - Modern React, light/dark mode complete
 - ✅ **Rich Features** - Billing, complaints, visitors, analytics

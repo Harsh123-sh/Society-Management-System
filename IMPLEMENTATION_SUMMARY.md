@@ -474,7 +474,7 @@ ALTER TABLE visitor_blacklist_entries ADD FOREIGN KEY (society_id)
 
 ## 🎉 Conclusion
 
-The Society Management System has been **successfully hardened against critical multi-tenant data leakage vulnerabilities**. The platform is now:
+The Nexora has been **successfully hardened against critical multi-tenant data leakage vulnerabilities**. The platform is now:
 
 ✅ **Secure** - No cross-society data exposure
 ✅ **Compliant** - Proper isolation for multi-tenant SaaS

@@ -1,8 +1,8 @@
-# 🎉 Society Management System - Professional Upgrade SUMMARY
+# 🎉 Nexora - Professional Upgrade SUMMARY
 
 ## 📦 WHAT'S BEEN COMPLETED
 
-Your Society Management System has been significantly upgraded to a **professional MyGate-style platform**. Here's what's done:
+Your Nexora has been significantly upgraded to a **professional MyGate-style platform**. Here's what's done:
 
 ---
 

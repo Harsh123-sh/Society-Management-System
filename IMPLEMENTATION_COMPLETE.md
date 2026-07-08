@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-Your Smart Society Management System now has a **TRUE GLOBAL LIGHT/DARK MODE** system that is:
+Your Smart Nexora now has a **TRUE GLOBAL LIGHT/DARK MODE** system that is:
 - ✅ **Fully functional** - All shell components theme-aware
 - ✅ **Professional quality** - Clean light mode, premium dark mode
 - ✅ **Performant** - CSS variables, 250ms smooth transitions

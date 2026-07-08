@@ -1,7 +1,7 @@
 # 🎯 EXECUTIVE SUMMARY - Multi-Society Authentication & Dashboard Fixes
 
 **Date**: May 18, 2026  
-**Project**: Society Management System - Multi-Society Data Isolation  
+**Project**: Nexora - Multi-Society Data Isolation  
 **Status**: ✅ 50% COMPLETE - Core authentication and dashboards fixed
 
 ---

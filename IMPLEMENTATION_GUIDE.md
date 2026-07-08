@@ -1,4 +1,4 @@
-# 🚀 Society Management System - Professional Upgrade Guide
+# 🚀 Nexora - Professional Upgrade Guide
 
 ## ✅ COMPLETED IMPLEMENTATIONS
 

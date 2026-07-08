@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 echo "================================"
-echo "Society Management System Setup"
+echo "Nexora Setup"
 echo "================================"
 echo ""
 
