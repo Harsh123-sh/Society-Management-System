@@ -15,7 +15,7 @@ function isLocalBrowserHost() {
 }
 
 const configuredApiUrl = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || "";
-const localApiUrl = import.meta.env.VITE_LOCAL_API_URL || "http://127.0.0.1:5000";
+const localApiUrl = import.meta.env.VITE_LOCAL_API_URL || configuredApiUrl || "http://127.0.0.1:5001";
 
 export const API_BASE_URL = trimTrailingSlash(
   isLocalBrowserHost()

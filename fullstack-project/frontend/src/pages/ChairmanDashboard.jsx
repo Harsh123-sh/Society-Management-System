@@ -74,6 +74,29 @@ import {
 } from "../services/chairmanDashboardApi";
 import { getApiMessage, logoutUser } from "../services/authApi";
 import { createAutoInvoices } from "../services/billingApi";
+import {
+  approveResidenceRequest,
+  createFloor,
+  createGate,
+  createStructureFlat,
+  createTower,
+  createWing,
+  deleteFloor,
+  deleteGate,
+  deleteStructureFlat,
+  deleteTower,
+  deleteWing,
+  fetchChairmanResidenceRequests,
+  fetchSocietyStructure,
+  generateFlats,
+  rejectResidenceRequest,
+  updateFloor,
+  updateGate,
+  updateStructureFlat,
+  updateTower,
+  updateWing,
+} from "../services/societyStructureApi";
+import { createParkingSlot, deleteParkingSlot, getParkingSlots, updateParkingSlot } from "../services/parkingApi";
 import { clearAuthSession, getStoredUser } from "../utils/session";
 import { BRAND } from "../config/brand";
 import "../styles/chairman-dashboard.css";
@@ -88,6 +111,7 @@ const navGroups = [
     items: [
       { label: "Dashboard", path: "/admin/dashboard", key: "dashboard", icon: LayoutDashboard },
       { label: "Residents", path: "/admin/resident-directory", key: "resident-directory", icon: Users },
+      { label: "Society Structure", path: "/admin/society-structure", key: "society-structure", icon: Building2 },
       { label: "Flats & Properties", path: "/admin/flats", key: "flats", icon: Building2 },
       { label: "Visitors", path: "/admin/visitor-logs", key: "visitor-logs", icon: ShieldCheck },
       { label: "Billing & Finance", path: "/admin/maintenance-bills", key: "maintenance-bills", icon: WalletCards },
@@ -131,7 +155,11 @@ const legacyPathMap = {
   "staff-management": "staff-register",
   tenants: "tenants",
   theme: "settings",
-  "towers-wings-floors": "towers",
+  towers: "society-structure",
+  wings: "society-structure",
+  floors: "society-structure",
+  gates: "society-structure",
+  "towers-wings-floors": "society-structure",
   users: "resident-directory",
   visitors: "visitor-logs",
   "vehicle-approval": "vehicle-approvals",
@@ -140,6 +168,7 @@ const legacyPathMap = {
 const sectionMeta = {
   dashboard: { title: "Executive Overview", summary: "Live society operations, finance, approvals, complaints, visitors, and workforce intelligence." },
   "society-profile": { title: "Society Profile", summary: "Verified society identity, contacts, address, registration, and operating details." },
+  "society-structure": { title: "Society Structure", summary: "Master data for towers, wings, floors, flats, houses, gates, parking, and residence approvals." },
   towers: { title: "Towers", summary: "High-level property structure and occupancy distribution across towers." },
   wings: { title: "Wings", summary: "Wing-level inventory, resident allocation, and operational coverage." },
   flats: { title: "Flats & Properties", summary: "Manage flats, occupancy, owners, tenants, wings, and floor assignments." },
@@ -853,6 +882,1021 @@ function ChartCard({ title, data, type = "area", valuePrefix = "" }) {
         </ResponsiveContainer>
       ) : <StateView state="empty" />}
     </section>
+  );
+}
+
+const structureTabs = [
+  { key: "setup", label: "Setup Wizard", icon: Sparkles },
+  { key: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { key: "towers", label: "Towers / Blocks", icon: Building2 },
+  { key: "wings", label: "Wings", icon: Folder },
+  { key: "floors", label: "Floors", icon: LayersIcon },
+  { key: "flats", label: "Flats / Houses", icon: Home },
+  { key: "types", label: "Residence Types", icon: FileText },
+  { key: "gates", label: "Gates", icon: ShieldCheck },
+  { key: "parking", label: "Parking", icon: ParkingCircle },
+  { key: "generator", label: "Bulk Generator", icon: Sparkles },
+  { key: "requests", label: "Residence Requests", icon: ClipboardCheck },
+  { key: "exports", label: "Import / Export", icon: Download },
+];
+
+function LayersIcon(props) {
+  return <Building2 {...props} />;
+}
+
+const residenceTypes = ["Apartment", "Villa", "Duplex", "Penthouse", "Studio", "Commercial Shop", "Office"];
+const occupancyStatuses = ["vacant", "owner_occupied", "tenant_occupied", "under_maintenance", "reserved"];
+const gateTypes = ["main_gate", "visitor_gate", "service_gate", "emergency_gate"];
+const parkingTypes = ["2wheeler", "4wheeler"];
+const parkingStatuses = ["available", "visitor_parking", "reserved", "occupied"];
+
+function unwrapApi(response, fallback = []) {
+  return response?.data ?? response ?? fallback;
+}
+
+function labelOf(row, ...keys) {
+  for (const key of keys) {
+    if (row?.[key] !== undefined && row?.[key] !== null && row?.[key] !== "") return String(row[key]);
+  }
+  return "-";
+}
+
+function societyStructureCounts(structure, parkingRows, requestRows) {
+  const flats = structure.flats || [];
+  const occupied = flats.filter((flat) => ["occupied", "owner_occupied", "tenant_occupied"].includes(getStatus(flat)) || flat.owner_id || flat.tenant_id).length;
+  const houses = flats.filter((flat) => flat.house_number || /villa|duplex|house/i.test(flat.flat_type || "")).length;
+  return {
+    totalTowers: (structure.towers || []).length,
+    totalWings: (structure.wings || []).length,
+    totalFloors: (structure.floors || []).length,
+    totalFlats: flats.length,
+    totalHouses: houses,
+    totalResidents: flats.filter((flat) => flat.owner_id).length + flats.filter((flat) => flat.tenant_id).length,
+    occupiedFlats: occupied,
+    vacantFlats: Math.max(flats.length - occupied, 0),
+    totalParkingSlots: parkingRows.length,
+    totalGates: (structure.gates || []).length,
+    pendingRequests: requestRows.filter((row) => getStatus(row) === "pending").length,
+  };
+}
+
+function StructureStatCard({ label, value, icon, tone = "blue" }) {
+  return (
+    <Motion.article className={cx("cdx-structure-stat", `tone-${tone}`)} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
+      <span>{createElement(icon, { size: 18 })}</span>
+      <strong>{compact(value)}</strong>
+      <p>{label}</p>
+    </Motion.article>
+  );
+}
+
+function StructureTabs({ active, setActive }) {
+  return (
+    <section className="cdx-structure-tabs" aria-label="Society structure sections">
+      {structureTabs.map((tab) => (
+        <button key={tab.key} type="button" className={active === tab.key ? "is-active" : ""} onClick={() => setActive(tab.key)}>
+          {createElement(tab.icon, { size: 16 })}
+          <span>{tab.label}</span>
+        </button>
+      ))}
+    </section>
+  );
+}
+
+function StructureTable({ rows, columns, actions, emptyTitle = "No records found" }) {
+  const [page, setPage] = useState(1);
+  const pageCount = Math.max(1, Math.ceil(rows.length / pageSize));
+  const safePage = Math.min(page, pageCount);
+  const paged = rows.slice((safePage - 1) * pageSize, safePage * pageSize);
+
+  if (!rows.length) return <StateView state="empty" emptyTitle={emptyTitle} />;
+
+  return (
+    <>
+      <div className="cdx-table-wrap cdx-structure-table-wrap">
+        <table className="cdx-table">
+          <thead>
+            <tr>
+              {columns.map((column) => <th key={column.key}>{column.label}</th>)}
+              {actions?.length ? <th>Actions</th> : null}
+            </tr>
+          </thead>
+          <tbody>
+            {paged.map((row, index) => (
+              <tr key={row.id || `${columns[0]?.key}-${index}`}>
+                {columns.map((column) => (
+                  <td key={column.key}>
+                    {column.render ? column.render(row) : column.status ? <span className={`cdx-status status-${getStatus(row)}`}>{titleize(labelOf(row, column.key, "status"))}</span> : labelOf(row, column.key)}
+                  </td>
+                ))}
+                {actions?.length ? (
+                  <td>
+                    <div className="cdx-row-actions">
+                      {actions.map((action) => (
+                        <button key={action.label} type="button" className={cx(action.danger && "is-danger", action.approve && "is-approve")} onClick={() => action.onClick(row)}>
+                          {action.label}
+                        </button>
+                      ))}
+                    </div>
+                  </td>
+                ) : null}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <footer className="cdx-pagination">
+        <span>{rows.length} records</span>
+        <div>
+          <button type="button" disabled={page === 1} onClick={() => setPage((current) => Math.max(1, current - 1))}><ChevronLeft size={16} /> Previous</button>
+          <strong>{safePage} / {pageCount}</strong>
+          <button type="button" disabled={page === pageCount} onClick={() => setPage((current) => Math.min(pageCount, current + 1))}>Next <ChevronRight size={16} /></button>
+        </div>
+      </footer>
+    </>
+  );
+}
+
+function StructureForm({ mode, structure, onCancel, onSaved, setNotice }) {
+  const isEdit = Boolean(mode?.row);
+  const row = mode?.row || {};
+  const [form, setForm] = useState(() => ({
+    towerId: row.tower_id || row.towerId || "",
+    wingId: row.wing_id || row.wingId || "",
+    floorId: row.floor_id || row.floorId || "",
+    towerName: row.tower_name || "",
+    towerCode: row.tower_code || "",
+    description: row.description || "",
+    totalFloors: row.total_floors || "",
+    totalFlats: row.total_flats || "",
+    wingName: row.name || row.wing_name || "",
+    wingCode: row.code || row.wing_code || "",
+    floorNumber: row.floor_number || "",
+    floorLabel: row.floor_label || "",
+    flatNumber: row.flat_number || "",
+    houseNumber: row.house_number || "",
+    flatType: row.flat_type || "Apartment",
+    areaSqft: row.area_sqft || "",
+    bedrooms: row.bedrooms || "",
+    occupancyStatus: row.occupancy_status || row.status || "vacant",
+    gateName: row.gate_name || "",
+    gateNumber: row.gate_number || "",
+    gateType: row.gate_type || "main_gate",
+    status: row.status || "active",
+    slot_number: row.slot_number || "",
+    wing: row.wing || "",
+    floor: row.floor || "",
+    type: row.type || "4wheeler",
+    block: row.block || "",
+  }));
+  const [saving, setSaving] = useState(false);
+
+  function update(key, value) {
+    setForm((current) => ({ ...current, [key]: value }));
+  }
+
+  async function submit(event) {
+    event.preventDefault();
+    try {
+      setSaving(true);
+      if (mode.type === "tower") {
+        const payload = { towerName: form.towerName, towerCode: form.towerCode, totalFloors: form.totalFloors, totalFlats: form.totalFlats, status: form.status };
+        if (isEdit) await updateTower(row.id, payload);
+        else await createTower(payload);
+      }
+      if (mode.type === "wing") {
+        const payload = { towerId: form.towerId, wingName: form.wingName, wingCode: form.wingCode, totalFloors: form.totalFloors, totalFlats: form.totalFlats, status: form.status };
+        if (isEdit) await updateWing(row.id, payload);
+        else await createWing(payload);
+      }
+      if (mode.type === "floor") {
+        const payload = { towerId: form.towerId, wingId: form.wingId, floorNumber: form.floorNumber, floorLabel: form.floorLabel, totalFlats: form.totalFlats };
+        if (isEdit) await updateFloor(row.id, payload);
+        else await createFloor(payload);
+      }
+      if (mode.type === "flat") {
+        const payload = { towerId: form.towerId, wingId: form.wingId, floorId: form.floorId, flatNumber: form.flatNumber, houseNumber: form.houseNumber, flatType: form.flatType, areaSqft: form.areaSqft, bedrooms: form.bedrooms, occupancyStatus: form.occupancyStatus, status: form.occupancyStatus };
+        if (isEdit) await updateStructureFlat(row.id, payload);
+        else await createStructureFlat(payload);
+      }
+      if (mode.type === "gate") {
+        const payload = { gateName: form.gateName, gateNumber: form.gateNumber, gateType: form.gateType, status: form.status };
+        if (isEdit) await updateGate(row.id, payload);
+        else await createGate(payload);
+      }
+      if (mode.type === "parking") {
+        const payload = { slot_number: form.slot_number, wing: form.wing, floor: form.floor || 1, type: form.type, block: form.block };
+        if (isEdit) await updateParkingSlot(row.id, { status: form.status, type: form.type });
+        else await createParkingSlot(payload);
+      }
+      setNotice(`${titleize(mode.type)} ${isEdit ? "updated" : "created"} successfully.`);
+      await onSaved();
+      onCancel();
+    } catch (error) {
+      setNotice(getApiMessage(error, `Failed to save ${mode.type}.`));
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  const commonSelects = (
+    <>
+      <label>Tower<select value={form.towerId} onChange={(event) => update("towerId", event.target.value)}><option value="">Select tower</option>{(structure.towers || []).map((tower) => <option key={tower.id} value={tower.id}>{tower.tower_name}</option>)}</select></label>
+      <label>Wing<select value={form.wingId} onChange={(event) => update("wingId", event.target.value)}><option value="">Select wing</option>{(structure.wings || []).filter((wing) => !form.towerId || Number(wing.tower_id) === Number(form.towerId)).map((wing) => <option key={wing.id} value={wing.id}>{wing.name}</option>)}</select></label>
+    </>
+  );
+
+  return (
+    <section className="cdx-card cdx-structure-form">
+      <div className="cdx-card-head">
+        <h2>{isEdit ? "Edit" : "Add"} {titleize(mode.type)}</h2>
+        <button type="button" className="cdx-mini-action" onClick={onCancel}>Close</button>
+      </div>
+      <form onSubmit={submit}>
+        {mode.type === "tower" ? (
+          <>
+            <label>Tower Name<input value={form.towerName} onChange={(event) => update("towerName", event.target.value)} required /></label>
+            <label>Tower Code<input value={form.towerCode} onChange={(event) => update("towerCode", event.target.value)} required /></label>
+            <label>Total Floors<input type="number" min="0" value={form.totalFloors} onChange={(event) => update("totalFloors", event.target.value)} /></label>
+            <label>Total Flats<input type="number" min="0" value={form.totalFlats} onChange={(event) => update("totalFlats", event.target.value)} /></label>
+          </>
+        ) : null}
+        {mode.type === "wing" ? (
+          <>
+            <label>Tower<select value={form.towerId} onChange={(event) => update("towerId", event.target.value)} required><option value="">Select tower</option>{(structure.towers || []).map((tower) => <option key={tower.id} value={tower.id}>{tower.tower_name}</option>)}</select></label>
+            <label>Wing Name<input value={form.wingName} onChange={(event) => update("wingName", event.target.value)} required /></label>
+            <label>Wing Code<input value={form.wingCode} onChange={(event) => update("wingCode", event.target.value)} required /></label>
+            <label>Total Floors<input type="number" min="0" value={form.totalFloors} onChange={(event) => update("totalFloors", event.target.value)} /></label>
+            <label>Total Flats<input type="number" min="0" value={form.totalFlats} onChange={(event) => update("totalFlats", event.target.value)} /></label>
+          </>
+        ) : null}
+        {mode.type === "floor" ? (
+          <>
+            {commonSelects}
+            <label>Floor Number<input type="number" value={form.floorNumber} onChange={(event) => update("floorNumber", event.target.value)} required /></label>
+            <label>Floor Name<input value={form.floorLabel} onChange={(event) => update("floorLabel", event.target.value)} /></label>
+            <label>Total Flats<input type="number" min="0" value={form.totalFlats} onChange={(event) => update("totalFlats", event.target.value)} /></label>
+          </>
+        ) : null}
+        {mode.type === "flat" ? (
+          <>
+            {commonSelects}
+            <label>Floor<select value={form.floorId} onChange={(event) => update("floorId", event.target.value)} required><option value="">Select floor</option>{(structure.floors || []).filter((floor) => !form.wingId || Number(floor.wing_id) === Number(form.wingId)).map((floor) => <option key={floor.id} value={floor.id}>{floor.floor_label || `Floor ${floor.floor_number}`}</option>)}</select></label>
+            <label>Flat Number<input value={form.flatNumber} onChange={(event) => update("flatNumber", event.target.value)} required /></label>
+            <label>House Number<input value={form.houseNumber} onChange={(event) => update("houseNumber", event.target.value)} /></label>
+            <label>Flat Type<select value={form.flatType} onChange={(event) => update("flatType", event.target.value)}>{residenceTypes.map((type) => <option key={type} value={type}>{type}</option>)}</select></label>
+            <label>Area (sq.ft.)<input type="number" min="0" value={form.areaSqft} onChange={(event) => update("areaSqft", event.target.value)} /></label>
+            <label>Bedrooms<input type="number" min="0" value={form.bedrooms} onChange={(event) => update("bedrooms", event.target.value)} /></label>
+            <label>Occupancy<select value={form.occupancyStatus} onChange={(event) => update("occupancyStatus", event.target.value)}>{occupancyStatuses.map((status) => <option key={status} value={status}>{titleize(status)}</option>)}</select></label>
+          </>
+        ) : null}
+        {mode.type === "gate" ? (
+          <>
+            <label>Gate Name<input value={form.gateName} onChange={(event) => update("gateName", event.target.value)} required /></label>
+            <label>Gate Number<input value={form.gateNumber} onChange={(event) => update("gateNumber", event.target.value)} required /></label>
+            <label>Gate Type<select value={form.gateType} onChange={(event) => update("gateType", event.target.value)}>{gateTypes.map((type) => <option key={type} value={type}>{titleize(type)}</option>)}</select></label>
+          </>
+        ) : null}
+        {mode.type === "parking" ? (
+          <>
+            <label>Parking Number<input value={form.slot_number} onChange={(event) => update("slot_number", event.target.value)} required disabled={isEdit} /></label>
+            <label>Wing<input value={form.wing} onChange={(event) => update("wing", event.target.value)} required disabled={isEdit} /></label>
+            <label>Floor<input value={form.floor} onChange={(event) => update("floor", event.target.value)} disabled={isEdit} /></label>
+            <label>Vehicle Type<select value={form.type} onChange={(event) => update("type", event.target.value)}>{parkingTypes.map((type) => <option key={type} value={type}>{titleize(type)}</option>)}</select></label>
+            <label>Block<input value={form.block} onChange={(event) => update("block", event.target.value)} disabled={isEdit} /></label>
+            {isEdit ? <label>Status<select value={form.status} onChange={(event) => update("status", event.target.value)}>{parkingStatuses.map((status) => <option key={status} value={status}>{titleize(status)}</option>)}</select></label> : null}
+          </>
+        ) : null}
+        {["tower", "wing", "gate"].includes(mode.type) ? <label>Status<select value={form.status} onChange={(event) => update("status", event.target.value)}><option value="active">Active</option><option value="inactive">Inactive</option></select></label> : null}
+        <div className="cdx-generator-actions">
+          <button type="submit" className="cdx-button cdx-button--primary" disabled={saving}><CheckCircle2 size={16} /> {saving ? "Saving..." : "Save"}</button>
+          <button type="button" className="cdx-button cdx-button--ghost" onClick={onCancel}>Cancel</button>
+        </div>
+      </form>
+    </section>
+  );
+}
+
+function BulkFlatGenerator({ structure, onSaved, setNotice }) {
+  const [form, setForm] = useState({ towerId: "", wingId: "", floors: 10, flatsPerFloor: 4, prefix: "A", startFloor: 1, flatType: "Apartment" });
+  const [saving, setSaving] = useState(false);
+  const selectedTower = (structure.towers || []).find((tower) => Number(tower.id) === Number(form.towerId));
+  const selectedWing = (structure.wings || []).find((wing) => Number(wing.id) === Number(form.wingId));
+  const preview = [];
+  for (let floor = Number(form.startFloor || 1); floor < Number(form.startFloor || 1) + Math.min(Number(form.floors || 0), 3); floor += 1) {
+    for (let flat = 1; flat <= Math.min(Number(form.flatsPerFloor || 0), 4); flat += 1) {
+      preview.push(`${form.prefix || selectedWing?.code || selectedTower?.tower_code || "A"}-${floor}${String(flat).padStart(2, "0")}`);
+    }
+  }
+
+  async function submit(event) {
+    event.preventDefault();
+    try {
+      setSaving(true);
+      const response = await generateFlats({ towerId: form.towerId, wingId: form.wingId, startFloor: form.startFloor, floors: form.floors, flatsPerFloor: form.flatsPerFloor, prefix: form.prefix, flatType: form.flatType });
+      setNotice(`${response?.count || unwrapApi(response, []).length || 0} flats generated and saved.`);
+      await onSaved();
+    } catch (error) {
+      setNotice(getApiMessage(error, "Bulk flat generation failed."));
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <section className="cdx-card cdx-structure-generator">
+      <div className="cdx-card-head"><h2><Sparkles size={18} /> Bulk Flat Generator</h2><span>Direct database save</span></div>
+      <form onSubmit={submit} className="cdx-generator-grid">
+        <label>Tower<select value={form.towerId} onChange={(event) => setForm((current) => ({ ...current, towerId: event.target.value, wingId: "" }))} required><option value="">Tower</option>{(structure.towers || []).map((tower) => <option key={tower.id} value={tower.id}>{tower.tower_name}</option>)}</select></label>
+        <label>Wing<select value={form.wingId} onChange={(event) => setForm((current) => ({ ...current, wingId: event.target.value }))} required><option value="">Wing</option>{(structure.wings || []).filter((wing) => !form.towerId || Number(wing.tower_id) === Number(form.towerId)).map((wing) => <option key={wing.id} value={wing.id}>{wing.name}</option>)}</select></label>
+        <label>Number of Floors<input type="number" min="1" value={form.floors} onChange={(event) => setForm((current) => ({ ...current, floors: event.target.value }))} /></label>
+        <label>Flats Per Floor<input type="number" min="1" value={form.flatsPerFloor} onChange={(event) => setForm((current) => ({ ...current, flatsPerFloor: event.target.value }))} /></label>
+        <label>Start Floor<input type="number" min="0" value={form.startFloor} onChange={(event) => setForm((current) => ({ ...current, startFloor: event.target.value }))} /></label>
+        <label>Prefix<input value={form.prefix} onChange={(event) => setForm((current) => ({ ...current, prefix: event.target.value.toUpperCase() }))} /></label>
+        <label>Residence Type<select value={form.flatType} onChange={(event) => setForm((current) => ({ ...current, flatType: event.target.value }))}>{residenceTypes.map((type) => <option key={type} value={type}>{type}</option>)}</select></label>
+      </form>
+      <div className="cdx-structure-preview">
+        <strong>Preview</strong>
+        <div>{preview.map((flat) => <span key={flat}>{flat}</span>)}</div>
+      </div>
+      <div className="cdx-generator-actions">
+        <button type="button" className="cdx-button cdx-button--primary" disabled={saving || !form.towerId || !form.wingId} onClick={submit}><Sparkles size={16} /> {saving ? "Generating..." : "Generate Flats"}</button>
+      </div>
+    </section>
+  );
+}
+
+const wizardSteps = [
+  "Society Overview",
+  "Towers & Wings",
+  "Floors Setup",
+  "Bulk Flat Generator",
+  "Gates & Parking",
+  "Review & Publish",
+];
+
+const defaultWizardDraft = {
+  overview: {
+    societyName: "Green Valley Heights",
+    societyCode: "GVH-2026",
+    address: "Palm Avenue, Sector 9",
+    city: "Mumbai",
+    state: "Maharashtra",
+    pincode: "400001",
+    totalTowers: 3,
+    totalGates: 3,
+    parkingAvailable: "Yes",
+  },
+  towers: [
+    { id: "tower-a", name: "Tower A", code: "A", wings: [{ id: "tower-a-wing-a", name: "Wing A", code: "A" }, { id: "tower-a-wing-b", name: "Wing B", code: "B" }] },
+    { id: "tower-b", name: "Tower B", code: "B", wings: [{ id: "tower-b-wing-a", name: "Wing A", code: "A" }, { id: "tower-b-wing-b", name: "Wing B", code: "B" }] },
+    { id: "tower-c", name: "Tower C", code: "C", wings: [{ id: "tower-c-wing-a", name: "Wing A", code: "A" }, { id: "tower-c-wing-b", name: "Wing B", code: "B" }] },
+  ],
+  floors: { towerIndex: 0, wingIndex: 0, startingFloor: 1, endingFloor: 10 },
+  flats: { towerIndex: 0, wingIndex: 0, floors: 10, flatsPerFloor: 4, flatPrefix: "A", residenceType: "Apartment" },
+  gates: [
+    { gateName: "Main Entry", gateNumber: "G01", gateType: "main_gate" },
+    { gateName: "Visitor Entry", gateNumber: "G02", gateType: "visitor_gate" },
+    { gateName: "Service Entry", gateNumber: "G03", gateType: "service_gate" },
+  ],
+  parking: { totalSlots: 200 },
+};
+
+function cloneWizardDraft() {
+  try {
+    return JSON.parse(window.localStorage.getItem("chairmanSocietyStructureDraft")) || defaultWizardDraft;
+  } catch {
+    return defaultWizardDraft;
+  }
+}
+
+function makeFlatPreview(config) {
+  const floors = Number(config.floors || 0);
+  const perFloor = Number(config.flatsPerFloor || 0);
+  const prefix = config.flatPrefix || "A";
+  const rows = [];
+  for (let floor = 1; floor <= floors; floor += 1) {
+    for (let flat = 1; flat <= perFloor; flat += 1) {
+      rows.push({ floor, flatNumber: `${prefix}-${floor}${String(flat).padStart(2, "0")}`, residenceType: config.residenceType || "Apartment" });
+    }
+  }
+  return rows;
+}
+
+function WizardField({ label, children }) {
+  return <label className="cdx-wizard-field"><span>{label}</span>{children}</label>;
+}
+
+function SocietyStructureWizard({ parkingRows, requestRows, counts, onPublish, publishing, setNotice, onOpenDashboard, onOpenRequests }) {
+  const hasPublishedStructure = counts.totalTowers > 0 || counts.totalFlats > 0 || counts.totalGates > 0;
+  const [step, setStep] = useState(hasPublishedStructure ? 5 : 0);
+  const [draft, setDraft] = useState(cloneWizardDraft);
+  const selectedTower = draft.towers[draft.floors.towerIndex] || draft.towers[0];
+  const selectedWing = selectedTower?.wings?.[draft.floors.wingIndex] || selectedTower?.wings?.[0];
+  const flatTower = draft.towers[draft.flats.towerIndex] || draft.towers[0];
+  const flatWing = flatTower?.wings?.[draft.flats.wingIndex] || flatTower?.wings?.[0];
+  const floorPreview = Array.from({ length: Math.max(0, Number(draft.floors.endingFloor) - Number(draft.floors.startingFloor) + 1) }, (_, index) => Number(draft.floors.startingFloor) + index);
+  const flatPreview = makeFlatPreview(draft.flats);
+  const summary = {
+    towers: draft.towers.length,
+    wings: draft.towers.reduce((sum, tower) => sum + tower.wings.length, 0),
+    floors: draft.towers.reduce((sum, tower) => sum + tower.wings.length * floorPreview.length, 0),
+    flats: flatPreview.length * draft.towers.reduce((sum, tower) => sum + tower.wings.length, 0),
+    parking: Number(draft.parking.totalSlots || 0),
+    gates: draft.gates.length,
+  };
+
+  function update(path, value) {
+    setDraft((current) => {
+      const next = JSON.parse(JSON.stringify(current));
+      const keys = path.split(".");
+      let target = next;
+      keys.slice(0, -1).forEach((key) => { target = target[key]; });
+      target[keys[keys.length - 1]] = value;
+      return next;
+    });
+  }
+
+  function setTowerCount(count) {
+    setDraft((current) => {
+      const total = Math.max(1, Number(count || 1));
+      const towers = Array.from({ length: total }, (_, index) => current.towers[index] || {
+        id: `tower-${index + 1}`,
+        name: `Tower ${String.fromCharCode(65 + index)}`,
+        code: String.fromCharCode(65 + index),
+        wings: [{ id: `tower-${index + 1}-wing-a`, name: "Wing A", code: "A" }],
+      });
+      return { ...current, overview: { ...current.overview, totalTowers: total }, towers };
+    });
+  }
+
+  function updateTower(index, key, value) {
+    setDraft((current) => {
+      const towers = current.towers.map((tower, towerIndex) => towerIndex === index ? { ...tower, [key]: value } : tower);
+      return { ...current, towers };
+    });
+  }
+
+  function setWingCount(towerIndex, count) {
+    setDraft((current) => {
+      const towers = current.towers.map((tower, index) => {
+        if (index !== towerIndex) return tower;
+        const total = Math.max(1, Number(count || 1));
+        return {
+          ...tower,
+          wings: Array.from({ length: total }, (_, wingIndex) => tower.wings[wingIndex] || {
+            id: `${tower.id}-wing-${wingIndex + 1}`,
+            name: `Wing ${String.fromCharCode(65 + wingIndex)}`,
+            code: String.fromCharCode(65 + wingIndex),
+          }),
+        };
+      });
+      return { ...current, towers };
+    });
+  }
+
+  function updateWing(towerIndex, wingIndex, key, value) {
+    setDraft((current) => {
+      const towers = current.towers.map((tower, index) => index === towerIndex ? {
+        ...tower,
+        wings: tower.wings.map((wing, currentWingIndex) => currentWingIndex === wingIndex ? { ...wing, [key]: value } : wing),
+      } : tower);
+      return { ...current, towers };
+    });
+  }
+
+  function saveDraft() {
+    window.localStorage.setItem("chairmanSocietyStructureDraft", JSON.stringify(draft));
+    setNotice("Society structure draft saved on this device.");
+  }
+
+  function publish() {
+    saveDraft();
+    onPublish({ draft, floorPreview, flatPreview });
+  }
+
+  return (
+    <section className="cdx-wizard-shell">
+      <div className="cdx-wizard-hero">
+        <div>
+          <span><Sparkles size={16} /> Guided master-data setup</span>
+          <h2>{hasPublishedStructure ? "Society Structure Dashboard" : "Premium Society Structure Setup"}</h2>
+          <p>Build towers, wings, floors, flats, gates, parking, and approval-ready residence data before residents start selecting flats.</p>
+        </div>
+        <div className="cdx-wizard-publish-card">
+          <strong>{hasPublishedStructure ? `${counts.totalFlats} flats live` : `${summary.flats} flats planned`}</strong>
+          <span>{counts.pendingRequests || requestRows.length} pending residence requests</span>
+          <button type="button" onClick={onOpenRequests}>Review Requests</button>
+        </div>
+      </div>
+
+      <div className="cdx-wizard-progress" aria-label="Setup progress">
+        {wizardSteps.map((label, index) => (
+          <button key={label} type="button" className={cx(index === step && "is-active", index < step && "is-done")} onClick={() => setStep(index)}>
+            <span>{index + 1}</span>
+            <strong>{label}</strong>
+          </button>
+        ))}
+      </div>
+
+      {step === 0 ? (
+        <section className="cdx-wizard-panel">
+          <div className="cdx-wizard-section-title"><h3>Society Overview</h3><p>Core identity that all future modules will treat as master context.</p></div>
+          <div className="cdx-wizard-grid">
+            {["societyName", "societyCode", "address", "city", "state", "pincode"].map((key) => (
+              <WizardField key={key} label={titleize(key)}><input value={draft.overview[key]} onChange={(event) => update(`overview.${key}`, event.target.value)} /></WizardField>
+            ))}
+            <WizardField label="Total Towers"><input type="number" min="1" value={draft.overview.totalTowers} onChange={(event) => setTowerCount(event.target.value)} /></WizardField>
+            <WizardField label="Total Gates"><input type="number" min="0" value={draft.overview.totalGates} onChange={(event) => update("overview.totalGates", event.target.value)} /></WizardField>
+            <WizardField label="Parking Available"><select value={draft.overview.parkingAvailable} onChange={(event) => update("overview.parkingAvailable", event.target.value)}><option>Yes</option><option>No</option></select></WizardField>
+          </div>
+        </section>
+      ) : null}
+
+      {step === 1 ? (
+        <section className="cdx-wizard-panel">
+          <div className="cdx-wizard-section-title"><h3>Towers & Wings</h3><p>Visual structure cards with a live hierarchy preview.</p></div>
+          <WizardField label="Number of Towers"><input type="number" min="1" value={draft.towers.length} onChange={(event) => setTowerCount(event.target.value)} /></WizardField>
+          <div className="cdx-tower-card-grid">
+            {draft.towers.map((tower, towerIndex) => (
+              <article key={tower.id} className="cdx-tower-card">
+                <div><Building2 size={18} /><strong>{tower.name}</strong></div>
+                <input value={tower.name} onChange={(event) => updateTower(towerIndex, "name", event.target.value)} />
+                <input value={tower.code} onChange={(event) => updateTower(towerIndex, "code", event.target.value.toUpperCase())} />
+                <WizardField label="Number of Wings"><input type="number" min="1" value={tower.wings.length} onChange={(event) => setWingCount(towerIndex, event.target.value)} /></WizardField>
+                {tower.wings.map((wing, wingIndex) => (
+                  <div key={wing.id} className="cdx-wing-row">
+                    <input value={wing.name} onChange={(event) => updateWing(towerIndex, wingIndex, "name", event.target.value)} />
+                    <input value={wing.code} onChange={(event) => updateWing(towerIndex, wingIndex, "code", event.target.value.toUpperCase())} />
+                  </div>
+                ))}
+              </article>
+            ))}
+          </div>
+          <div className="cdx-live-preview">
+            <strong>Live Preview</strong>
+            {draft.towers.map((tower) => <p key={tower.id}>{tower.name}{tower.wings.map((wing) => <span key={wing.id}>Wing {wing.code || wing.name}</span>)}</p>)}
+          </div>
+        </section>
+      ) : null}
+
+      {step === 2 ? (
+        <section className="cdx-wizard-panel">
+          <div className="cdx-wizard-section-title"><h3>Floors Setup</h3><p>Select a tower and wing, then preview the generated floor range.</p></div>
+          <div className="cdx-wizard-grid">
+            <WizardField label="Select Tower"><select value={draft.floors.towerIndex} onChange={(event) => update("floors.towerIndex", Number(event.target.value))}>{draft.towers.map((tower, index) => <option key={tower.id} value={index}>{tower.name}</option>)}</select></WizardField>
+            <WizardField label="Select Wing"><select value={draft.floors.wingIndex} onChange={(event) => update("floors.wingIndex", Number(event.target.value))}>{(selectedTower?.wings || []).map((wing, index) => <option key={wing.id} value={index}>{wing.name}</option>)}</select></WizardField>
+            <WizardField label="Starting Floor"><input type="number" value={draft.floors.startingFloor} onChange={(event) => update("floors.startingFloor", event.target.value)} /></WizardField>
+            <WizardField label="Ending Floor"><input type="number" value={draft.floors.endingFloor} onChange={(event) => update("floors.endingFloor", event.target.value)} /></WizardField>
+          </div>
+          <div className="cdx-chip-preview">{floorPreview.map((floor) => <span key={floor}>{selectedTower?.name} / {selectedWing?.name} / Floor {floor}</span>)}</div>
+        </section>
+      ) : null}
+
+      {step === 3 ? (
+        <section className="cdx-wizard-panel">
+          <div className="cdx-wizard-section-title"><h3>Bulk Flat Generator</h3><p>Generate flat numbers before saving. Available flats power owner and tenant selection later.</p></div>
+          <div className="cdx-wizard-grid">
+            <WizardField label="Tower"><select value={draft.flats.towerIndex} onChange={(event) => update("flats.towerIndex", Number(event.target.value))}>{draft.towers.map((tower, index) => <option key={tower.id} value={index}>{tower.name}</option>)}</select></WizardField>
+            <WizardField label="Wing"><select value={draft.flats.wingIndex} onChange={(event) => update("flats.wingIndex", Number(event.target.value))}>{(flatTower?.wings || []).map((wing, index) => <option key={wing.id} value={index}>{wing.name}</option>)}</select></WizardField>
+            <WizardField label="Floors"><input type="number" min="1" value={draft.flats.floors} onChange={(event) => update("flats.floors", event.target.value)} /></WizardField>
+            <WizardField label="Flats Per Floor"><input type="number" min="1" value={draft.flats.flatsPerFloor} onChange={(event) => update("flats.flatsPerFloor", event.target.value)} /></WizardField>
+            <WizardField label="Flat Prefix"><input value={draft.flats.flatPrefix} onChange={(event) => update("flats.flatPrefix", event.target.value.toUpperCase())} /></WizardField>
+            <WizardField label="Residence Type"><select value={draft.flats.residenceType} onChange={(event) => update("flats.residenceType", event.target.value)}>{residenceTypes.map((type) => <option key={type}>{type}</option>)}</select></WizardField>
+          </div>
+          <div className="cdx-flat-preview-head"><strong>Total Flats Generated: {flatPreview.length}</strong><span>{flatTower?.name} / {flatWing?.name}</span></div>
+          <StructureTable rows={flatPreview.slice(0, 20)} columns={[{ key: "floor", label: "Floor" }, { key: "flatNumber", label: "Flat" }, { key: "residenceType", label: "Residence Type" }]} emptyTitle="No flat preview" />
+        </section>
+      ) : null}
+
+      {step === 4 ? (
+        <section className="cdx-wizard-panel">
+          <div className="cdx-wizard-section-title"><h3>Gates & Parking</h3><p>Prepare entry points and parking slots in one guided pass.</p></div>
+          <div className="cdx-gate-list">
+            {draft.gates.map((gate, index) => (
+              <div key={`${gate.gateNumber}-${index}`} className="cdx-gate-row">
+                <input value={gate.gateName} onChange={(event) => setDraft((current) => ({ ...current, gates: current.gates.map((item, gateIndex) => gateIndex === index ? { ...item, gateName: event.target.value } : item) }))} />
+                <input value={gate.gateNumber} onChange={(event) => setDraft((current) => ({ ...current, gates: current.gates.map((item, gateIndex) => gateIndex === index ? { ...item, gateNumber: event.target.value } : item) }))} />
+                <select value={gate.gateType} onChange={(event) => setDraft((current) => ({ ...current, gates: current.gates.map((item, gateIndex) => gateIndex === index ? { ...item, gateType: event.target.value } : item) }))}>{gateTypes.map((type) => <option key={type} value={type}>{titleize(type)}</option>)}</select>
+              </div>
+            ))}
+          </div>
+          <button type="button" className="cdx-button cdx-button--ghost" onClick={() => setDraft((current) => ({ ...current, gates: [...current.gates, { gateName: "New Gate", gateNumber: `G${String(current.gates.length + 1).padStart(2, "0")}`, gateType: "visitor_gate" }] }))}><Plus size={16} /> Add Gate</button>
+          <WizardField label="Total Parking Slots"><input type="number" min="0" value={draft.parking.totalSlots} onChange={(event) => update("parking.totalSlots", event.target.value)} /></WizardField>
+          <div className="cdx-chip-preview">{Array.from({ length: Math.min(Number(draft.parking.totalSlots || 0), 24) }, (_, index) => <span key={index}>P{String(index + 1).padStart(3, "0")}</span>)}</div>
+        </section>
+      ) : null}
+
+      {step === 5 ? (
+        <section className="cdx-wizard-panel">
+          <div className="cdx-wizard-section-title"><h3>Review & Publish</h3><p>Once published, these records become the source for residence selection and Chairman approvals.</p></div>
+          <section className="cdx-structure-stat-grid">
+            <StructureStatCard label="Towers" value={hasPublishedStructure ? counts.totalTowers : summary.towers} icon={Building2} />
+            <StructureStatCard label="Wings" value={hasPublishedStructure ? counts.totalWings : summary.wings} icon={Folder} tone="violet" />
+            <StructureStatCard label="Floors" value={hasPublishedStructure ? counts.totalFloors : summary.floors} icon={Building2} tone="amber" />
+            <StructureStatCard label="Flats" value={hasPublishedStructure ? counts.totalFlats : summary.flats} icon={Home} tone="green" />
+            <StructureStatCard label="Parking Slots" value={hasPublishedStructure ? parkingRows.length : summary.parking} icon={ParkingCircle} />
+            <StructureStatCard label="Gates" value={hasPublishedStructure ? counts.totalGates : summary.gates} icon={ShieldCheck} tone="green" />
+            <StructureStatCard label="Occupied Flats" value={counts.occupiedFlats} icon={CheckCircle2} tone="green" />
+            <StructureStatCard label="Pending Resident Requests" value={counts.pendingRequests} icon={ClipboardCheck} tone="amber" />
+          </section>
+          <div className="cdx-review-actions">
+            <button type="button" className="cdx-button cdx-button--primary" disabled={publishing} onClick={publish}><CheckCircle2 size={16} /> {publishing ? "Publishing..." : "Publish Society Structure"}</button>
+            <button type="button" className="cdx-button cdx-button--ghost" onClick={onOpenDashboard}><LayoutDashboard size={16} /> Open Dashboard</button>
+          </div>
+        </section>
+      ) : null}
+
+      <footer className="cdx-wizard-actions">
+        <button type="button" className="cdx-button cdx-button--ghost" disabled={step === 0} onClick={() => setStep((current) => Math.max(0, current - 1))}>Previous</button>
+        <button type="button" className="cdx-button cdx-button--ghost" onClick={saveDraft}>Save Draft</button>
+        <button type="button" className="cdx-button cdx-button--primary" disabled={step === wizardSteps.length - 1} onClick={() => setStep((current) => Math.min(wizardSteps.length - 1, current + 1))}>Next</button>
+      </footer>
+    </section>
+  );
+}
+
+function SocietyStructureModule({ item }) {
+  const [active, setActive] = useState("setup");
+  const [structure, setStructure] = useState({ towers: [], wings: [], floors: [], flats: [], gates: [] });
+  const [parkingRows, setParkingRows] = useState([]);
+  const [requestRows, setRequestRows] = useState([]);
+  const [state, setState] = useState("loading");
+  const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
+  const [query, setQuery] = useState("");
+  const [filters, setFilters] = useState({ tower: "", wing: "", floor: "", occupancy: "", owner: "", tenant: "", vacant: "" });
+  const [formMode, setFormMode] = useState(null);
+  const [publishing, setPublishing] = useState(false);
+  const importRef = useRef(null);
+
+  const load = useCallback(async () => {
+    try {
+      setState("loading");
+      setError("");
+      const [structureResponse, requestsResponse, parkingResponse] = await Promise.all([
+        fetchSocietyStructure(),
+        fetchChairmanResidenceRequests().catch(() => ({ data: [] })),
+        getParkingSlots().catch(() => ({ data: [] })),
+      ]);
+      setStructure(unwrapApi(structureResponse, {}));
+      setRequestRows(unwrapApi(requestsResponse, []));
+      setParkingRows(unwrapApi(parkingResponse, []));
+      setState("ready");
+    } catch (err) {
+      setError(getApiMessage(err, "Failed to load society structure."));
+      setState("error");
+    }
+  }, []);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      load();
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [load]);
+
+  const counts = useMemo(() => societyStructureCounts(structure, parkingRows, requestRows), [structure, parkingRows, requestRows]);
+  const filteredFlats = useMemo(() => (structure.flats || []).filter((flat) => {
+    const text = JSON.stringify(flat || {}).toLowerCase();
+    const queryMatch = !query || text.includes(query.toLowerCase());
+    const towerMatch = !filters.tower || Number(flat.tower_id) === Number(filters.tower);
+    const wingMatch = !filters.wing || Number(flat.wing_id) === Number(filters.wing);
+    const floorMatch = !filters.floor || Number(flat.floor_id) === Number(filters.floor);
+    const occupancyMatch = !filters.occupancy || getStatus(flat) === filters.occupancy || flat.occupancy_status === filters.occupancy;
+    const ownerMatch = !filters.owner || Boolean(flat.owner_id);
+    const tenantMatch = !filters.tenant || Boolean(flat.tenant_id);
+    const vacantMatch = !filters.vacant || getStatus(flat) === "vacant" || flat.occupancy_status === "vacant";
+    return queryMatch && towerMatch && wingMatch && floorMatch && occupancyMatch && ownerMatch && tenantMatch && vacantMatch;
+  }), [structure.flats, query, filters]);
+
+  const charts = useMemo(() => ({
+    occupancy: [{ name: "Occupied", value: counts.occupiedFlats }, { name: "Vacant", value: counts.vacantFlats }, { name: "Requests", value: counts.pendingRequests }].filter((row) => row.value > 0),
+    inventory: [
+      { name: "Towers", value: counts.totalTowers },
+      { name: "Wings", value: counts.totalWings },
+      { name: "Floors", value: counts.totalFloors },
+      { name: "Flats", value: counts.totalFlats },
+      { name: "Parking", value: counts.totalParkingSlots },
+      { name: "Gates", value: counts.totalGates },
+    ],
+    types: groupCount(structure.flats || [], (flat) => flat.flat_type || "Apartment"),
+  }), [counts, structure.flats]);
+
+  function deleteWithConfirm(label, action) {
+    if (!window.confirm(`Delete ${label}? This action will update society structure records.`)) return;
+    action().then(() => {
+      setNotice(`${label} deleted.`);
+      load();
+    }).catch((error) => setNotice(getApiMessage(error, `Failed to delete ${label}.`)));
+  }
+
+  async function reviewRequest(row, approved) {
+    try {
+      if (approved) await approveResidenceRequest(row.id);
+      else await rejectResidenceRequest(row.id, "Rejected by Chairman");
+      // Frontend logging
+      console.log("[ChairmanDashboard] reviewRequest result", { requestId: row.id, approved, actor: getStoredUser()?.id });
+      setNotice(approved ? "Resident approved successfully" : "Residence request rejected.");
+      await load();
+    } catch (error) {
+      setNotice(getApiMessage(error, "Residence request action failed."));
+    }
+  }
+
+  async function publishWizard({ draft, floorPreview }) {
+    try {
+      setPublishing(true);
+
+      for (const tower of draft.towers) {
+        const towerResponse = await createTower({ towerName: tower.name, towerCode: tower.code, totalFloors: floorPreview.length, status: "active" });
+        const savedTower = unwrapApi(towerResponse, towerResponse);
+        const towerId = savedTower?.id || savedTower?.data?.id || savedTower?.tower?.id;
+
+        for (const wing of tower.wings) {
+          const wingResponse = await createWing({ towerId, wingName: wing.name, wingCode: wing.code, totalFloors: floorPreview.length, status: "active" });
+          const savedWing = unwrapApi(wingResponse, wingResponse);
+          const wingId = savedWing?.id || savedWing?.data?.id || savedWing?.wing?.id;
+
+          for (const floor of floorPreview) {
+            await createFloor({ towerId, wingId, floorNumber: floor, floorLabel: `Floor ${floor}`, totalFlats: draft.flats.flatsPerFloor });
+          }
+
+          await generateFlats({
+            towerId,
+            wingId,
+            startFloor: 1,
+            floors: draft.flats.floors,
+            flatsPerFloor: draft.flats.flatsPerFloor,
+            prefix: `${tower.code}${wing.code}`.replace(/\s/g, "") || draft.flats.flatPrefix,
+            flatType: draft.flats.residenceType,
+          });
+        }
+      }
+
+      for (const gate of draft.gates) {
+        await createGate({ gateName: gate.gateName, gateNumber: gate.gateNumber, gateType: gate.gateType, status: "active" });
+      }
+
+      const parkingTotal = Math.min(Number(draft.parking.totalSlots || 0), 500);
+      for (let index = 1; index <= parkingTotal; index += 1) {
+        await createParkingSlot({ slot_number: `P${String(index).padStart(3, "0")}`, wing: "Common", floor: 1, type: "4wheeler", block: "Society" });
+      }
+
+      window.localStorage.setItem("chairmanSocietyStructurePublished", "true");
+      setNotice("Society structure published. Flats are now available for resident residence-profile requests.");
+      await load();
+      setActive("dashboard");
+    } catch (error) {
+      setNotice(getApiMessage(error, "Publishing society structure failed. Saved draft remains available."));
+    } finally {
+      setPublishing(false);
+    }
+  }
+
+  const towerName = (id) => (structure.towers || []).find((tower) => Number(tower.id) === Number(id))?.tower_name || "-";
+  const wingName = (id) => (structure.wings || []).find((wing) => Number(wing.id) === Number(id))?.name || "-";
+  const floorName = (id) => {
+    const floor = (structure.floors || []).find((item) => Number(item.id) === Number(id));
+    return floor?.floor_label || floor?.floor_number || "-";
+  };
+
+  const tableActions = {
+    tower: [
+      { label: "View Details", onClick: (row) => setNotice(`${row.tower_name}: ${row.wing_count || 0} wings, ${row.flat_count || 0} flats.`) },
+      { label: "Edit", onClick: (row) => setFormMode({ type: "tower", row }) },
+      { label: "Delete", danger: true, onClick: (row) => deleteWithConfirm(row.tower_name, () => deleteTower(row.id)) },
+    ],
+    wing: [
+      { label: "Edit", onClick: (row) => setFormMode({ type: "wing", row }) },
+      { label: "Delete", danger: true, onClick: (row) => deleteWithConfirm(row.name, () => deleteWing(row.id)) },
+    ],
+    floor: [
+      { label: "Edit", onClick: (row) => setFormMode({ type: "floor", row }) },
+      { label: "Delete", danger: true, onClick: (row) => deleteWithConfirm(row.floor_label || `Floor ${row.floor_number}`, () => deleteFloor(row.id)) },
+    ],
+    flat: [
+      { label: "Edit", onClick: (row) => setFormMode({ type: "flat", row }) },
+      { label: "Delete", danger: true, onClick: (row) => deleteWithConfirm(row.flat_number, () => deleteStructureFlat(row.id, { structure: true })) },
+    ],
+    gate: [
+      { label: "Edit", onClick: (row) => setFormMode({ type: "gate", row }) },
+      { label: "Delete", danger: true, onClick: (row) => deleteWithConfirm(row.gate_name, () => deleteGate(row.id)) },
+    ],
+    parking: [
+      { label: "Edit", onClick: (row) => setFormMode({ type: "parking", row }) },
+      { label: "Delete", danger: true, onClick: (row) => deleteWithConfirm(row.slot_number, () => deleteParkingSlot(row.id)) },
+    ],
+  };
+
+  const allExportRows = [...(structure.towers || []), ...(structure.wings || []), ...(structure.floors || []), ...(structure.flats || []), ...(structure.gates || []), ...parkingRows];
+
+  if (state !== "ready") {
+    return <main className="cdx-content"><PageHeader item={item} rowsCount={0} onRefresh={load} onExport={() => {}} /><StateView state={state} message={error} onRetry={load} /></main>;
+  }
+
+  return (
+    <main className="cdx-content cdx-structure-module">
+      <PageHeader item={item} rowsCount={allExportRows.length} onRefresh={load} onExport={() => downloadCsv(allExportRows, "society-structure.csv")}>
+        <button type="button" className="cdx-button cdx-button--ghost" onClick={() => setActive("setup")}><Sparkles size={16} /> Setup Wizard</button>
+        <button type="button" className="cdx-button cdx-button--primary" onClick={() => setActive("generator")}><Sparkles size={16} /> Generate Flats</button>
+        <button type="button" className="cdx-button cdx-button--ghost" onClick={() => importRef.current?.click()}><Import size={16} /> Import Excel</button>
+      </PageHeader>
+
+      <input ref={importRef} type="file" className="sr-only" accept=".csv,.xlsx,.xls" onChange={(event) => {
+        const file = event.target.files?.[0];
+        if (file) setNotice(`${file.name} selected. Excel import parser is ready to connect to the backend import endpoint.`);
+        event.target.value = "";
+      }} />
+
+      <StructureTabs active={active} setActive={(key) => { setActive(key); setFormMode(null); }} />
+
+      <section className="cdx-toolbar cdx-structure-filters">
+        <label><Search size={16} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search tower, wing, floor, flat, owner, tenant..." /></label>
+        <label><Filter size={16} /><select value={filters.tower} onChange={(event) => setFilters((current) => ({ ...current, tower: event.target.value, wing: "", floor: "" }))}><option value="">All towers</option>{(structure.towers || []).map((tower) => <option key={tower.id} value={tower.id}>{tower.tower_name}</option>)}</select></label>
+        <label><Filter size={16} /><select value={filters.wing} onChange={(event) => setFilters((current) => ({ ...current, wing: event.target.value, floor: "" }))}><option value="">All wings</option>{(structure.wings || []).filter((wing) => !filters.tower || Number(wing.tower_id) === Number(filters.tower)).map((wing) => <option key={wing.id} value={wing.id}>{wing.name}</option>)}</select></label>
+        <label><Filter size={16} /><select value={filters.floor} onChange={(event) => setFilters((current) => ({ ...current, floor: event.target.value }))}><option value="">All floors</option>{(structure.floors || []).filter((floor) => !filters.wing || Number(floor.wing_id) === Number(filters.wing)).map((floor) => <option key={floor.id} value={floor.id}>{floor.floor_label || floor.floor_number}</option>)}</select></label>
+        <label><Filter size={16} /><select value={filters.occupancy} onChange={(event) => setFilters((current) => ({ ...current, occupancy: event.target.value }))}><option value="">All occupancy</option>{occupancyStatuses.map((status) => <option key={status} value={status}>{titleize(status)}</option>)}</select></label>
+        <div className="cdx-structure-toggles">
+          <button type="button" className={filters.owner ? "is-active" : ""} onClick={() => setFilters((current) => ({ ...current, owner: current.owner ? "" : "yes", tenant: "" }))}>Owner</button>
+          <button type="button" className={filters.tenant ? "is-active" : ""} onClick={() => setFilters((current) => ({ ...current, tenant: current.tenant ? "" : "yes", owner: "" }))}>Tenant</button>
+          <button type="button" className={filters.vacant ? "is-active" : ""} onClick={() => setFilters((current) => ({ ...current, vacant: current.vacant ? "" : "yes" }))}>Vacant</button>
+        </div>
+      </section>
+
+      {notice ? <div className="cdx-toast" role="status"><span>{notice}</span><button type="button" onClick={() => setNotice("")}>Dismiss</button></div> : null}
+      {formMode ? <StructureForm mode={formMode} structure={structure} onCancel={() => setFormMode(null)} onSaved={load} setNotice={setNotice} /> : null}
+
+      {active === "setup" ? (
+        <SocietyStructureWizard
+          parkingRows={parkingRows}
+          requestRows={requestRows}
+          counts={counts}
+          publishing={publishing}
+          setNotice={setNotice}
+          onPublish={publishWizard}
+          onOpenDashboard={() => setActive("dashboard")}
+          onOpenRequests={() => setActive("requests")}
+        />
+      ) : null}
+
+      {active === "dashboard" ? (
+        <>
+          <section className="cdx-structure-stat-grid">
+            <StructureStatCard label="Total Towers" value={counts.totalTowers} icon={Building2} />
+            <StructureStatCard label="Total Wings" value={counts.totalWings} icon={Folder} tone="violet" />
+            <StructureStatCard label="Total Floors" value={counts.totalFloors} icon={Building2} tone="amber" />
+            <StructureStatCard label="Total Flats" value={counts.totalFlats} icon={Home} tone="green" />
+            <StructureStatCard label="Total Houses" value={counts.totalHouses} icon={Home} tone="amber" />
+            <StructureStatCard label="Total Residents" value={counts.totalResidents} icon={Users} tone="violet" />
+            <StructureStatCard label="Occupied Flats" value={counts.occupiedFlats} icon={CheckCircle2} tone="green" />
+            <StructureStatCard label="Vacant Flats" value={counts.vacantFlats} icon={Building2} tone="amber" />
+            <StructureStatCard label="Parking Slots" value={counts.totalParkingSlots} icon={ParkingCircle} />
+            <StructureStatCard label="Total Gates" value={counts.totalGates} icon={ShieldCheck} tone="green" />
+          </section>
+          <section className="cdx-feature-chart-grid">
+            <ChartCard title="Structure Inventory" data={charts.inventory} type="bar" />
+            <ChartCard title="Occupancy Mix" data={charts.occupancy} type="pie" />
+            <ChartCard title="Residence Types" data={charts.types} type="area" />
+            <section className="cdx-card cdx-structure-flow">
+              <div className="cdx-card-head"><h2>Master Data Flow</h2><span>society_id linked</span></div>
+              {["Society", "Tower", "Wing", "Floor", "Flat / House", "Owner / Tenant", "Parking", "Maintenance", "Visitor"].map((step) => <span key={step}>{step}</span>)}
+            </section>
+          </section>
+        </>
+      ) : null}
+
+      {active === "towers" ? (
+        <>
+          <button type="button" className="cdx-button cdx-button--primary cdx-section-action" onClick={() => setFormMode({ type: "tower" })}><Plus size={16} /> Add Tower</button>
+          <StructureTable rows={structure.towers || []} actions={tableActions.tower} columns={[
+            { key: "tower_name", label: "Tower Name" },
+            { key: "tower_code", label: "Tower Code" },
+            { key: "description", label: "Description" },
+            { key: "wing_count", label: "Total Wings" },
+            { key: "floor_count", label: "Total Floors" },
+            { key: "flat_count", label: "Total Flats" },
+            { key: "status", label: "Status", status: true },
+            { key: "created_at", label: "Created Date", render: (row) => dateLabel(row.created_at) },
+          ]} />
+        </>
+      ) : null}
+
+      {active === "wings" ? (
+        <>
+          <button type="button" className="cdx-button cdx-button--primary cdx-section-action" onClick={() => setFormMode({ type: "wing" })}><Plus size={16} /> Add Wing</button>
+          <StructureTable rows={structure.wings || []} actions={tableActions.wing} columns={[
+            { key: "name", label: "Wing Name" },
+            { key: "code", label: "Wing Code" },
+            { key: "tower_id", label: "Tower", render: (row) => row.tower_name || towerName(row.tower_id) },
+            { key: "total_floors", label: "Total Floors" },
+            { key: "flat_count", label: "Total Flats" },
+            { key: "status", label: "Status", status: true },
+          ]} />
+        </>
+      ) : null}
+
+      {active === "floors" ? (
+        <>
+          <button type="button" className="cdx-button cdx-button--primary cdx-section-action" onClick={() => setFormMode({ type: "floor" })}><Plus size={16} /> Add Floor</button>
+          <StructureTable rows={structure.floors || []} actions={tableActions.floor} columns={[
+            { key: "tower_id", label: "Tower", render: (row) => towerName(row.tower_id) },
+            { key: "wing_id", label: "Wing", render: (row) => wingName(row.wing_id) },
+            { key: "floor_number", label: "Floor Number" },
+            { key: "floor_label", label: "Floor Name" },
+            { key: "total_flats", label: "Total Flats" },
+          ]} />
+        </>
+      ) : null}
+
+      {active === "flats" ? (
+        <>
+          <button type="button" className="cdx-button cdx-button--primary cdx-section-action" onClick={() => setFormMode({ type: "flat" })}><Plus size={16} /> Add Flat / House</button>
+          <StructureTable rows={filteredFlats} actions={tableActions.flat} columns={[
+            { key: "tower_id", label: "Tower", render: (row) => row.tower_name || towerName(row.tower_id) },
+            { key: "wing_id", label: "Wing", render: (row) => row.wing_name || wingName(row.wing_id) },
+            { key: "floor_id", label: "Floor", render: (row) => row.floor_label || floorName(row.floor_id) },
+            { key: "flat_number", label: "Flat Number" },
+            { key: "house_number", label: "House Number" },
+            { key: "flat_type", label: "Flat Type" },
+            { key: "area_sqft", label: "Area (sq.ft.)" },
+            { key: "bedrooms", label: "Bedrooms" },
+            { key: "parking_slot_id", label: "Parking Slot" },
+            { key: "owner_id", label: "Owner", render: (row) => row.owner_name || row.owner_id || "-" },
+            { key: "tenant_id", label: "Tenant", render: (row) => row.tenant_name || row.tenant_id || "-" },
+            { key: "occupancy_status", label: "Occupancy Status", status: true },
+            { key: "maintenance_status", label: "Maintenance Status", render: (row) => titleize(row.maintenance_status || "clear") },
+            { key: "status", label: "Status", status: true },
+          ]} />
+        </>
+      ) : null}
+
+      {active === "types" ? (
+        <section className="cdx-card cdx-residence-types">
+          <div className="cdx-card-head"><h2>Residence Categories</h2><span>Used by flat creation and bulk generator</span></div>
+          <div>{residenceTypes.map((type) => <article key={type}><Home size={18} /><strong>{type}</strong><span>{(structure.flats || []).filter((flat) => flat.flat_type === type).length} units</span></article>)}</div>
+        </section>
+      ) : null}
+
+      {active === "gates" ? (
+        <>
+          <button type="button" className="cdx-button cdx-button--primary cdx-section-action" onClick={() => setFormMode({ type: "gate" })}><Plus size={16} /> Add Gate</button>
+          <StructureTable rows={structure.gates || []} actions={tableActions.gate} columns={[
+            { key: "gate_name", label: "Gate Name" },
+            { key: "gate_number", label: "Gate Number" },
+            { key: "gate_type", label: "Gate Type", render: (row) => titleize(row.gate_type) },
+            { key: "security_assigned", label: "Security Assigned", render: (row) => row.security_assigned || "-" },
+            { key: "status", label: "Status", status: true },
+          ]} />
+        </>
+      ) : null}
+
+      {active === "parking" ? (
+        <>
+          <button type="button" className="cdx-button cdx-button--primary cdx-section-action" onClick={() => setFormMode({ type: "parking" })}><Plus size={16} /> Add Parking</button>
+          <StructureTable rows={parkingRows} actions={tableActions.parking} columns={[
+            { key: "slot_number", label: "Parking Number" },
+            { key: "block", label: "Tower" },
+            { key: "wing", label: "Wing" },
+            { key: "flat_number", label: "Flat" },
+            { key: "type", label: "Vehicle Type", render: (row) => titleize(row.type || row.vehicle_type) },
+            { key: "status", label: "Occupied", status: true },
+          ]} />
+        </>
+      ) : null}
+
+      {active === "generator" ? <BulkFlatGenerator structure={structure} onSaved={load} setNotice={setNotice} /> : null}
+
+      {active === "requests" ? (
+        <StructureTable rows={requestRows.filter((row) => !query || JSON.stringify(row).toLowerCase().includes(query.toLowerCase()))} actions={[
+          { label: "Approve", approve: true, onClick: (row) => reviewRequest(row, true) },
+          { label: "Reject", danger: true, onClick: (row) => reviewRequest(row, false) },
+          { label: "View Documents", onClick: (row) => setNotice(row.document_url ? `Document: ${row.document_url}` : "No document uploaded for this request.") },
+        ]} columns={[
+          { key: "resident_name", label: "Resident Name" },
+          { key: "resident_type", label: "Role", render: (row) => titleize(row.resident_type) },
+          { key: "tower_name", label: "Tower" },
+          { key: "wing_name", label: "Wing" },
+          { key: "floor_label", label: "Floor" },
+          { key: "flat_number", label: "Flat" },
+          { key: "house_number", label: "House Number", render: (row) => row.house_number || "-" },
+          { key: "created_at", label: "Submitted Date", render: (row) => dateLabel(row.created_at) },
+          { key: "approval_status", label: "Status", status: true },
+        ]} emptyTitle="No residence requests found" />
+      ) : null}
+
+      {active === "exports" ? (
+        <section className="cdx-card cdx-structure-export">
+          <div className="cdx-card-head"><h2>Import / Export</h2><span>Excel-ready master data</span></div>
+          <div className="cdx-quick-actions">
+            <button type="button" onClick={() => importRef.current?.click()}><Import size={18} /><span>Import Flats from Excel</span></button>
+            <button type="button" onClick={() => downloadCsv(structure.flats || [], "flats.csv")}><Download size={18} /><span>Export Flats</span></button>
+            <button type="button" onClick={() => downloadCsv(requestRows, "residents.csv")}><Download size={18} /><span>Export Residents</span></button>
+            <button type="button" onClick={() => downloadCsv(allExportRows, "society-structure.csv")}><Download size={18} /><span>Export Society Structure</span></button>
+          </div>
+        </section>
+      ) : null}
+    </main>
   );
 }
 
@@ -1854,6 +2898,8 @@ export default function ChairmanDashboard() {
         />
         {item.key === "dashboard"
           ? <DashboardHome />
+          : item.key === "society-structure"
+            ? <SocietyStructureModule item={item} />
           : ["staff-register", "security-register", "attendance", "performance"].includes(item.key)
             ? <StaffSecurityModule item={item} />
             : <ModulePage item={item} />}

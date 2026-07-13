@@ -5,6 +5,7 @@ const helmet = require("helmet");
 const hpp = require("hpp");
 const rateLimit = require("express-rate-limit");
 const db = require("./config/db");
+const { createRateLimiter } = require("./utils/rateLimiter");
 const authRoutes = require("./routes/authRoutes");
 const superAdminRoutes = require("./routes/superAdminRoutes");
 const userRoutes = require("./routes/userRoutes");
@@ -30,6 +31,10 @@ const aiRoutes = require("./routes/aiRoutes");
 const tenantRoutes = require("./routes/tenantRoutes");
 const wingRoutes = require("./routes/wingRoutes");
 const towerRoutes = require("./routes/towerRoutes");
+const floorRoutes = require("./routes/floorRoutes");
+const gateRoutes = require("./routes/gateRoutes");
+const residenceRoutes = require("./routes/residenceRoutes");
+const chairmanResidenceRoutes = require("./routes/chairmanResidenceRoutes");
 const publicWingRoutes = require("./routes/publicWingRoutes");
 const publicSocietyRoutes = require("./routes/publicSocietyRoutes");
 const builderRoutes = require("./routes/builderRoutes");
@@ -69,15 +74,10 @@ const apiLimiter = rateLimit({
   },
 });
 
-const authLimiter = rateLimit({
+const authLimiter = createRateLimiter({
   windowMs: Number(process.env.AUTH_RATE_LIMIT_WINDOW_MS || 15 * 60 * 1000),
   max: Number(process.env.AUTH_RATE_LIMIT_MAX || 20),
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: {
-    success: false,
-    message: "Too many authentication attempts, please try later",
-  },
+  message: "Too many attempts. Please wait a few minutes and try again.",
 });
 
 if (process.env.NODE_ENV === "production") {
@@ -108,7 +108,7 @@ app.use(express.urlencoded({ extended: true, limit: requestBodyLimit }));
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use("/api", apiLimiter);
 
-app.use("/api/auth", authLimiter, authRoutes);
+app.use("/api/auth", authRoutes);
 app.use("/api/super-admin", superAdminRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/approvals", userApprovalRoutes);
@@ -133,6 +133,9 @@ app.use("/api/ai", aiRoutes);
 app.use("/api/tenants", tenantRoutes);
 app.use("/api/wings", wingRoutes);
 app.use("/api/towers", towerRoutes);
+app.use("/api/floors", floorRoutes);
+app.use("/api/gates", gateRoutes);
+app.use("/api/resident", residenceRoutes);
 app.use("/api/public/wings", publicWingRoutes);
 app.use("/api/public", publicSocietyRoutes);
 app.use("/api/builders", builderRoutes);
@@ -142,6 +145,7 @@ app.use("/api/dashboards", dashboardRoutes);
 app.use("/api/dashboards", dashboardRoutes);
 app.use("/api/audit", auditRoutes);
 app.use("/api/chairman/approvals", chairmanApprovalRoutes);
+app.use("/api/chairman/residence-requests", chairmanResidenceRoutes);
 app.use("/api/chairman/settings", chairmanSettingsRoutes);
 
 // Health check routes

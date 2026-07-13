@@ -1032,6 +1032,104 @@
   color: var(--sa-danger);
 }
 
+.sa-structure-wizard {
+  display: grid;
+  gap: 16px;
+}
+
+.sa-structure-header,
+.sa-structure-panel,
+.sa-structure-card {
+  border: 1px solid var(--sa-border);
+  border-radius: 16px;
+  background: var(--sa-card);
+  padding: 16px;
+  box-shadow: var(--sa-shadow);
+}
+
+.sa-structure-stepper {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+
+.sa-structure-step {
+  border: 1px solid var(--sa-border);
+  border-radius: 12px;
+  background: transparent;
+  color: var(--sa-muted);
+  padding: 10px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.sa-structure-step.active {
+  border-color: var(--sa-primary);
+  background: color-mix(in srgb, var(--sa-primary) 10%, var(--sa-card));
+  color: var(--sa-text);
+}
+
+.sa-structure-step span {
+  display: inline-flex;
+  width: 24px;
+  height: 24px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  margin-right: 8px;
+  background: color-mix(in srgb, var(--sa-primary) 14%, transparent);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.sa-structure-panel-head,
+.sa-structure-card-head,
+.sa-structure-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.sa-structure-stack {
+  display: grid;
+  gap: 12px;
+}
+
+.sa-structure-subcard {
+  border: 1px dashed var(--sa-border);
+  border-radius: 12px;
+  padding: 12px;
+  margin-top: 10px;
+}
+
+.sa-structure-summary-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+}
+
+.sa-structure-summary-card {
+  border: 1px solid var(--sa-border);
+  border-radius: 12px;
+  padding: 12px;
+  background: color-mix(in srgb, var(--sa-card) 80%, transparent);
+}
+
+.sa-structure-summary-card span {
+  display: block;
+  color: var(--sa-muted);
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.sa-structure-summary-card strong {
+  display: block;
+  margin-top: 6px;
+  font-size: 22px;
+}
+
 .sa-modal-backdrop {
   position: fixed;
   inset: 0;

@@ -3,7 +3,6 @@ const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const userModel = require("../models/userModel");
 const db = require("../config/db");
-const flatModel = require("../models/flatModel");
 const societyModel = require("../models/societyModel");
 const UserApprovalModel = require("../models/userApprovalModel");
 const otpModel = require("../models/otpModel");
@@ -216,6 +215,27 @@ function buildUserPayload(user, society) {
     auth_provider: user.auth_provider || null,
     profile_photo: user.profile_photo || user.profile_photo_url || null,
   };
+}
+
+function getRoleRedirectUrl(role) {
+  const normalizedRole = normalizeRole(role);
+  switch (normalizedRole) {
+    case "super_admin":
+      return "/super-admin/dashboard";
+    case "chairman":
+    case "admin":
+      return "/admin/dashboard";
+    case "secretary":
+      return "/secretary/dashboard";
+    case "resident":
+      return "/resident";
+    case "staff":
+      return "/staff/dashboard";
+    case "security":
+      return "/security-dashboard";
+    default:
+      return "/access-denied";
+  }
 }
 
 async function fetchJson(url, options = {}) {
@@ -542,6 +562,9 @@ async function completeOAuthLoginForProfile(oauthProfile, societyCode) {
     ...authTokens,
     user: payload,
     data: payload,
+    role: payload.role,
+    society: userSociety,
+    redirectUrl: getRoleRedirectUrl(payload.role),
   };
 }
 
@@ -563,7 +586,7 @@ async function logout(req, res) {
 
 async function register(req, res) {
   try {
-    const { name, email, password, societyCode, role, wing, flatNumber, phone, address, idProofUrl } = req.body;
+    const { name, email, password, societyCode, role, phone, address, idProofUrl } = req.body;
 
     if (!name || !email || !password) {
       return res.status(400).json({
@@ -652,29 +675,7 @@ async function register(req, res) {
       }
     }
 
-    let residentType = null;
-    let normalizedFlatNumber = null;
-    let matchedFlat = null;
-
-    if (isResidentRole) {
-      residentType = requestedRole;
-      if (wing && flatNumber) {
-        normalizedFlatNumber = String(flatNumber).trim();
-        const normalizedWing = String(wing).trim().toUpperCase();
-        matchedFlat = await flatModel.getFlatByWingAndFlatNumber({
-          societyId: society.id,
-          wing: normalizedWing,
-          flatNumber: normalizedFlatNumber,
-        });
-
-        if (!matchedFlat) {
-          return res.status(400).json({
-            success: false,
-            message: "No flat found for the selected wing and flat number",
-          });
-        }
-      }
-    }
+    const residentType = isResidentRole ? requestedRole : null;
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const userRole = isResidentRole ? "resident" : normalizedRole;
@@ -688,8 +689,8 @@ async function register(req, res) {
       status: "pending_approval",
       isVerified: false,
       societyId: society.id,
-      flatId: matchedFlat?.id || null,
-      flatNumber: normalizedFlatNumber,
+      flatId: null,
+      flatNumber: null,
       phone: phone || null,
       address: address || null,
     });
@@ -716,7 +717,7 @@ async function register(req, res) {
     });
 
     if (residentType === "owner") {
-      await userModel.syncOwnerPropertyMapping(user.id, matchedFlat?.id || null);
+      await userModel.syncOwnerPropertyMapping(user.id, null);
     }
 
     let otpQueued = true;
@@ -1362,14 +1363,30 @@ async function login(req, res) {
 
 async function oauthLogin(req, res) {
   try {
-    const { provider, accessToken, token, societyCode } = req.body;
+    const routeProvider = req.path.includes("/social/microsoft")
+      ? "microsoft"
+      : req.path.includes("/social/google")
+        ? "google"
+        : "";
+    const { provider = routeProvider, accessToken, token, societyCode } = req.body;
+    const normalizedProvider = String(provider || "").trim().toLowerCase();
+    const providerStatus = getOAuthConfigStatus()[normalizedProvider];
+    if (!providerStatus?.socialEnabled) {
+      throw createOAuthConfigurationError(normalizedProvider, providerStatus?.socialMissing || [], providerStatus?.warnings || []);
+    }
     const oauthProfile = await verifyOAuthToken(provider, accessToken || token);
     const result = await completeOAuthLoginForProfile(oauthProfile, societyCode);
     return res.json(result);
   } catch (error) {
     console.error("[authController.oauthLogin]", error.message);
     const label = providerLabel(String(req.body?.provider || "").toLowerCase());
-    return res.status(error.statusCode || 500).json({ success: false, message: error.message || `${label} login failed.` });
+    return res.status(error.statusCode || 500).json({
+      success: false,
+      code: error.code || "OAUTH_LOGIN_FAILED",
+      missing: error.missing || [],
+      warnings: error.warnings || [],
+      message: error.message || `${label} login failed.`,
+    });
   }
 }
 

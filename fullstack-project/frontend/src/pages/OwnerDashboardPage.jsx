@@ -1,68 +1,26 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import {
-  Area,
-  AreaChart,
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Cell,
-  Pie,
-  PieChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
+import { useLocation, useNavigate } from "react-router-dom";
 import LanguageSelector from "../components/LanguageSelector";
 import PremiumNotificationButton from "../components/common/PremiumNotificationButton";
 import ThemeToggle from "../components/ThemeToggle";
 import { fetchMyBills } from "../services/billingApi";
-import { fetchBookings } from "../services/bookingsApi";
 import { fetchMyComplaints } from "../services/complaintApi";
 import { fetchMyDocuments } from "../services/documentApi";
-import { fetchMyFlats, fetchMyPropertySummary } from "../services/flatApi";
+import { fetchMyFlats } from "../services/flatApi";
 import { fetchNotices } from "../services/noticeApi";
-import { getParkingSlots } from "../services/parkingApi";
 import { fetchOwnerPreapprovals, fetchOwnerVisitorHistory } from "../services/visitorApi";
 import { clearAuthSession, getSelectedSociety, getStoredUser } from "../utils/session";
 import "./owner-dashboard.css";
 
 const INR = new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 });
-const DATE_TIME = new Intl.DateTimeFormat("en-IN", { dateStyle: "medium", timeStyle: "short" });
-const palette = ["#6d5dfc", "#149eca", "#10b981", "#f59e0b", "#f43f5e", "#64748b"];
+const DATE_OPTIONS = { weekday: "long", day: "numeric", month: "long", year: "numeric" };
 
-const ownerNav = [
-  ["dashboard", "Dashboard", "/resident"],
-  ["properties", "My Properties", "/resident/properties"],
-  ["tenants", "Tenant Management", "/resident/tenants"],
-  ["billing", "Billing & Payments", "/resident/billing"],
-  ["complaints", "Complaints", "/resident/complaints"],
-  ["visitors", "Visitors", "/resident/visitors"],
-  ["notices", "Notices", "/resident/notices"],
-  ["documents", "Documents", "/resident/documents"],
-  ["parking", "Parking & Vehicles", "/resident/parking"],
-  ["amenities", "Amenities Booking", "/resident/amenities"],
-  ["meetings", "Voting & Meetings", "/resident/meetings"],
-  ["income", "Rent & Income", "/resident/income"],
-  ["profile", "Profile", "/resident/profile"],
-];
-
-const moduleCopy = {
-  dashboard: ["Dashboard", "Owner workspace"],
-  properties: ["My Properties", "Portfolio, documents, parking and history"],
-  tenants: ["Tenant Management", "Verification, agreements, move-in and move-out"],
-  billing: ["Billing & Payments", "Bills, receipts, payment portal and due calendar"],
-  complaints: ["Complaints", "Tickets, timelines, staff assignment and feedback"],
-  visitors: ["Visitors", "QR passes, approvals, deliveries and security logs"],
-  notices: ["Notices", "Read status, attachments and society updates"],
-  documents: ["Documents", "Ownership vault, receipts, agreements and verification"],
-  parking: ["Parking & Vehicles", "Slots, vehicles, passes and parking history"],
-  amenities: ["Amenities Booking", "Calendar, approvals and payment status"],
-  meetings: ["Voting & Meetings", "Agenda, polls, minutes and voting history"],
-  income: ["Rent & Income", "Collections, dues, yield and agreement expiry"],
-  profile: ["Profile", "Personal details, KYC, security and preferences"],
-};
+function getTimeGreeting() {
+  const hour = new Date().getHours();
+  if (hour < 12) return "Good Morning";
+  if (hour < 17) return "Good Afternoon";
+  return "Good Evening";
+}
 
 function normalizeList(value) {
   if (Array.isArray(value)) return value;
@@ -80,11 +38,6 @@ function normalizeList(value) {
   return [];
 }
 
-function money(value) {
-  const amount = Number(value || 0);
-  return INR.format(Number.isFinite(amount) ? amount : 0);
-}
-
 function getAmount(item) {
   return Number(item?.amount ?? item?.total_amount ?? item?.due_amount ?? item?.maintenance_amount ?? item?.rent_amount ?? 0);
 }
@@ -94,93 +47,81 @@ function getStatus(item) {
 }
 
 function formatDate(value) {
-  if (!value) return "Not scheduled";
+  if (!value) return "";
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "Not scheduled";
+  if (Number.isNaN(date.getTime())) return "";
   return date.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
 }
 
-function currentPageFromPath(pathname) {
-  const tail = pathname.replace(/\/+$/, "").split("/").pop();
-  if (!tail || tail === "resident") return "dashboard";
-  if (tail === "flats") return "properties";
-  if (tail === "tenant") return "tenants";
-  if (tail === "settings") return "profile";
-  return moduleCopy[tail] ? tail : "dashboard";
+function formatTimeAgo(value) {
+  if (!value) return "";
+  const now = new Date();
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  const diff = now - date;
+  const minutes = Math.floor(diff / 60000);
+  if (minutes < 1) return "Just now";
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days}d ago`;
+  return formatDate(value);
 }
 
-function countBy(items, predicate) {
-  return items.filter(predicate).length;
+const NAV_ITEMS = [
+  { icon: "🏠", label: "Dashboard", path: "/resident/dashboard", id: "dashboard" },
+  { icon: "🏢", label: "My Home", path: "/resident/home", id: "home" },
+  { icon: "🚶", label: "Visitors", path: "/resident/visitors", id: "visitors" },
+  { icon: "💳", label: "Payments", path: "/resident/payments", id: "payments" },
+  { icon: "📝", label: "Complaints", path: "/resident/complaints", id: "complaints" },
+  { icon: "📄", label: "Documents", path: "/resident/documents", id: "documents" },
+  { icon: "👥", label: "Community", path: "/resident/community", id: "community" },
+  { icon: "⚙️", label: "Settings", path: "/resident/settings", id: "settings" },
+];
+
+function getSectionFromPath(pathname) {
+  const path = pathname.replace(/^\/resident\/?/, "").split("/")[0] || "dashboard";
+  switch (path) {
+    case "home":
+    case "visitors":
+    case "payments":
+    case "complaints":
+    case "documents":
+    case "community":
+    case "settings":
+      return path;
+    default:
+      return "dashboard";
+  }
 }
 
-function SkeletonBlock({ compact = false }) {
-  return (
-    <div className={`od-skeleton ${compact ? "od-skeleton--compact" : ""}`}>
-      <span />
-      <span />
-      <span />
-    </div>
-  );
-}
+const MOCK_EVENTS = [
+  { id: 1, title: "Society Meeting", date: "2026-07-15", time: "11:00 AM", location: "Clubhouse", type: "meeting" },
+  { id: 2, title: "Festival Celebration", date: "2026-07-20", time: "6:00 PM", location: "Main Lawn", type: "festival" },
+  { id: 3, title: "Maintenance Shutdown", date: "2026-07-12", time: "9:00 AM", location: "Water Supply", type: "maintenance" },
+];
 
-function EmptyState({ title, text }) {
-  return (
-    <div className="od-empty">
-      <span>NX</span>
-      <strong>{title}</strong>
-      <p>{text}</p>
-    </div>
-  );
-}
-
-function Panel({ title, kicker, action, children, className = "" }) {
-  return (
-    <section className={`od-panel ${className}`}>
-      <div className="od-panel__head">
-        <div>
-          <span>{kicker}</span>
-          <h2>{title}</h2>
-        </div>
-        {action ? <button type="button">{action}</button> : null}
-      </div>
-      {children}
-    </section>
-  );
-}
-
-function StatCard({ label, value, helper, tone = "blue" }) {
-  return (
-    <article className={`od-stat od-stat--${tone}`}>
-      <div>
-        <span>{label}</span>
-        <strong>{value}</strong>
-      </div>
-      <p>{helper}</p>
-    </article>
-  );
-}
-
-function MiniBars({ data }) {
-  if (!data.length) return <EmptyState title="No chart data" text="Charts appear after backend records are available." />;
-  return (
-    <div className="od-mini-bars">
-      {data.map((item) => (
-        <span key={item.name} style={{ height: `${Math.max(10, item.value)}%` }} title={`${item.name}: ${item.value}`} />
-      ))}
-    </div>
-  );
-}
+const MOCK_ACTIVITIES = [
+  { id: 1, type: "payment", title: "Maintenance Paid", description: "June 2026 maintenance paid via online", time: "2026-07-09T10:30:00", status: "completed" },
+  { id: 2, type: "visitor", title: "Visitor Approved", description: "Guest pass approved for Sharma family", time: "2026-07-09T08:15:00", status: "approved" },
+  { id: 3, type: "complaint", title: "Complaint Submitted", description: "Plumbing issue in kitchen", time: "2026-07-08T16:45:00", status: "open" },
+  { id: 4, type: "document", title: "Document Uploaded", description: "Property tax receipt 2025-26", time: "2026-07-07T14:20:00", status: "verified" },
+  { id: 5, type: "amenity", title: "Amenity Booked", description: "Clubhouse booked for July 15th", time: "2026-07-06T11:00:00", status: "confirmed" },
+];
 
 function OwnerDashboardPage() {
-  const location = useLocation();
   const navigate = useNavigate();
-  const page = currentPageFromPath(location.pathname);
+  const location = useLocation();
   const user = useMemo(() => getStoredUser(), []);
-  const [collapsed, setCollapsed] = useState(false);
   const [now, setNow] = useState(() => new Date());
+  const [activePage, setActivePage] = useState(() => getSectionFromPath(location.pathname));
   const [readNoticeIds, setReadNoticeIds] = useState([]);
+  const [searchValue, setSearchValue] = useState("");
+  const [themeMode, setThemeMode] = useState(() => document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light");
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const [calendarOpen, setCalendarOpen] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
   const [records, setRecords] = useState({
     properties: [],
     bills: [],
@@ -189,17 +130,26 @@ function OwnerDashboardPage() {
     preapprovals: [],
     notices: [],
     documents: [],
-    parking: [],
-    bookings: [],
-    summary: null,
-    profile: null,
   });
 
   const society = getSelectedSociety();
   const ownerId = user?.id || user?.userId;
   const societyId = user?.societyId || user?.society_id || society?.id;
-  const societyName = user?.societyName || user?.society_name || society?.name || "Nexora Society";
-  const societyCode = user?.societyCode || user?.society_code || localStorage.getItem("societyCode") || "Linked";
+  const societyName = user?.societyName || user?.society_name || society?.name || "Shree Residency";
+  const societyCode = user?.societyCode || user?.society_code || localStorage.getItem("societyCode") || "NX001";
+  const ownerName = user?.name || user?.userName || "Owner";
+  const ownerEmail = user?.email || "owner@example.com";
+
+  // Primary flat (first property)
+  const primaryFlat = useMemo(() => {
+    if (!records.properties.length) return null;
+    return records.properties[0];
+  }, [records.properties]);
+
+  // Compute family members count from primary flat
+  const familyCount = useMemo(() => {
+    return primaryFlat?.family_members_count || primaryFlat?.family_count || 0;
+  }, [primaryFlat]);
 
   useEffect(() => {
     const timer = window.setInterval(() => setNow(new Date()), 30000);
@@ -207,96 +157,115 @@ function OwnerDashboardPage() {
   }, []);
 
   useEffect(() => {
+    setActivePage(getSectionFromPath(location.pathname));
+  }, [location.pathname]);
+
+  useEffect(() => {
+    const updateThemeMode = () => {
+      const nextTheme = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+      setThemeMode(nextTheme);
+    };
+
+    updateThemeMode();
+    const observer = new MutationObserver(updateThemeMode);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
     let cancelled = false;
     async function loadOwnerData() {
       setLoading(true);
-      setError("");
       const params = { owner_id: ownerId, society_id: societyId };
       const requests = {
         properties: fetchMyFlats(),
-        summary: fetchMyPropertySummary(),
         bills: fetchMyBills(params),
         complaints: fetchMyComplaints(params),
         visitors: fetchOwnerVisitorHistory(),
         preapprovals: fetchOwnerPreapprovals(params),
         notices: fetchNotices(),
         documents: fetchMyDocuments(params),
-        parking: getParkingSlots(params),
-        bookings: fetchBookings(params),
-        profile: Promise.resolve({ user }),
       };
 
-      const entries = await Promise.allSettled(Object.entries(requests).map(async ([key, promise]) => [key, await promise]));
+      const results = await Promise.allSettled(
+        Object.entries(requests).map(async ([key, promise]) => [key, await promise])
+      );
       if (cancelled) return;
 
       const next = {};
-      const failures = [];
-      entries.forEach((entry) => {
+      results.forEach((entry) => {
         if (entry.status === "fulfilled") {
           const [key, value] = entry.value;
-          next[key] = key === "summary" || key === "profile" ? value : normalizeList(value);
-        } else {
-          failures.push(entry.reason?.response?.data?.message || entry.reason?.message || "Request failed");
+          next[key] = normalizeList(value);
         }
       });
 
-      if (failures.length) {
-        console.warn("[OwnerDashboard] Optional owner modules could not be loaded.", failures);
-      }
-
       setRecords((prev) => ({ ...prev, ...next }));
-      setError("");
       setLoading(false);
     }
 
     loadOwnerData();
-    return () => {
-      cancelled = true;
-    };
-  }, [ownerId, societyId, user]);
+    return () => { cancelled = true; };
+  }, [ownerId, societyId]);
 
-  const stats = useMemo(() => {
-    const occupied = countBy(records.properties, (item) => getStatus(item).includes("occupied") || item?.tenant_id || item?.tenant_name);
-    const vacant = countBy(records.properties, (item) => getStatus(item).includes("vacant"));
-    const pendingBills = records.bills.filter((bill) => !["paid", "success", "completed"].includes(getStatus(bill)));
-    const monthlyExpenses = pendingBills.reduce((sum, bill) => sum + getAmount(bill), 0);
-    const paidBills = records.bills.filter((bill) => ["paid", "success", "completed"].includes(getStatus(bill)));
-    const activeComplaints = records.complaints.filter((item) => !["closed", "resolved"].includes(getStatus(item)));
-    const activeTenants = countBy(records.properties, (item) => item?.tenant_id || item?.tenant_name || getStatus(item).includes("tenant"));
-    const rentRecords = records.properties.filter((item) => Number(item?.rent_amount || item?.monthly_rent));
-    const rentTotal = rentRecords.reduce((sum, item) => sum + Number(item?.rent_amount || item?.monthly_rent || 0), 0);
+  // Compute KPIs
+  const pendingDues = useMemo(() => {
+    return records.bills.filter((bill) => !["paid", "success", "completed"].includes(getStatus(bill)));
+  }, [records.bills]);
 
-    return {
-      occupied,
-      vacant,
-      activeTenants,
-      pendingBills,
-      paidBills,
-      monthlyExpenses,
-      activeComplaints,
-      rentTotal,
-      propertyCount: records.properties.length || Number(records.summary?.total_properties || 0),
-      documentCount: records.documents.length,
-      visitorCount: records.visitors.length + records.preapprovals.length,
-    };
-  }, [records]);
+  const pendingDuesAmount = useMemo(() => {
+    return pendingDues.reduce((sum, bill) => sum + getAmount(bill), 0);
+  }, [pendingDues]);
 
-  const trendData = useMemo(() => {
-    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun"];
-    const source = records.bills.length ? records.bills : [];
-    return months.map((month, index) => {
-      const amount = source
-        .filter((bill) => {
-          const date = new Date(bill?.due_date || bill?.created_at || bill?.paid_at || "");
-          return !Number.isNaN(date.getTime()) && date.getMonth() === index;
-        })
-        .reduce((sum, bill) => sum + getAmount(bill), 0);
-      return { month, expenses: amount, income: Math.max(0, stats.rentTotal) };
-    }).filter((item) => item.expenses || item.income);
-  }, [records.bills, stats.rentTotal]);
+  const visitorsToday = useMemo(() => {
+    const today = new Date().toDateString();
+    return [...records.visitors, ...records.preapprovals].filter((v) => {
+      const d = v?.created_at || v?.date || v?.visit_date;
+      return d && new Date(d).toDateString() === today;
+    }).length;
+  }, [records.visitors, records.preapprovals]);
 
-  const pageTitle = moduleCopy[page][0];
-  const pageSubtitle = moduleCopy[page][1];
+  const openComplaints = useMemo(() => {
+    return records.complaints.filter((item) => !["closed", "resolved"].includes(getStatus(item))).length;
+  }, [records.complaints]);
+
+  const upcomingEventsCount = MOCK_EVENTS.length;
+
+  const pendingDuesTrend = pendingDues.length > 2 ? "+12%" : pendingDues.length > 0 ? "+5%" : "0%";
+  const visitorsTrend = visitorsToday > 5 ? "+20%" : visitorsToday > 0 ? "+8%" : "0";
+  const complaintsTrend = openComplaints > 3 ? "+15%" : openComplaints > 0 ? "+3%" : "0";
+  const eventsTrend = "+2 new";
+
+  // Notices
+  const noticeList = useMemo(() => {
+    return records.notices.slice(0, 3).map((notice, i) => ({
+      id: notice.id || i,
+      title: notice.title || notice.category || "Society Notice",
+      date: notice.created_at || notice.date || "",
+      priority: notice.priority || notice.status || "normal",
+      message: notice.message || notice.description || "",
+    }));
+  }, [records.notices]);
+
+  const filteredNotices = useMemo(() => {
+    const query = searchValue.trim().toLowerCase();
+    if (!query) return noticeList;
+    return noticeList.filter((notice) => [notice.title, notice.message, notice.priority].some((value) => String(value).toLowerCase().includes(query)));
+  }, [noticeList, searchValue]);
+
+  const filteredActivities = useMemo(() => {
+    const query = searchValue.trim().toLowerCase();
+    if (!query) return MOCK_ACTIVITIES;
+    return MOCK_ACTIVITIES.filter((activity) => [activity.title, activity.description, activity.status].some((value) => String(value).toLowerCase().includes(query)));
+  }, [searchValue]);
+
+  const filteredEvents = useMemo(() => {
+    const query = searchValue.trim().toLowerCase();
+    if (!query) return MOCK_EVENTS;
+    return MOCK_EVENTS.filter((event) => [event.title, event.location, event.type].some((value) => String(value).toLowerCase().includes(query)));
+  }, [searchValue]);
+
+  // Notifications for bell
   const noticeNotifications = records.notices.slice(0, 8).map((notice, index) => {
     const id = notice.id || notice.notice_id || `${notice.title || "notice"}-${notice.created_at || index}`;
     return {
@@ -311,445 +280,651 @@ function OwnerDashboardPage() {
   });
   const unreadNoticeCount = noticeNotifications.filter((item) => item.unread).length;
 
+  // Today's date formatted
+  const todayFormatted = now.toLocaleDateString("en-IN", DATE_OPTIONS);
+
   function logout() {
     clearAuthSession();
     navigate("/login", { replace: true });
   }
 
-  return (
-    <div className="owner-dashboard" data-sidebar={collapsed ? "collapsed" : "expanded"}>
-      <aside className="od-sidebar">
-        <div className="od-brand">
-          <Link to="/resident" aria-label="Nexora owner dashboard">
-            <span>NX</span>
-            <strong>Nexora</strong>
-          </Link>
-          <button type="button" onClick={() => setCollapsed((value) => !value)} aria-label="Toggle sidebar">
-            {collapsed ? ">" : "<"}
-          </button>
-        </div>
-        <nav className="od-nav" aria-label="Owner dashboard navigation">
-          {ownerNav.map(([id, label, href]) => (
-            <Link key={id} to={href} className={id === page ? "is-active" : ""}>
-              <span>{label.slice(0, 2).toUpperCase()}</span>
-              <b>{label}</b>
-            </Link>
-          ))}
-        </nav>
-        <div className="od-society-card">
-          <span className="od-online">Online</span>
-          <strong>{societyName}</strong>
-          <p>Code {societyCode}</p>
-          <dl>
-            <div><dt>Owner</dt><dd>{user?.name || user?.userName || "Owner"}</dd></div>
-            <div><dt>Flats</dt><dd>{stats.propertyCount}</dd></div>
-          </dl>
-        </div>
-      </aside>
+  function navigateTo(path) {
+    navigate(path);
+  }
 
-      <div className="od-shell">
-        <header className="od-topbar">
-          <div>
-            <p>Resident / Owner / {pageTitle}</p>
-            <h1>{pageTitle}</h1>
-          </div>
-          <div className="od-topbar__actions">
-            <span className="od-clock">{DATE_TIME.format(now)}</span>
-            <PremiumNotificationButton
-              notifications={noticeNotifications}
-              unreadCount={unreadNoticeCount}
-              onMarkAllRead={() => setReadNoticeIds((current) => Array.from(new Set([...current, ...noticeNotifications.map((item) => item.id)])))}
-              onMarkRead={(id) => setReadNoticeIds((current) => current.includes(id) ? current : [...current, id])}
-            />
-            <button type="button" className="od-ai-button">Nexora AI</button>
-            <ThemeToggle />
-            <LanguageSelector supportedCodes={["en", "hi", "gu"]} />
-            <div className="od-profile">
-              <button type="button">{(user?.name || "Owner").slice(0, 1).toUpperCase()}</button>
-              <div>
-                <strong>{user?.name || user?.userName || "Owner"}</strong>
-                <span>{user?.email || "Verified owner"}</span>
-                <button type="button" onClick={logout}>Logout</button>
-              </div>
-            </div>
-          </div>
-        </header>
+  function handleNavSelect(section) {
+    setActivePage(section);
+    navigateTo(getPathForSection(section));
+  }
 
-        <main className="od-content">
-          {error ? <div className="od-alert">{error}</div> : null}
-          {page === "dashboard" ? (
-            <DashboardOverview loading={loading} records={records} stats={stats} trendData={trendData} ownerName={user?.name || "Owner"} />
-          ) : (
-            <ModulePage page={page} title={pageTitle} subtitle={pageSubtitle} loading={loading} records={records} stats={stats} trendData={trendData} />
-          )}
-        </main>
-      </div>
-    </div>
-  );
-}
+  function getPathForSection(section) {
+    switch (section) {
+      case "home": return "/resident/home";
+      case "visitors": return "/resident/visitors";
+      case "payments": return "/resident/payments";
+      case "complaints": return "/resident/complaints";
+      case "documents": return "/resident/documents";
+      case "community": return "/resident/community";
+      case "settings": return "/resident/settings";
+      default: return "/resident/dashboard";
+    }
+  }
 
-function DashboardOverview({ loading, records, stats, trendData, ownerName }) {
-  if (loading) {
+  // Render content based on active page
+  function renderContent() {
+    switch (activePage) {
+      case "dashboard": return <DashboardView />;
+      case "home": return <MyHomeView />;
+      default: return <DashboardView />;
+    }
+  }
+
+  // ─── DASHBOARD VIEW ──────────────────────────────────────────
+  function DashboardView() {
     return (
-      <div className="od-grid">
-        {Array.from({ length: 10 }).map((_, index) => <SkeletonBlock key={index} />)}
+      <div className="od2-content">
+        {loading ? (
+          <div className="od2-loading">
+            <div className="od2-loading-spinner" />
+            <span>Loading your dashboard...</span>
+          </div>
+        ) : (
+          <>
+            {/* SECTION 1: Welcome Hero */}
+            <section className="od2-hero">
+              <div className="od2-hero-bg" />
+              <div className="od2-hero-content">
+                <div className="od2-hero-left">
+                  <div className="od2-hero-avatar">
+                    <span>{(ownerName || "O").charAt(0).toUpperCase()}</span>
+                  </div>
+                  <div className="od2-hero-text">
+                    <h1>{getTimeGreeting()}, {ownerName.split(" ")[0]} 👋</h1>
+                    <div className="od2-hero-address">
+                      <span className="od2-hero-flat">{primaryFlat?.flat_number || "A-101"}</span>
+                      <span className="od2-hero-divider">•</span>
+                      <span>{primaryFlat?.tower_name || "Tower A"}</span>
+                      <span className="od2-hero-divider">•</span>
+                      <span>{societyName}</span>
+                    </div>
+                    <div className="od2-hero-meta">
+                      <span className="od2-hero-date">📅 {todayFormatted}</span>
+                      <span className="od2-hero-weather">🌤️ 32°C, Ahmedabad</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="od2-hero-right">
+                  <div className="od2-hero-society-logo">
+                    <img src={themeMode === "dark" ? "/nexora-logo-dark.png" : "/nexora-logo-light.png"} alt="Nexora" />
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* SECTION 2: KPI Cards */}
+            <section className="od2-kpis">
+              <div className="od2-kpi-card od2-kpi--due">
+                <div className="od2-kpi-icon">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M12 2v20"/><path d="M2 10h20"/></svg>
+                </div>
+                <div className="od2-kpi-info">
+                  <span className="od2-kpi-label">Pending Dues</span>
+                  <strong className="od2-kpi-value">{INR.format(pendingDuesAmount)}</strong>
+                  <span className="od2-kpi-trend od2-trend--up">{pendingDuesTrend}</span>
+                </div>
+              </div>
+              <div className="od2-kpi-card od2-kpi--visitors">
+                <div className="od2-kpi-icon">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                </div>
+                <div className="od2-kpi-info">
+                  <span className="od2-kpi-label">Visitors Today</span>
+                  <strong className="od2-kpi-value">{visitorsToday}</strong>
+                  <span className="od2-kpi-trend od2-trend--up">{visitorsTrend}</span>
+                </div>
+              </div>
+              <div className="od2-kpi-card od2-kpi--complaints">
+                <div className="od2-kpi-icon">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                </div>
+                <div className="od2-kpi-info">
+                  <span className="od2-kpi-label">Open Complaints</span>
+                  <strong className="od2-kpi-value">{openComplaints}</strong>
+                  <span className="od2-kpi-trend od2-trend--down">{complaintsTrend}</span>
+                </div>
+              </div>
+              <div className="od2-kpi-card od2-kpi--events">
+                <div className="od2-kpi-icon">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                </div>
+                <div className="od2-kpi-info">
+                  <span className="od2-kpi-label">Upcoming Events</span>
+                  <strong className="od2-kpi-value">{upcomingEventsCount}</strong>
+                  <span className="od2-kpi-trend od2-trend--up">{eventsTrend}</span>
+                </div>
+              </div>
+            </section>
+
+            {/* SECTION 3: Quick Actions */}
+            <section className="od2-actions">
+              <h2 className="od2-section-title">Quick Actions</h2>
+              <div className="od2-actions-grid">
+                <button className="od2-action-btn od2-action--pay" onClick={() => navigateTo("/resident/payments")}>
+                  <span className="od2-action-icon">💳</span>
+                  <span className="od2-action-label">Pay Maintenance</span>
+                </button>
+                <button className="od2-action-btn od2-action--visitor" onClick={() => navigateTo("/resident/visitors")}>
+                  <span className="od2-action-icon">🚶</span>
+                  <span className="od2-action-label">Add Visitor</span>
+                </button>
+                <button className="od2-action-btn od2-action--complaint" onClick={() => navigateTo("/resident/complaints")}>
+                  <span className="od2-action-icon">📝</span>
+                  <span className="od2-action-label">Raise Complaint</span>
+                </button>
+                <button className="od2-action-btn od2-action--amenity" onClick={() => navigateTo("/resident/community")}>
+                  <span className="od2-action-icon">🏊</span>
+                  <span className="od2-action-label">Book Amenity</span>
+                </button>
+                <button className="od2-action-btn od2-action--receipt" onClick={() => navigateTo("/resident/payments")}>
+                  <span className="od2-action-icon">🧾</span>
+                  <span className="od2-action-label">Download Receipt</span>
+                </button>
+                <button className="od2-action-btn od2-action--office" onClick={() => navigateTo("/resident/settings")}>
+                  <span className="od2-action-icon">📞</span>
+                  <span className="od2-action-label">Contact Office</span>
+                </button>
+              </div>
+            </section>
+
+            {/* SECTION 4 + 5 + 6 + 7: Bottom Grid */}
+            <div className="od2-bottom-grid">
+              {/* SECTION 4: My Home Card */}
+              <section className="od2-panel od2-home-card">
+                <h2 className="od2-panel-title">
+                  <span>🏢</span> My Home
+                </h2>
+                <div className="od2-home-details">
+                  <div className="od2-home-visual">
+                    <div className="od2-home-icon">🏠</div>
+                    <span className="od2-home-flat">{primaryFlat?.flat_number || "A-101"}</span>
+                  </div>
+                  <div className="od2-home-info-grid">
+                    <div className="od2-home-info-item">
+                      <span className="od2-home-info-label">Flat Number</span>
+                      <span className="od2-home-info-value">{primaryFlat?.flat_number || "A-101"}</span>
+                    </div>
+                    <div className="od2-home-info-item">
+                      <span className="od2-home-info-label">Tower</span>
+                      <span className="od2-home-info-value">{primaryFlat?.tower_name || "Tower A"}</span>
+                    </div>
+                    <div className="od2-home-info-item">
+                      <span className="od2-home-info-label">Wing</span>
+                      <span className="od2-home-info-value">{primaryFlat?.wing || primaryFlat?.block || "A"}</span>
+                    </div>
+                    <div className="od2-home-info-item">
+                      <span className="od2-home-info-label">Resident Type</span>
+                      <span className="od2-home-info-value od2-badge-owner">Owner</span>
+                    </div>
+                    <div className="od2-home-info-item">
+                      <span className="od2-home-info-label">Family Members</span>
+                      <span className="od2-home-info-value">{familyCount || user?.family_count || 4}</span>
+                    </div>
+                    <div className="od2-home-info-item">
+                      <span className="od2-home-info-label">Parking Slot</span>
+                      <span className="od2-home-info-value">{primaryFlat?.parking_slot || primaryFlat?.parking || "P-12"}</span>
+                    </div>
+                  </div>
+                  <button className="od2-home-btn" onClick={() => navigateTo("/resident/home")}>
+                    View Property →
+                  </button>
+                </div>
+              </section>
+
+              {/* SECTION 5: Recent Notices */}
+              <section className="od2-panel od2-notices-panel">
+                <div className="od2-panel-header">
+                  <h2 className="od2-panel-title">
+                    <span>📢</span> Recent Notices
+                  </h2>
+                  <button className="od2-panel-btn" onClick={() => navigateTo("/resident/documents")}>View All →</button>
+                </div>
+                <div className="od2-notices-list">
+                  {filteredNotices.length > 0 ? filteredNotices.map((notice) => (
+                    <div key={notice.id} className="od2-notice-item">
+                      <div className="od2-notice-content">
+                        <strong className="od2-notice-title">{notice.title}</strong>
+                        <span className="od2-notice-date">{formatDate(notice.date)}</span>
+                      </div>
+                      <span className={`od2-notice-badge od2-badge--${notice.priority === "high" || notice.priority === "urgent" ? "high" : notice.priority === "medium" ? "medium" : "low"}`}>
+                        {notice.priority === "high" || notice.priority === "urgent" ? "High" : notice.priority === "medium" ? "Medium" : "Normal"}
+                      </span>
+                    </div>
+                  )) : (
+                    <div className="od2-empty-state">
+                      <span>📬</span>
+                      <p>No notices yet</p>
+                    </div>
+                  )}
+                </div>
+              </section>
+
+              {/* SECTION 6: Recent Activities */}
+              <section className="od2-panel od2-activities-panel">
+                <h2 className="od2-panel-title">
+                  <span>🔄</span> Recent Activities
+                </h2>
+                <div className="od2-timeline">
+                  {filteredActivities.map((activity) => (
+                    <div key={activity.id} className={`od2-timeline-item od2-tl--${activity.type}`}>
+                      <div className="od2-timeline-dot" />
+                      <div className="od2-timeline-content">
+                        <div className="od2-timeline-header">
+                          <strong>{activity.title}</strong>
+                          <span className="od2-timeline-status">{activity.status}</span>
+                        </div>
+                        <p>{activity.description}</p>
+                        <span className="od2-timeline-time">{formatTimeAgo(activity.time)}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+
+              {/* SECTION 7: Upcoming Events */}
+              <section className="od2-panel od2-events-panel">
+                <div className="od2-panel-header">
+                  <h2 className="od2-panel-title">
+                    <span>🗓️</span> Upcoming Events
+                  </h2>
+                  <button className="od2-panel-btn" onClick={() => navigateTo("/resident/community")}>View Calendar →</button>
+                </div>
+                <div className="od2-events-list">
+                  {filteredEvents.map((event) => (
+                    <div key={event.id} className="od2-event-item">
+                      <div className={`od2-event-type-icon od2-ev--${event.type}`}>
+                        {event.type === "meeting" ? "📋" : event.type === "festival" ? "🎉" : "🔧"}
+                      </div>
+                      <div className="od2-event-content">
+                        <strong className="od2-event-title">{event.title}</strong>
+                        <span className="od2-event-details">{formatDate(event.date)} at {event.time}</span>
+                        <span className="od2-event-location">{event.location}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            </div>
+          </>
+        )}
       </div>
     );
   }
 
-  const kpis = [
-    ["My Properties", stats.propertyCount, "Owner mapped flats", "blue"],
-    ["Occupied Flats", stats.occupied, "Owner or tenant occupied", "green"],
-    ["Vacant Flats", stats.vacant, "Ready for move-in", "slate"],
-    ["Active Tenants", stats.activeTenants, "Verified rental profiles", "purple"],
-    ["Pending Bills", stats.pendingBills.length, `${money(stats.pendingBills.reduce((sum, bill) => sum + getAmount(bill), 0))} due`, "amber"],
-    ["Monthly Expenses", money(stats.monthlyExpenses), "Open maintenance and society dues", "rose"],
-  ];
-
-  return (
-    <>
-      <section className="od-hero">
-        <div>
-          <span>Owner command center</span>
-          <h2>Good evening, {ownerName}. Your portfolio is in one clean operating view.</h2>
-          <p>Property, tenants, billing, visitors, documents, notices, complaints, and AI summaries are scoped to your account and linked society.</p>
+  // ─── MY HOME VIEW ──────────────────────────────────────────
+  function MyHomeView() {
+    return (
+      <div className="od2-content">
+        <section className="od2-page-hero">
+          <h1>🏢 My Home</h1>
+          <p>Property details, family, tenants, vehicles & parking</p>
+        </section>
+        <div className="od2-bottom-grid">
+          <section className="od2-panel od2-panel--full">
+            <h2 className="od2-panel-title"><span>👨‍👩‍👧‍👦</span> Family Members</h2>
+            <div className="od2-module-placeholder">
+              <div className="od2-empty-state">
+                <span>👨‍👩‍👧‍👦</span>
+                <p>Family member management coming here</p>
+              </div>
+            </div>
+          </section>
+          <section className="od2-panel od2-panel--full">
+            <h2 className="od2-panel-title"><span>👤</span> Tenant Details</h2>
+            <div className="od2-module-placeholder">
+              <div className="od2-empty-state">
+                <span>👤</span>
+                <p>Tenant information and agreements</p>
+              </div>
+            </div>
+          </section>
+          <section className="od2-panel od2-panel--full">
+            <h2 className="od2-panel-title"><span>🚗</span> Vehicles & Parking</h2>
+            <div className="od2-module-placeholder">
+              <div className="od2-empty-state">
+                <span>🚗</span>
+                <p>Vehicle registration and parking slot details</p>
+              </div>
+            </div>
+          </section>
+          <section className="od2-panel od2-panel--full">
+            <h2 className="od2-panel-title"><span>📄</span> Property Documents</h2>
+            <div className="od2-module-placeholder">
+              <div className="od2-empty-state">
+                <span>📄</span>
+                <p>Property ownership documents and certificates</p>
+              </div>
+            </div>
+          </section>
         </div>
-        <div className="od-hero__summary">
-          <strong>{stats.propertyCount}</strong>
-          <span>properties monitored</span>
-          <p>{stats.activeComplaints.length} active complaints, {stats.pendingBills.length} pending bills</p>
+      </div>
+    );
+  }
+
+  // ─── VISITORS VIEW ──────────────────────────────────────────
+  function VisitorsView() {
+    return (
+      <div className="od2-content">
+        <section className="od2-page-hero">
+          <h1>🚶 Visitors</h1>
+          <p>Guest approvals, visit logs and entry coordination</p>
+        </section>
+        <div className="od2-module-grid">
+          <section className="od2-panel od2-module-card">
+            <h2 className="od2-panel-title"><span>🪪</span> Visitor Summary</h2>
+            <div className="od2-module-stats">
+              <div className="od2-stat-pill"><strong>4</strong><span>Expected today</span></div>
+              <div className="od2-stat-pill"><strong>2</strong><span>Approved</span></div>
+              <div className="od2-stat-pill"><strong>1</strong><span>Pending review</span></div>
+            </div>
+          </section>
+          <section className="od2-panel od2-module-card">
+            <h2 className="od2-panel-title"><span>📋</span> Recent Visitors</h2>
+            <div className="od2-stack-list">
+              <div className="od2-stack-item">
+                <strong>Sharma Family</strong>
+                <span>Arriving at 6:30 PM</span>
+              </div>
+              <div className="od2-stack-item">
+                <strong>Delivery Team</strong>
+                <span>Package drop-off</span>
+              </div>
+            </div>
+          </section>
         </div>
-      </section>
+      </div>
+    );
+  }
 
-      <section className="od-kpis">
-        {kpis.map(([label, value, helper, tone]) => <StatCard key={label} label={label} value={value} helper={helper} tone={tone} />)}
-      </section>
-
-      <section className="od-grid od-grid--two">
-        <Panel title="Property Portfolio Summary" kicker="Portfolio">
-          <PropertyList records={records.properties} />
-        </Panel>
-        <Panel title="Payment Overview" kicker="Finance">
-          <PaymentOverview bills={records.bills} stats={stats} />
-        </Panel>
-        <Panel title="Complaint Status" kicker="Service">
-          <StatusList items={records.complaints} empty="No complaints raised for your properties." />
-        </Panel>
-        <Panel title="Visitor Activity" kicker="Security">
-          <StatusList items={[...records.preapprovals, ...records.visitors]} empty="No visitor activity recorded yet." />
-        </Panel>
-      </section>
-
-      <section className="od-grid od-grid--three">
-        <Panel title="Maintenance Timeline" kicker="Timeline">
-          <Timeline records={[...records.complaints, ...records.bills, ...records.documents]} />
-        </Panel>
-        <Panel title="Upcoming Payments" kicker="Due calendar">
-          <DueList bills={stats.pendingBills} />
-        </Panel>
-        <Panel title="Society Notices" kicker="Announcements">
-          <StatusList items={records.notices.slice(0, 5)} empty="No unread society notices." />
-        </Panel>
-      </section>
-
-      <section className="od-grid od-grid--two">
-        <ChartPanel title="Property Analytics" type="pie" data={[
-          { name: "Occupied", value: stats.occupied },
-          { name: "Vacant", value: stats.vacant },
-          { name: "Tenant", value: stats.activeTenants },
-        ]} />
-        <ChartPanel title="Expense Trend" type="area" data={trendData} />
-        <ChartPanel title="Rental Income" type="bar" data={trendData} />
-        <Panel title="AI Executive Summary" kicker="Nexora AI" className="od-ai-panel">
-          <AiInsights stats={stats} />
-        </Panel>
-      </section>
-    </>
-  );
-}
-
-function ModulePage({ page, title, subtitle, loading, records, stats, trendData }) {
-  if (loading) return <SkeletonBlock />;
-  const modules = {
-    properties: <PropertiesModule records={records} stats={stats} />,
-    tenants: <TenantsModule properties={records.properties} />,
-    billing: <BillingModule bills={records.bills} stats={stats} />,
-    complaints: <ComplaintsModule complaints={records.complaints} />,
-    visitors: <VisitorsModule visitors={records.visitors} preapprovals={records.preapprovals} />,
-    notices: <NoticesModule notices={records.notices} />,
-    documents: <DocumentsModule documents={records.documents} />,
-    parking: <ParkingModule parking={records.parking} properties={records.properties} />,
-    amenities: <AmenitiesModule bookings={records.bookings} />,
-    meetings: <MeetingsModule notices={records.notices} />,
-    income: <IncomeModule properties={records.properties} trendData={trendData} stats={stats} />,
-    profile: <ProfileModule profile={records.profile} documents={records.documents} />,
-  };
-  return (
-    <>
-      <section className="od-page-head">
-        <div>
-          <span>Owner workflow</span>
-          <h2>{title}</h2>
-          <p>{subtitle}</p>
+  // ─── COMPLAINTS VIEW ────────────────────────────────────────
+  function ComplaintsView() {
+    return (
+      <div className="od2-content">
+        <section className="od2-page-hero">
+          <h1>📝 Complaints</h1>
+          <p>Track service issues, updates and resolution status</p>
+        </section>
+        <div className="od2-module-grid">
+          <section className="od2-panel od2-module-card">
+            <h2 className="od2-panel-title"><span>⚡</span> Open Issues</h2>
+            <div className="od2-stack-list">
+              <div className="od2-stack-item">
+                <strong>Plumbing leak</strong>
+                <span>Assigned to maintenance</span>
+              </div>
+              <div className="od2-stack-item">
+                <strong>Lift noise</strong>
+                <span>Pending inspection</span>
+              </div>
+            </div>
+          </section>
+          <section className="od2-panel od2-module-card">
+            <h2 className="od2-panel-title"><span>✅</span> Resolution Timeline</h2>
+            <div className="od2-stack-list">
+              <div className="od2-stack-item">
+                <strong>Water pressure</strong>
+                <span>Resolved yesterday</span>
+              </div>
+            </div>
+          </section>
         </div>
-        <button type="button">Export PDF</button>
-      </section>
-      {modules[page] || modules.properties}
-    </>
-  );
-}
+      </div>
+    );
+  }
 
-function PropertyList({ records }) {
-  if (!records.length) return <EmptyState title="No properties linked" text="Once your society assigns ownership, property cards appear here." />;
-  return (
-    <div className="od-card-list">
-      {records.slice(0, 4).map((item, index) => (
-        <article key={item.id || item.flat_id || index}>
-          <strong>{item.flat_number || item.unit_number || `Property ${index + 1}`}</strong>
-          <p>{item.wing || item.tower_name || "Wing not set"} · Floor {item.floor || "NA"} · {item.area_sqft || item.area || "Area pending"} sq.ft.</p>
-          <span>{getStatus(item).replaceAll("_", " ")}</span>
-        </article>
-      ))}
-    </div>
-  );
-}
+  // ─── PAYMENTS VIEW ──────────────────────────────────────────
+  function PaymentsView() {
+    return (
+      <div className="od2-content">
+        <section className="od2-page-hero">
+          <h1>💳 Payments</h1>
+          <p>Payment history, receipts, outstanding bills & statements</p>
+        </section>
+        <div className="od2-bottom-grid">
+          <section className="od2-panel od2-panel--full">
+            <h2 className="od2-panel-title"><span>📊</span> Payment History</h2>
+            <div className="od2-module-placeholder">
+              <div className="od2-empty-state">
+                <span>📊</span>
+                <p>Your payment history will appear here</p>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    );
+  }
 
-function PaymentOverview({ bills, stats }) {
-  if (!bills.length) return <EmptyState title="No billing records" text="Bills and receipts appear once generated by your society." />;
-  return (
-    <div className="od-payment-split">
-      <div><strong>{stats.pendingBills.length}</strong><span>Pending bills</span></div>
-      <div><strong>{stats.paidBills.length}</strong><span>Paid bills</span></div>
-      <MiniBars data={bills.slice(0, 8).map((bill, index) => ({ name: bill.bill_number || `Bill ${index + 1}`, value: Math.min(100, getAmount(bill) / 100) }))} />
-    </div>
-  );
-}
+  // ─── DOCUMENTS VIEW ──────────────────────────────────────────
+  function DocumentsView() {
+    return (
+      <div className="od2-content">
+        <section className="od2-page-hero">
+          <h1>📄 Documents</h1>
+          <p>Property documents, society certificates & download center</p>
+        </section>
+        <div className="od2-bottom-grid">
+          <section className="od2-panel od2-panel--full">
+            <h2 className="od2-panel-title"><span>📁</span> Document Center</h2>
+            <div className="od2-module-placeholder">
+              <div className="od2-empty-state">
+                <span>📁</span>
+                <p>All your documents organized here</p>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    );
+  }
 
-function StatusList({ items, empty }) {
-  if (!items.length) return <EmptyState title="Nothing to review" text={empty} />;
+  // ─── COMMUNITY VIEW ──────────────────────────────────────────
+  function CommunityView() {
+    return (
+      <div className="od2-content">
+        <section className="od2-page-hero">
+          <h1>👥 Community</h1>
+          <p>Events, meetings, polls & announcements</p>
+        </section>
+        <div className="od2-bottom-grid">
+          <section className="od2-panel od2-panel--full">
+            <h2 className="od2-panel-title"><span>🗓️</span> Events & Meetings</h2>
+            <div className="od2-module-placeholder">
+              <div className="od2-empty-state">
+                <span>🗓️</span>
+                <p>Community events and society meetings</p>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    );
+  }
+
+  // ─── SETTINGS VIEW ───────────────────────────────────────────
+  function SettingsView() {
+    return (
+      <div className="od2-content">
+        <section className="od2-page-hero">
+          <h1>⚙️ Settings</h1>
+          <p>Preferences, alerts and account controls</p>
+        </section>
+        <div className="od2-module-grid">
+          <section className="od2-panel od2-module-card">
+            <h2 className="od2-panel-title"><span>🔔</span> Preferences</h2>
+            <div className="od2-stack-list">
+              <div className="od2-stack-item">
+                <strong>Quiet hours</strong>
+                <span>Notifications paused after 10 PM</span>
+              </div>
+              <div className="od2-stack-item">
+                <strong>Theme</strong>
+                <span>Auto, light or dark</span>
+              </div>
+            </div>
+          </section>
+          <section className="od2-panel od2-module-card">
+            <h2 className="od2-panel-title"><span>🛡️</span> Security</h2>
+            <div className="od2-stack-list">
+              <div className="od2-stack-item">
+                <strong>Two-step verification</strong>
+                <span>Enabled for account access</span>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    );
+  }
+
+  // ─── RENDER CURRENT PAGE ─────────────────────────────────────
+  function renderActivePage() {
+    switch (activePage) {
+      case "dashboard": return <DashboardView />;
+      case "home": return <MyHomeView />;
+      case "visitors": return <VisitorsView />;
+      case "complaints": return <ComplaintsView />;
+      case "payments": return <PaymentsView />;
+      case "documents": return <DocumentsView />;
+      case "community": return <CommunityView />;
+      case "settings": return <SettingsView />;
+      default: return <DashboardView />;
+    }
+  }
+
   return (
-    <div className="od-status-list">
-      {items.slice(0, 6).map((item, index) => (
-        <article key={item.id || index}>
-          <div>
-            <strong>{item.title || item.name || item.visitor_name || item.category || item.bill_number || `Record ${index + 1}`}</strong>
-            <p>{item.description || item.message || item.purpose || item.flat_number || formatDate(item.created_at)}</p>
+    <div className="od2-dashboard">
+      {/* SIDEBAR */}
+      <aside className="od2-sidebar">
+        <div className="od2-sidebar-brand">
+          <button type="button" className="od2-brand-logo" onClick={() => handleNavSelect("dashboard")} aria-label="Go to dashboard">
+            <img src={themeMode === "dark" ? "/nexora-logo-dark.png" : "/nexora-logo-light.png"} alt="Nexora" />
+          </button>
+          <div className="od2-brand-info">
+            <strong>{societyName}</strong>
+            <span>Code: {societyCode}</span>
           </div>
-          <span>{getStatus(item)}</span>
-        </article>
-      ))}
-    </div>
-  );
-}
-
-function Timeline({ records }) {
-  const sorted = records
-    .filter(Boolean)
-    .sort((a, b) => new Date(b.created_at || b.updated_at || 0) - new Date(a.created_at || a.updated_at || 0))
-    .slice(0, 6);
-  if (!sorted.length) return <EmptyState title="Timeline is clear" text="Activity logs build automatically as you use the owner dashboard." />;
-  return (
-    <div className="od-timeline">
-      {sorted.map((item, index) => (
-        <article key={item.id || index}>
-          <span />
-          <div><strong>{item.title || item.category || item.document_type || item.bill_number || "Owner activity"}</strong><p>{formatDate(item.created_at || item.updated_at)}</p></div>
-        </article>
-      ))}
-    </div>
-  );
-}
-
-function DueList({ bills }) {
-  if (!bills.length) return <EmptyState title="No dues pending" text="You are clear on currently loaded bills." />;
-  return (
-    <div className="od-due-list">
-      {bills.slice(0, 5).map((bill, index) => (
-        <article key={bill.id || index}>
-          <div><strong>{bill.title || bill.bill_number || "Maintenance bill"}</strong><p>Due {formatDate(bill.due_date)}</p></div>
-          <span>{money(getAmount(bill))}</span>
-        </article>
-      ))}
-    </div>
-  );
-}
-
-function ChartPanel({ title, type, data }) {
-  const hasData = data.some((item) => Number(item.value || item.expenses || item.income) > 0);
-  return (
-    <Panel title={title} kicker="Analytics">
-      {!hasData ? <EmptyState title="No analytics yet" text="Backend records are needed before this chart is drawn." /> : (
-        <div className="od-chart">
-          <ResponsiveContainer width="100%" height={230}>
-            {type === "pie" ? (
-              <PieChart>
-                <Pie data={data} dataKey="value" nameKey="name" innerRadius={58} outerRadius={88} paddingAngle={4}>
-                  {data.map((item, index) => <Cell key={item.name} fill={palette[index % palette.length]} />)}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            ) : type === "bar" ? (
-              <BarChart data={data}>
-                <CartesianGrid stroke="var(--od-grid)" vertical={false} />
-                <XAxis dataKey="month" tick={{ fill: "var(--od-muted)", fontSize: 12 }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fill: "var(--od-muted)", fontSize: 12 }} axisLine={false} tickLine={false} />
-                <Tooltip />
-                <Bar dataKey="income" fill="#10b981" radius={[8, 8, 0, 0]} />
-              </BarChart>
-            ) : (
-              <AreaChart data={data}>
-                <CartesianGrid stroke="var(--od-grid)" vertical={false} />
-                <XAxis dataKey="month" tick={{ fill: "var(--od-muted)", fontSize: 12 }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fill: "var(--od-muted)", fontSize: 12 }} axisLine={false} tickLine={false} />
-                <Tooltip />
-                <Area type="monotone" dataKey="expenses" stroke="#6d5dfc" fill="#6d5dfc33" strokeWidth={3} />
-              </AreaChart>
-            )}
-          </ResponsiveContainer>
         </div>
-      )}
-    </Panel>
-  );
-}
 
-function AiInsights({ stats }) {
-  const items = [
-    ["AI Executive Summary", `${stats.propertyCount} properties, ${stats.pendingBills.length} pending bills and ${stats.activeComplaints.length} active complaints need attention.`],
-    ["AI Maintenance Prediction", stats.activeComplaints.length ? "Open complaint categories can guide preventive maintenance scheduling." : "No active complaint signal is available for prediction."],
-    ["AI Expense Analysis", `Current open society dues total ${money(stats.monthlyExpenses)}.`],
-    ["AI Smart Recommendations", stats.vacant ? "Review vacant flats for rent readiness, parking, and document completion." : "Portfolio occupancy looks stable from loaded records."],
-  ];
-  return (
-    <div className="od-ai-list">
-      {items.map(([title, text]) => <article key={title}><strong>{title}</strong><p>{text}</p></article>)}
-    </div>
-  );
-}
+        <nav className="od2-sidebar-nav">
+          {NAV_ITEMS.map((item) => (
+            <button
+              key={item.id}
+              className={`od2-nav-item ${activePage === item.id ? "od2-nav--active" : ""}`}
+              onClick={() => handleNavSelect(item.id)}
+            >
+              <span className="od2-nav-icon">{item.icon}</span>
+              <span className="od2-nav-label">{item.label}</span>
+            </button>
+          ))}
+        </nav>
 
-function PropertiesModule({ records, stats }) {
-  return (
-    <section className="od-grid od-grid--two">
-      <Panel title="Property Cards" kicker="My flats"><PropertyList records={records.properties} /></Panel>
-      <Panel title="Property Statistics" kicker="Portfolio"><div className="od-kpis od-kpis--compact"><StatCard label="Total" value={stats.propertyCount} helper="Linked flats" /><StatCard label="Occupied" value={stats.occupied} helper="Active use" tone="green" /><StatCard label="Vacant" value={stats.vacant} helper="Available" tone="slate" /></div></Panel>
-      <Panel title="Documents & Parking" kicker="Compliance"><StatusList items={[...records.documents, ...records.parking]} empty="Documents and parking allocation are not available yet." /></Panel>
-      <Panel title="Property Timeline" kicker="History"><Timeline records={[...records.properties, ...records.documents, ...records.bills]} /></Panel>
-    </section>
-  );
-}
+        <div className="od2-sidebar-footer">
+          <div className="od2-sidebar-user">
+            <div className="od2-user-avatar">
+              <span>{(ownerName || "O").charAt(0).toUpperCase()}</span>
+            </div>
+            <div className="od2-user-info">
+              <strong>{ownerName}</strong>
+              <span>{ownerEmail}</span>
+            </div>
+          </div>
+          <button className="od2-sidebar-logout" onClick={logout}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          </button>
+        </div>
+      </aside>
 
-function TenantsModule({ properties }) {
-  const tenants = properties.filter((item) => item.tenant_name || item.tenant_id || getStatus(item).includes("tenant"));
-  return (
-    <section className="od-grid od-grid--two">
-      <Panel title="Tenant Cards" kicker="Active rentals" action="Add Tenant"><StatusList items={tenants} empty="No active tenants are linked to your properties." /></Panel>
-      <Panel title="Approval Status" kicker="Verification"><WorkflowCloud items={["Add Tenant", "Remove Tenant", "Move In", "Move Out", "Tenant Verification", "Rental Agreement", "Approval Status", "Tenant History", "AI Tenant Risk Analysis"]} /></Panel>
-    </section>
-  );
-}
+      {/* MAIN CONTENT */}
+      <div className="od2-main">
+        {/* TOPBAR */}
+        <header className="od2-topbar">
+          <div className="od2-topbar-left">
+            <button type="button" className="od2-topbar-brand" onClick={() => handleNavSelect("dashboard")}>
+              <img src={themeMode === "dark" ? "/nexora-logo-dark.png" : "/nexora-logo-light.png"} alt="Nexora" />
+            </button>
+            <div className="od2-topbar-title-group">
+              <strong>Owner Dashboard</strong>
+              <span>Resident / {activePage.charAt(0).toUpperCase() + activePage.slice(1)}</span>
+            </div>
+          </div>
 
-function BillingModule({ bills, stats }) {
-  return (
-    <section className="od-grid od-grid--two">
-      <Panel title="Pending Bills" kicker="Due now"><DueList bills={stats.pendingBills} /></Panel>
-      <Panel title="Paid Bills & Receipts" kicker="History"><StatusList items={stats.paidBills} empty="No paid receipts available from the backend." /></Panel>
-      <Panel title="Monthly Summary" kicker="Breakdown"><PaymentOverview bills={bills} stats={stats} /></Panel>
-      <Panel title="Online Payment" kicker="Actions"><WorkflowCloud items={["Online Payment", "Download Receipt", "Bill Breakdown", "Due Calendar", "AI Bill Reminder", "Auto Reminders"]} /></Panel>
-    </section>
-  );
-}
+          <div className="od2-topbar-center">
+            <label className="od2-searchbar">
+              <span aria-hidden="true">⌕</span>
+              <input
+                type="text"
+                placeholder="Search notices, activity, events"
+                value={searchValue}
+                onChange={(event) => setSearchValue(event.target.value)}
+              />
+            </label>
+          </div>
 
-function ComplaintsModule({ complaints }) {
-  return (
-    <section className="od-grid od-grid--two">
-      <Panel title="Complaint Cards" kicker="Support" action="Create Complaint"><StatusList items={complaints} empty="No complaint records found for your account." /></Panel>
-      <Panel title="Complaint Timeline" kicker="SLA"><Timeline records={complaints} /></Panel>
-      <Panel title="Resolution Workflow" kicker="Actions"><WorkflowCloud items={["Complaint Status", "Assigned Staff", "Upload Images", "Feedback", "Reopen Complaint", "AI Complaint Summary"]} /></Panel>
-    </section>
-  );
-}
+          <div className="od2-topbar-right">
+            <button type="button" className="od2-header-pill od2-calendar-pill" onClick={() => setCalendarOpen((current) => !current)}>
+              <span aria-hidden="true">📅</span>
+              <span>{todayFormatted}</span>
+            </button>
+            <PremiumNotificationButton
+              notifications={noticeNotifications}
+              unreadCount={unreadNoticeCount}
+              onMarkAllRead={() => setReadNoticeIds((current) =>
+                Array.from(new Set([...current, ...noticeNotifications.map((item) => item.id)]))
+              )}
+              onMarkRead={(id) => setReadNoticeIds((current) =>
+                current.includes(id) ? current : [...current, id]
+              )}
+            />
+            <ThemeToggle />
+            <LanguageSelector supportedCodes={["en", "hi", "gu"]} />
+            <div className="od2-profile-menu">
+              <button type="button" className="od2-profile-trigger" onClick={() => setProfileMenuOpen((current) => !current)}>
+                <span className="od2-profile-avatar">{(ownerName || "O").charAt(0).toUpperCase()}</span>
+                <span className="od2-profile-meta">
+                  <strong>{ownerName}</strong>
+                  <span>Owner</span>
+                </span>
+              </button>
+              {profileMenuOpen ? (
+                <div className="od2-profile-dropdown">
+                  <button type="button" onClick={() => { setProfileMenuOpen(false); handleNavSelect("settings"); }}>My Profile</button>
+                  <button type="button" onClick={() => { setProfileMenuOpen(false); handleNavSelect("home"); }}>My Property</button>
+                  <button type="button" onClick={() => { setProfileMenuOpen(false); handleNavSelect("settings"); }}>Account Settings</button>
+                  <button type="button" onClick={() => { setProfileMenuOpen(false); handleNavSelect("dashboard"); }}>Notifications</button>
+                  <button type="button" onClick={() => { setProfileMenuOpen(false); handleNavSelect("settings"); }}>Security</button>
+                  <button type="button" onClick={() => { setProfileMenuOpen(false); handleNavSelect("documents"); }}>Help Center</button>
+                  <button type="button" className="od2-profile-logout" onClick={() => { setProfileMenuOpen(false); logout(); }}>Logout</button>
+                </div>
+              ) : null}
+            </div>
+          </div>
+        </header>
 
-function VisitorsModule({ visitors, preapprovals }) {
-  return (
-    <section className="od-grid od-grid--two">
-      <Panel title="Visitor List" kicker="History"><StatusList items={[...preapprovals, ...visitors]} empty="No visitor entries have been recorded." /></Panel>
-      <Panel title="QR Pass & Approval" kicker="Gate flow"><WorkflowCloud items={["QR Pass", "Guest Approval", "Delivery Entry", "Visitor History", "Security Logs", "AI Visitor Insights"]} /></Panel>
-    </section>
-  );
-}
+        {calendarOpen ? (
+          <div className="od2-calendar-widget">
+            <div>
+              <strong>Upcoming this week</strong>
+              <span>{filteredEvents.slice(0, 3).map((event) => event.title).join(" • ")}</span>
+            </div>
+            <button type="button" onClick={() => handleNavSelect("community")}>Open calendar</button>
+          </div>
+        ) : null}
 
-function NoticesModule({ notices }) {
-  return (
-    <section className="od-grid od-grid--two">
-      <Panel title="Notice Cards" kicker="Society updates"><StatusList items={notices} empty="No notices have been published yet." /></Panel>
-      <Panel title="Notice Details" kicker="Filters"><WorkflowCloud items={["Category Filter", "Read / Unread", "Attachments", "Notice Details"]} /></Panel>
-    </section>
-  );
-}
-
-function DocumentsModule({ documents }) {
-  return (
-    <section className="od-grid od-grid--two">
-      <Panel title="Digital Document Vault" kicker="Secure files"><StatusList items={documents} empty="No owner documents are available yet." /></Panel>
-      <Panel title="Verification Status" kicker="Compliance"><WorkflowCloud items={["Ownership Documents", "Society Documents", "Agreements", "Maintenance Receipts", "Download", "Upload", "Verification Status", "AI Document Summary"]} /></Panel>
-    </section>
-  );
-}
-
-function ParkingModule({ parking, properties }) {
-  return (
-    <section className="od-grid od-grid--two">
-      <Panel title="Registered Vehicles" kicker="Slots"><StatusList items={parking} empty="No parking slots are linked to your owner profile." /></Panel>
-      <Panel title="Parking History" kicker="Access"><WorkflowCloud items={["Parking Slot", "Visitor Parking", "Vehicle Pass", "Parking History", `${properties.length} linked properties`]} /></Panel>
-    </section>
-  );
-}
-
-function AmenitiesModule({ bookings }) {
-  return (
-    <section className="od-grid od-grid--two">
-      <Panel title="Booking Calendar" kicker="Amenities"><StatusList items={bookings} empty="No amenity bookings found." /></Panel>
-      <Panel title="Amenities" kicker="Availability"><WorkflowCloud items={["Clubhouse", "Hall", "Gym", "Swimming Pool", "Garden", "Sports Area", "Booking History", "Approval Status", "Payment Status"]} /></Panel>
-    </section>
-  );
-}
-
-function MeetingsModule({ notices }) {
-  return (
-    <section className="od-grid od-grid--two">
-      <Panel title="Society Meetings" kicker="Governance"><StatusList items={notices.filter((item) => String(item.category || item.type || "").toLowerCase().includes("meeting"))} empty="No meeting records are available yet." /></Panel>
-      <Panel title="Online Voting" kicker="Participation"><WorkflowCloud items={["Online Voting", "Polls", "Agenda", "Meeting Minutes", "Voting History"]} /></Panel>
-    </section>
-  );
-}
-
-function IncomeModule({ properties, trendData, stats }) {
-  return (
-    <section className="od-grid od-grid--two">
-      <Panel title="Rental Income" kicker="Collections"><div className="od-kpis od-kpis--compact"><StatCard label="Monthly Income" value={money(stats.rentTotal)} helper="From loaded property rent fields" tone="green" /><StatCard label="Annual Income" value={money(stats.rentTotal * 12)} helper="Projected rental income" tone="purple" /></div></Panel>
-      <Panel title="Rent Collection" kicker="Tenancy"><StatusList items={properties.filter((item) => item.tenant_name || item.rent_amount || item.monthly_rent)} empty="No rental income records are linked yet." /></Panel>
-      <ChartPanel title="Rent Statistics" type="bar" data={trendData} />
-      <Panel title="AI Rental Yield Analysis" kicker="Nexora AI"><WorkflowCloud items={["Rent Due", "Agreement Expiry", "AI Rent Reminder", "AI Property Value Estimation", "AI Rental Yield Analysis"]} /></Panel>
-    </section>
-  );
-}
-
-function ProfileModule({ profile, documents }) {
-  const data = profile?.user || profile || {};
-  return (
-    <section className="od-grid od-grid--two">
-      <Panel title="Personal Details" kicker="Profile">
-        <div className="od-profile-card"><strong>{data.name || data.userName || "Owner"}</strong><p>{data.email || "Email not available"}</p><span>{data.mobile || data.phone || "Phone not available"}</span></div>
-      </Panel>
-      <Panel title="Account Settings" kicker="Security"><WorkflowCloud items={["Family Members", "Emergency Contact", "KYC", "Notifications", "Password", "Privacy", "Account Settings"]} /></Panel>
-      <Panel title="KYC Documents" kicker="Verification"><StatusList items={documents} empty="No KYC documents are available yet." /></Panel>
-    </section>
-  );
-}
-
-function WorkflowCloud({ items }) {
-  return (
-    <div className="od-workflow-cloud">
-      {items.map((item) => <span key={item}>{item}</span>)}
+        {/* PAGE CONTENT */}
+        <main className="od2-main-content">
+          {renderActivePage()}
+        </main>
+      </div>
     </div>
   );
 }

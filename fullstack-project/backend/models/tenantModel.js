@@ -193,14 +193,18 @@ async function createSocietyTenant(payload) {
   try {
     const result = await db.query(
       `INSERT INTO societies
-        (code, slug, subdomain, name, status, subscription_plan, default_language, created_by, primary_admin_user_id)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        (code, slug, subdomain, name, society_name, address, city, state, pincode, status, subscription_plan, default_language, created_by, primary_admin_user_id)
+       VALUES ($1, $2, $3, $4, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
        RETURNING id`,
       [
         String(payload.code).trim().toUpperCase(),
         String(payload.slug || payload.code).trim().toLowerCase(),
         String(payload.subdomain || payload.slug || payload.code).trim().toLowerCase(),
         String(payload.name).trim(),
+        payload.address || null,
+        payload.city || null,
+        payload.state || null,
+        payload.pincode || null,
         payload.status || "active",
         payload.subscriptionPlan || "starter",
         payload.defaultLanguage || "en",

@@ -3,13 +3,27 @@ const REQUIRED_BY_PROVIDER = {
   microsoft: ["MICROSOFT_CLIENT_ID", "MICROSOFT_CLIENT_SECRET", "MICROSOFT_CALLBACK_URL"],
 };
 
-const LOCAL_CALLBACKS = {
-  google: "http://localhost:5000/api/auth/google/callback",
-  microsoft: "http://localhost:5000/api/auth/microsoft/callback",
-};
+const PLACEHOLDER_VALUES = new Set([
+  "null",
+  "undefined",
+  "test",
+  "demo",
+  "placeholder",
+  "your_google_client_id",
+  "your-google-client-id",
+  "your_microsoft_client_id",
+  "your-microsoft-client-id",
+  "real_google_client_id_here",
+  "real-google-client-id-here",
+  "real_microsoft_client_id_here",
+  "real-microsoft-client-id-here",
+]);
 
 function isConfiguredValue(value) {
-  return Boolean(String(value || "").trim());
+  const normalized = String(value || "").trim().toLowerCase();
+  if (!normalized) return false;
+  if (PLACEHOLDER_VALUES.has(normalized)) return false;
+  return !normalized.includes("_here") && !normalized.includes("-here") && !normalized.includes("your_") && !normalized.includes("your-");
 }
 
 function getFrontendUrl() {
@@ -22,6 +36,11 @@ function normalizeUrl(value) {
 
 function isLocalUrl(value) {
   return /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?(\/|$)/.test(String(value || ""));
+}
+
+function getExpectedLocalCallback(provider) {
+  const port = process.env.PORT || "5000";
+  return `http://localhost:${port}/api/auth/${provider}/callback`;
 }
 
 function getProviderConfig(provider) {
@@ -41,17 +60,26 @@ function getOAuthConfigStatus() {
     Object.keys(REQUIRED_BY_PROVIDER).map((provider) => {
       const missing = REQUIRED_BY_PROVIDER[provider].filter((key) => !isConfiguredValue(process.env[key]));
       const config = getProviderConfig(provider);
+      const socialMissing = [`${provider.toUpperCase()}_CLIENT_ID`].filter((key) => !isConfiguredValue(process.env[key]));
       const warnings = [];
 
       if (config.callbackUrl && config.callbackUrl.includes("[")) {
         warnings.push(`${provider.toUpperCase()}_CALLBACK_URL must be a plain URL, not markdown text.`);
       }
 
-      if (isLocalUrl(config.callbackUrl) && normalizeUrl(config.callbackUrl) !== LOCAL_CALLBACKS[provider]) {
-        warnings.push(`${provider.toUpperCase()}_CALLBACK_URL must exactly be ${LOCAL_CALLBACKS[provider]}.`);
+      const expectedLocalCallback = getExpectedLocalCallback(provider);
+      if (isLocalUrl(config.callbackUrl) && normalizeUrl(config.callbackUrl) !== expectedLocalCallback) {
+        warnings.push(`${provider.toUpperCase()}_CALLBACK_URL must exactly be ${expectedLocalCallback}.`);
       }
 
-      return [provider, { enabled: missing.length === 0 && warnings.length === 0, missing, warnings }];
+      return [provider, {
+        enabled: missing.length === 0 && warnings.length === 0,
+        socialEnabled: socialMissing.length === 0,
+        missing,
+        socialMissing,
+        warnings,
+        expectedFrontendRedirectUrl: `${getFrontendUrl()}/oauth/popup-callback`,
+      }];
     })
   );
 }

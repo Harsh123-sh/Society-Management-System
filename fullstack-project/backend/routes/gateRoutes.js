@@ -8,10 +8,9 @@ const router = express.Router();
 router.use(authenticateToken);
 router.use(authorizeRoles("admin", "secretary", "super_admin"));
 
-router.get("/", structureController.listWings);
-router.get("/:wingId/floors", structureController.listFloors);
-router.post("/", structureController.createWing);
-router.put("/:id", structureController.updateWing);
-router.delete("/:id", structureController.deleteWing);
+router.get("/", structureController.listGates);
+router.post("/", structureController.createGate);
+router.put("/:id", structureController.updateGate);
+router.delete("/:id", structureController.deleteGate);
 
 module.exports = router;

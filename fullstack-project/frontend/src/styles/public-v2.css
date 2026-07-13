@@ -6458,3 +6458,1247 @@ body[data-theme="dark"] .nx-public {
     width: auto;
   }
 }
+
+/* Light theme polish for login and password recovery only. Dark auth styling is intentionally untouched. */
+html:not([data-theme="dark"]) .auth-v2-login,
+html:not([data-theme="dark"]) .auth-v2-recovery,
+body[data-theme="light"] .auth-v2-login,
+body[data-theme="light"] .auth-v2-recovery {
+  --v2-bg: #f6f9ff;
+  --v2-card: rgba(255, 255, 255, 0.76);
+  --v2-solid: rgba(255, 255, 255, 0.92);
+  --v2-border: rgba(99, 102, 241, 0.18);
+  --v2-text: #0f1f44;
+  --v2-muted: #52637f;
+  --v2-primary: #4f46e5;
+  --v2-secondary: #7c3aed;
+  background:
+    radial-gradient(circle at 12% 12%, rgba(79, 70, 229, 0.17), transparent 30%),
+    radial-gradient(circle at 86% 18%, rgba(14, 165, 233, 0.16), transparent 28%),
+    radial-gradient(circle at 64% 92%, rgba(168, 85, 247, 0.13), transparent 32%),
+    linear-gradient(135deg, #f8fbff 0%, #eef5ff 42%, #f7f0ff 100%);
+  color: var(--v2-text);
+}
+
+html:not([data-theme="dark"]) .auth-v2-login .nexora-login-bg,
+body[data-theme="light"] .auth-v2-login .nexora-login-bg {
+  background-image:
+    linear-gradient(rgba(79, 70, 229, 0.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(14, 165, 233, 0.055) 1px, transparent 1px);
+  opacity: 0.9;
+}
+
+html:not([data-theme="dark"]) .auth-v2-login .nexora-login-bg span:nth-child(1),
+body[data-theme="light"] .auth-v2-login .nexora-login-bg span:nth-child(1) {
+  background: radial-gradient(circle, rgba(124, 58, 237, 0.18), transparent 34%);
+}
+
+html:not([data-theme="dark"]) .auth-v2-login .nexora-login-bg span:nth-child(2),
+body[data-theme="light"] .auth-v2-login .nexora-login-bg span:nth-child(2) {
+  background: radial-gradient(circle, rgba(37, 99, 235, 0.16), transparent 34%);
+}
+
+html:not([data-theme="dark"]) .auth-v2-login .nexora-login-bg span:nth-child(3),
+body[data-theme="light"] .auth-v2-login .nexora-login-bg span:nth-child(3) {
+  background: radial-gradient(circle, rgba(6, 182, 212, 0.14), transparent 30%);
+}
+
+html:not([data-theme="dark"]) .auth-v2-login .auth-v2-art,
+html:not([data-theme="dark"]) .auth-v2-recovery .auth-v2-art,
+body[data-theme="light"] .auth-v2-login .auth-v2-art,
+body[data-theme="light"] .auth-v2-recovery .auth-v2-art {
+  border-color: rgba(255, 255, 255, 0.72);
+  background:
+    radial-gradient(circle at 42% 42%, rgba(99, 102, 241, 0.14), transparent 36%),
+    radial-gradient(circle at 16% 70%, rgba(14, 165, 233, 0.13), transparent 32%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.82), rgba(230, 239, 255, 0.66));
+  box-shadow:
+    0 28px 90px rgba(79, 70, 229, 0.13),
+    inset 0 1px 0 rgba(255, 255, 255, 0.92);
+}
+
+html:not([data-theme="dark"]) .auth-v2-login .auth-v2-art::before,
+html:not([data-theme="dark"]) .auth-v2-recovery .auth-v2-art::before,
+body[data-theme="light"] .auth-v2-login .auth-v2-art::before,
+body[data-theme="light"] .auth-v2-recovery .auth-v2-art::before {
+  border-color: rgba(79, 70, 229, 0.22);
+  box-shadow:
+    0 0 44px rgba(79, 70, 229, 0.12),
+    inset 0 0 90px rgba(14, 165, 233, 0.08);
+}
+
+html:not([data-theme="dark"]) .auth-v2-login .auth-v2-art::after,
+html:not([data-theme="dark"]) .auth-v2-recovery .auth-v2-art::after,
+body[data-theme="light"] .auth-v2-login .auth-v2-art::after,
+body[data-theme="light"] .auth-v2-recovery .auth-v2-art::after {
+  background:
+    radial-gradient(circle at 18% 40%, rgba(168, 85, 247, 0.1), transparent 24%),
+    repeating-radial-gradient(circle at 52% 86%, rgba(37, 99, 235, 0.09) 0 1px, transparent 1px 18px);
+  opacity: 0.78;
+}
+
+html:not([data-theme="dark"]) .nexora-login-brand .brand-logo__mark,
+html:not([data-theme="dark"]) .nexora-auth-brand .brand-logo__mark,
+body[data-theme="light"] .nexora-login-brand .brand-logo__mark,
+body[data-theme="light"] .nexora-auth-brand .brand-logo__mark {
+  border-color: rgba(79, 70, 229, 0.2);
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow:
+    0 14px 38px rgba(79, 70, 229, 0.18),
+    0 0 0 6px rgba(255, 255, 255, 0.52);
+}
+
+html:not([data-theme="dark"]) .nexora-login-brand .brand-logo__text strong,
+html:not([data-theme="dark"]) .nexora-auth-brand .brand-logo__text strong,
+body[data-theme="light"] .nexora-login-brand .brand-logo__text strong,
+body[data-theme="light"] .nexora-auth-brand .brand-logo__text strong {
+  color: #10204a;
+  text-shadow: 0 8px 24px rgba(79, 70, 229, 0.16);
+}
+
+html:not([data-theme="dark"]) .nexora-login-brand .brand-logo__text em,
+html:not([data-theme="dark"]) .nexora-auth-brand .brand-logo__text em,
+body[data-theme="light"] .nexora-login-brand .brand-logo__text em,
+body[data-theme="light"] .nexora-auth-brand .brand-logo__text em {
+  color: #4b5f80;
+}
+
+html:not([data-theme="dark"]) .auth-v2-login .auth-v2-art-copy em,
+html:not([data-theme="dark"]) .auth-v2-recovery .auth-v2-art-copy em,
+body[data-theme="light"] .auth-v2-login .auth-v2-art-copy em,
+body[data-theme="light"] .auth-v2-recovery .auth-v2-art-copy em {
+  color: #4f46e5;
+}
+
+html:not([data-theme="dark"]) .auth-v2-login .auth-v2-art-copy h1,
+html:not([data-theme="dark"]) .auth-v2-recovery .auth-v2-art-copy h1,
+body[data-theme="light"] .auth-v2-login .auth-v2-art-copy h1,
+body[data-theme="light"] .auth-v2-recovery .auth-v2-art-copy h1 {
+  color: #0f1f44;
+  text-shadow: 0 14px 38px rgba(79, 70, 229, 0.12);
+}
+
+html:not([data-theme="dark"]) .auth-v2-login .auth-v2-art-copy p,
+html:not([data-theme="dark"]) .auth-v2-recovery .auth-v2-art-copy p,
+body[data-theme="light"] .auth-v2-login .auth-v2-art-copy p,
+body[data-theme="light"] .auth-v2-recovery .auth-v2-art-copy p {
+  color: #42536f;
+}
+
+html:not([data-theme="dark"]) .auth-v2-login .auth-v2-illustration div,
+html:not([data-theme="dark"]) .auth-v2-recovery .auth-v2-illustration div,
+body[data-theme="light"] .auth-v2-login .auth-v2-illustration div,
+body[data-theme="light"] .auth-v2-recovery .auth-v2-illustration div {
+  border-color: rgba(99, 102, 241, 0.18);
+  background: rgba(255, 255, 255, 0.66);
+  box-shadow:
+    0 16px 42px rgba(79, 70, 229, 0.09),
+    inset 0 1px 0 rgba(255, 255, 255, 0.86);
+  -webkit-backdrop-filter: blur(20px) saturate(150%);
+  backdrop-filter: blur(20px) saturate(150%);
+}
+
+html:not([data-theme="dark"]) .auth-v2-login .auth-v2-illustration span,
+html:not([data-theme="dark"]) .auth-v2-recovery .auth-v2-illustration span,
+body[data-theme="light"] .auth-v2-login .auth-v2-illustration span,
+body[data-theme="light"] .auth-v2-recovery .auth-v2-illustration span {
+  background: linear-gradient(135deg, rgba(79, 70, 229, 0.14), rgba(14, 165, 233, 0.14));
+  color: #3650a3;
+}
+
+html:not([data-theme="dark"]) .auth-v2-login .auth-v2-illustration strong,
+html:not([data-theme="dark"]) .auth-v2-recovery .auth-v2-illustration strong,
+body[data-theme="light"] .auth-v2-login .auth-v2-illustration strong,
+body[data-theme="light"] .auth-v2-recovery .auth-v2-illustration strong {
+  color: #10204a;
+}
+
+html:not([data-theme="dark"]) .auth-v2-login .auth-v2-form-zone,
+html:not([data-theme="dark"]) .auth-v2-recovery .auth-v2-form-zone,
+body[data-theme="light"] .auth-v2-login .auth-v2-form-zone,
+body[data-theme="light"] .auth-v2-recovery .auth-v2-form-zone {
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  background:
+    radial-gradient(circle at 24% 18%, rgba(37, 99, 235, 0.12), transparent 26%),
+    radial-gradient(circle at 80% 76%, rgba(168, 85, 247, 0.11), transparent 28%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.5), rgba(239, 246, 255, 0.48));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+html:not([data-theme="dark"]) .auth-v2-login .auth-v2-card,
+html:not([data-theme="dark"]) .auth-v2-recovery .auth-v2-card,
+body[data-theme="light"] .auth-v2-login .auth-v2-card,
+body[data-theme="light"] .auth-v2-recovery .auth-v2-card {
+  border-color: rgba(99, 102, 241, 0.2);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.86), rgba(248, 251, 255, 0.76)),
+    radial-gradient(circle at 12% 10%, rgba(79, 70, 229, 0.09), transparent 32%);
+  box-shadow:
+    0 32px 88px rgba(31, 41, 91, 0.18),
+    0 0 70px rgba(124, 58, 237, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.94);
+}
+
+html:not([data-theme="dark"]) .auth-v2-login .auth-v2-card::before,
+body[data-theme="light"] .auth-v2-login .auth-v2-card::before {
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.64), transparent 30%),
+    radial-gradient(circle at 86% 8%, rgba(37, 99, 235, 0.12), transparent 28%);
+}
+
+html:not([data-theme="dark"]) .nexora-form-logo,
+body[data-theme="light"] .nexora-form-logo {
+  border-color: rgba(79, 70, 229, 0.2);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.92), rgba(224, 242, 254, 0.5)),
+    rgba(255, 255, 255, 0.7);
+  box-shadow:
+    0 18px 42px rgba(79, 70, 229, 0.16),
+    0 0 38px rgba(14, 165, 233, 0.14);
+}
+
+html:not([data-theme="dark"]) .auth-v2-login .auth-v2-heading span,
+html:not([data-theme="dark"]) .auth-v2-recovery .auth-v2-heading span,
+body[data-theme="light"] .auth-v2-login .auth-v2-heading span,
+body[data-theme="light"] .auth-v2-recovery .auth-v2-heading span {
+  color: #4f46e5;
+}
+
+html:not([data-theme="dark"]) .auth-v2-login .auth-v2-heading h2,
+html:not([data-theme="dark"]) .auth-v2-recovery .auth-v2-heading h2,
+body[data-theme="light"] .auth-v2-login .auth-v2-heading h2,
+body[data-theme="light"] .auth-v2-recovery .auth-v2-heading h2 {
+  color: #0f1f44;
+}
+
+html:not([data-theme="dark"]) .auth-v2-login .auth-v2-heading p,
+html:not([data-theme="dark"]) .auth-v2-recovery .auth-v2-heading p,
+body[data-theme="light"] .auth-v2-login .auth-v2-heading p,
+body[data-theme="light"] .auth-v2-recovery .auth-v2-heading p {
+  color: #52637f;
+}
+
+html:not([data-theme="dark"]) .auth-v2-login .auth-v2-field span,
+html:not([data-theme="dark"]) .auth-v2-recovery .auth-v2-field span,
+html:not([data-theme="dark"]) .auth-v2-recovery .auth-v2-stack h3,
+body[data-theme="light"] .auth-v2-login .auth-v2-field span,
+body[data-theme="light"] .auth-v2-recovery .auth-v2-field span,
+body[data-theme="light"] .auth-v2-recovery .auth-v2-stack h3 {
+  color: #52637f;
+}
+
+html:not([data-theme="dark"]) .auth-v2-login .auth-v2-field input,
+html:not([data-theme="dark"]) .auth-v2-recovery .auth-v2-field input,
+body[data-theme="light"] .auth-v2-login .auth-v2-field input,
+body[data-theme="light"] .auth-v2-recovery .auth-v2-field input {
+  border-color: rgba(99, 102, 241, 0.18);
+  background: rgba(255, 255, 255, 0.9);
+  color: #0f1f44;
+  box-shadow:
+    0 12px 30px rgba(31, 41, 91, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.94);
+}
+
+html:not([data-theme="dark"]) .auth-v2-login .auth-v2-field input::placeholder,
+html:not([data-theme="dark"]) .auth-v2-recovery .auth-v2-field input::placeholder,
+body[data-theme="light"] .auth-v2-login .auth-v2-field input::placeholder,
+body[data-theme="light"] .auth-v2-recovery .auth-v2-field input::placeholder {
+  color: #8a98b3;
+}
+
+html:not([data-theme="dark"]) .auth-v2-login .auth-v2-field input:hover,
+html:not([data-theme="dark"]) .auth-v2-recovery .auth-v2-field input:hover,
+body[data-theme="light"] .auth-v2-login .auth-v2-field input:hover,
+body[data-theme="light"] .auth-v2-recovery .auth-v2-field input:hover {
+  border-color: rgba(79, 70, 229, 0.34);
+}
+
+html:not([data-theme="dark"]) .auth-v2-login .auth-v2-field input:focus,
+html:not([data-theme="dark"]) .auth-v2-recovery .auth-v2-field input:focus,
+body[data-theme="light"] .auth-v2-login .auth-v2-field input:focus,
+body[data-theme="light"] .auth-v2-recovery .auth-v2-field input:focus {
+  border-color: rgba(79, 70, 229, 0.7);
+  background: #ffffff;
+  box-shadow:
+    0 0 0 4px rgba(79, 70, 229, 0.13),
+    0 16px 40px rgba(37, 99, 235, 0.13);
+}
+
+html:not([data-theme="dark"]) .auth-v2-login .auth-v2-field > div button,
+html:not([data-theme="dark"]) .auth-v2-login .auth-v2-society button,
+body[data-theme="light"] .auth-v2-login .auth-v2-field > div button,
+body[data-theme="light"] .auth-v2-login .auth-v2-society button {
+  border-color: rgba(79, 70, 229, 0.2);
+  background: linear-gradient(135deg, rgba(79, 70, 229, 0.12), rgba(14, 165, 233, 0.1));
+  color: #273b86;
+}
+
+html:not([data-theme="dark"]) .auth-v2-login .auth-v2-row,
+html:not([data-theme="dark"]) .auth-v2-login .auth-v2-row label,
+html:not([data-theme="dark"]) .auth-v2-login .auth-v2-bottom,
+html:not([data-theme="dark"]) .auth-v2-recovery .auth-v2-bottom,
+body[data-theme="light"] .auth-v2-login .auth-v2-row,
+body[data-theme="light"] .auth-v2-login .auth-v2-row label,
+body[data-theme="light"] .auth-v2-login .auth-v2-bottom,
+body[data-theme="light"] .auth-v2-recovery .auth-v2-bottom {
+  color: #52637f;
+}
+
+html:not([data-theme="dark"]) .auth-v2-login .auth-v2-row a,
+html:not([data-theme="dark"]) .auth-v2-login .auth-v2-bottom a,
+html:not([data-theme="dark"]) .auth-v2-recovery .auth-v2-bottom a,
+body[data-theme="light"] .auth-v2-login .auth-v2-row a,
+body[data-theme="light"] .auth-v2-login .auth-v2-bottom a,
+body[data-theme="light"] .auth-v2-recovery .auth-v2-bottom a {
+  color: #4f46e5;
+}
+
+html:not([data-theme="dark"]) .auth-v2-login .auth-v2-submit,
+html:not([data-theme="dark"]) .auth-v2-recovery .auth-v2-submit,
+body[data-theme="light"] .auth-v2-login .auth-v2-submit,
+body[data-theme="light"] .auth-v2-recovery .auth-v2-submit {
+  border-color: rgba(255, 255, 255, 0.55) !important;
+  background: linear-gradient(135deg, #4f46e5 0%, #6d5df6 45%, #0ea5e9 100%) !important;
+  color: #ffffff !important;
+  box-shadow:
+    0 18px 44px rgba(79, 70, 229, 0.28),
+    0 0 34px rgba(14, 165, 233, 0.16);
+}
+
+html:not([data-theme="dark"]) .auth-v2-login .auth-v2-otp-action,
+html:not([data-theme="dark"]) .auth-v2-login .auth-v2-social button,
+html:not([data-theme="dark"]) .auth-v2-login .auth-v2-society,
+html:not([data-theme="dark"]) .auth-v2-login .auth-v2-warning,
+body[data-theme="light"] .auth-v2-login .auth-v2-otp-action,
+body[data-theme="light"] .auth-v2-login .auth-v2-social button,
+body[data-theme="light"] .auth-v2-login .auth-v2-society,
+body[data-theme="light"] .auth-v2-login .auth-v2-warning {
+  border-color: rgba(99, 102, 241, 0.18);
+  background: rgba(255, 255, 255, 0.68);
+  color: #0f1f44;
+  box-shadow:
+    0 12px 32px rgba(31, 41, 91, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.82);
+}
+
+html:not([data-theme="dark"]) .auth-v2-login .auth-v2-otp-action span,
+html:not([data-theme="dark"]) .auth-v2-login .auth-v2-society span,
+html:not([data-theme="dark"]) .auth-v2-login .auth-v2-warning span,
+body[data-theme="light"] .auth-v2-login .auth-v2-otp-action span,
+body[data-theme="light"] .auth-v2-login .auth-v2-society span,
+body[data-theme="light"] .auth-v2-login .auth-v2-warning span {
+  color: #52637f;
+}
+
+html:not([data-theme="dark"]) .auth-v2-login .auth-v2-otp-action strong,
+html:not([data-theme="dark"]) .auth-v2-login .auth-v2-society strong,
+html:not([data-theme="dark"]) .auth-v2-login .auth-v2-warning strong,
+body[data-theme="light"] .auth-v2-login .auth-v2-otp-action strong,
+body[data-theme="light"] .auth-v2-login .auth-v2-society strong,
+body[data-theme="light"] .auth-v2-login .auth-v2-warning strong {
+  color: #273b86;
+}
+
+html:not([data-theme="dark"]) .auth-v2-login .auth-v2-social button:hover,
+body[data-theme="light"] .auth-v2-login .auth-v2-social button:hover {
+  border-color: rgba(79, 70, 229, 0.32);
+  background: rgba(255, 255, 255, 0.84);
+}
+
+html:not([data-theme="dark"]) .auth-v2-recovery,
+body[data-theme="light"] .auth-v2-recovery {
+  grid-template-columns: minmax(360px, 0.88fr) minmax(420px, 0.92fr);
+  justify-content: center;
+}
+
+html:not([data-theme="dark"]) .auth-v2-recovery .auth-v2-art,
+html:not([data-theme="dark"]) .auth-v2-recovery .auth-v2-form-zone,
+body[data-theme="light"] .auth-v2-recovery .auth-v2-art,
+body[data-theme="light"] .auth-v2-recovery .auth-v2-form-zone {
+  height: min(760px, calc(100vh - clamp(24px, 3.4vw, 52px)));
+}
+
+html:not([data-theme="dark"]) .auth-v2-recovery .nexora-auth-visual,
+body[data-theme="light"] .auth-v2-recovery .nexora-auth-visual {
+  width: min(100%, 360px);
+}
+
+html:not([data-theme="dark"]) .auth-v2-recovery .auth-v2-card,
+body[data-theme="light"] .auth-v2-recovery .auth-v2-card {
+  width: min(100%, 520px);
+}
+
+html:not([data-theme="dark"]) .auth-v2-recovery .auth-v2-stack,
+body[data-theme="light"] .auth-v2-recovery .auth-v2-stack {
+  border-top-color: rgba(99, 102, 241, 0.16);
+}
+
+html:not([data-theme="dark"]) .auth-v2-recovery .auth-v2-strength,
+body[data-theme="light"] .auth-v2-recovery .auth-v2-strength {
+  background: rgba(79, 70, 229, 0.1);
+}
+
+html:not([data-theme="dark"]) .auth-v2-recovery .auth-v2-strength em,
+body[data-theme="light"] .auth-v2-recovery .auth-v2-strength em {
+  color: #0f1f44;
+}
+
+html:not([data-theme="dark"]) .auth-v2-recovery .auth-v2-ghost,
+body[data-theme="light"] .auth-v2-recovery .auth-v2-ghost {
+  border-color: rgba(99, 102, 241, 0.18);
+  background: rgba(255, 255, 255, 0.72);
+  color: #273b86;
+  box-shadow: 0 12px 30px rgba(31, 41, 91, 0.08);
+}
+
+html:not([data-theme="dark"]) .nexora-auth-visual--recovery::before,
+body[data-theme="light"] .nexora-auth-visual--recovery::before {
+  background: radial-gradient(circle, rgba(79, 70, 229, 0.13), transparent 60%);
+}
+
+@media (max-width: 1120px) {
+  html:not([data-theme="dark"]) .auth-v2-recovery .auth-v2-art,
+  html:not([data-theme="dark"]) .auth-v2-recovery .auth-v2-form-zone,
+  body[data-theme="light"] .auth-v2-recovery .auth-v2-art,
+  body[data-theme="light"] .auth-v2-recovery .auth-v2-form-zone {
+    height: auto;
+  }
+}
+
+/* Light theme polish for Register and OTP only. Dark theme selectors above remain unchanged. */
+html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-register,
+html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-otp,
+html[data-theme="light"] .auth-v2-register,
+html[data-theme="light"] .auth-v2-otp,
+body[data-theme="light"] .auth-v2-register,
+body[data-theme="light"] .auth-v2-otp {
+  --nexora-auth-bg: #f7fbff;
+  --nexora-auth-card: rgba(255, 255, 255, 0.78);
+  --nexora-auth-solid: rgba(255, 255, 255, 0.9);
+  --nexora-auth-text: #0b1b3f;
+  --nexora-auth-muted: #52637f;
+  --nexora-auth-border: rgba(79, 70, 229, 0.18);
+  background:
+    radial-gradient(circle at 13% 14%, rgba(124, 58, 237, 0.14), transparent 30%),
+    radial-gradient(circle at 88% 10%, rgba(14, 165, 233, 0.16), transparent 28%),
+    radial-gradient(circle at 54% 102%, rgba(99, 102, 241, 0.12), transparent 34%),
+    linear-gradient(135deg, #f8fbff 0%, #eef5ff 45%, #f7f3ff 100%) !important;
+  color: #0b1b3f;
+}
+
+html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-register .auth-v2-onboarding,
+html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-otp .auth-v2-art,
+html[data-theme="light"] .auth-v2-register .auth-v2-onboarding,
+html[data-theme="light"] .auth-v2-otp .auth-v2-art,
+body[data-theme="light"] .auth-v2-register .auth-v2-onboarding,
+body[data-theme="light"] .auth-v2-otp .auth-v2-art {
+  border-color: rgba(255, 255, 255, 0.76);
+  background:
+    radial-gradient(circle at 52% 42%, rgba(37, 99, 235, 0.14), transparent 34%),
+    radial-gradient(circle at 22% 76%, rgba(168, 85, 247, 0.13), transparent 32%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.86), rgba(232, 241, 255, 0.72)) !important;
+  box-shadow:
+    0 28px 88px rgba(37, 99, 235, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.92);
+}
+
+html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-register .auth-v2-onboarding::before,
+html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-otp .auth-v2-art::before,
+html[data-theme="light"] .auth-v2-register .auth-v2-onboarding::before,
+html[data-theme="light"] .auth-v2-otp .auth-v2-art::before,
+body[data-theme="light"] .auth-v2-register .auth-v2-onboarding::before,
+body[data-theme="light"] .auth-v2-otp .auth-v2-art::before {
+  border-color: rgba(99, 102, 241, 0.22);
+  box-shadow:
+    0 0 48px rgba(79, 70, 229, 0.11),
+    inset 0 0 90px rgba(14, 165, 233, 0.08);
+}
+
+html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-register .auth-v2-onboarding::after,
+html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-otp .auth-v2-art::after,
+html[data-theme="light"] .auth-v2-register .auth-v2-onboarding::after,
+html[data-theme="light"] .auth-v2-otp .auth-v2-art::after,
+body[data-theme="light"] .auth-v2-register .auth-v2-onboarding::after,
+body[data-theme="light"] .auth-v2-otp .auth-v2-art::after {
+  background:
+    radial-gradient(circle at 22% 34%, rgba(168, 85, 247, 0.1), transparent 24%),
+    radial-gradient(circle at 78% 64%, rgba(14, 165, 233, 0.1), transparent 26%),
+    repeating-radial-gradient(circle at 54% 88%, rgba(37, 99, 235, 0.08) 0 1px, transparent 1px 18px);
+  opacity: 0.82;
+}
+
+html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-register .auth-v2-art-copy em,
+html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-otp .auth-v2-art-copy em,
+html[data-theme="light"] .auth-v2-register .auth-v2-art-copy em,
+html[data-theme="light"] .auth-v2-otp .auth-v2-art-copy em,
+body[data-theme="light"] .auth-v2-register .auth-v2-art-copy em,
+body[data-theme="light"] .auth-v2-otp .auth-v2-art-copy em {
+  color: #4f46e5;
+}
+
+html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-register .auth-v2-art-copy h1,
+html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-otp .auth-v2-art-copy h1,
+html[data-theme="light"] .auth-v2-register .auth-v2-art-copy h1,
+html[data-theme="light"] .auth-v2-otp .auth-v2-art-copy h1,
+body[data-theme="light"] .auth-v2-register .auth-v2-art-copy h1,
+body[data-theme="light"] .auth-v2-otp .auth-v2-art-copy h1 {
+  color: #0b1b3f;
+  text-shadow: 0 16px 40px rgba(79, 70, 229, 0.12);
+}
+
+html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-register .auth-v2-art-copy p,
+html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-otp .auth-v2-art-copy p,
+html[data-theme="light"] .auth-v2-register .auth-v2-art-copy p,
+html[data-theme="light"] .auth-v2-otp .auth-v2-art-copy p,
+body[data-theme="light"] .auth-v2-register .auth-v2-art-copy p,
+body[data-theme="light"] .auth-v2-otp .auth-v2-art-copy p {
+  color: #41516e;
+}
+
+html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-register .nexora-auth-brand .brand-logo__mark,
+html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-otp .nexora-auth-brand .brand-logo__mark,
+html[data-theme="light"] .auth-v2-register .nexora-auth-brand .brand-logo__mark,
+html[data-theme="light"] .auth-v2-otp .nexora-auth-brand .brand-logo__mark,
+body[data-theme="light"] .auth-v2-register .nexora-auth-brand .brand-logo__mark,
+body[data-theme="light"] .auth-v2-otp .nexora-auth-brand .brand-logo__mark {
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow:
+    0 14px 36px rgba(79, 70, 229, 0.18),
+    0 0 0 6px rgba(255, 255, 255, 0.58);
+}
+
+html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-register .nexora-auth-brand .brand-logo__text strong,
+html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-otp .nexora-auth-brand .brand-logo__text strong,
+html[data-theme="light"] .auth-v2-register .nexora-auth-brand .brand-logo__text strong,
+html[data-theme="light"] .auth-v2-otp .nexora-auth-brand .brand-logo__text strong,
+body[data-theme="light"] .auth-v2-register .nexora-auth-brand .brand-logo__text strong,
+body[data-theme="light"] .auth-v2-otp .nexora-auth-brand .brand-logo__text strong {
+  color: #0b1b3f;
+  text-shadow: 0 8px 24px rgba(79, 70, 229, 0.16);
+}
+
+html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-register .nexora-auth-brand .brand-logo__text em,
+html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-otp .nexora-auth-brand .brand-logo__text em,
+html[data-theme="light"] .auth-v2-register .nexora-auth-brand .brand-logo__text em,
+html[data-theme="light"] .auth-v2-otp .nexora-auth-brand .brand-logo__text em,
+body[data-theme="light"] .auth-v2-register .nexora-auth-brand .brand-logo__text em,
+body[data-theme="light"] .auth-v2-otp .nexora-auth-brand .brand-logo__text em {
+  color: #52637f;
+}
+
+html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-register .nexora-auth-visual,
+html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-otp .nexora-auth-visual,
+html[data-theme="light"] .auth-v2-register .nexora-auth-visual,
+html[data-theme="light"] .auth-v2-otp .nexora-auth-visual,
+body[data-theme="light"] .auth-v2-register .nexora-auth-visual,
+body[data-theme="light"] .auth-v2-otp .nexora-auth-visual {
+  filter:
+    drop-shadow(0 30px 54px rgba(37, 99, 235, 0.2))
+    drop-shadow(0 0 42px rgba(124, 58, 237, 0.16));
+}
+
+html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-register .nexora-auth-visual::before,
+html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-otp .nexora-auth-visual::before,
+html[data-theme="light"] .auth-v2-register .nexora-auth-visual::before,
+html[data-theme="light"] .auth-v2-otp .nexora-auth-visual::before,
+body[data-theme="light"] .auth-v2-register .nexora-auth-visual::before,
+body[data-theme="light"] .auth-v2-otp .nexora-auth-visual::before {
+  background: radial-gradient(circle, rgba(79, 70, 229, 0.14), transparent 62%);
+}
+
+html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-register .auth-v2-benefits span,
+html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-otp .auth-v2-illustration div,
+html[data-theme="light"] .auth-v2-register .auth-v2-benefits span,
+html[data-theme="light"] .auth-v2-otp .auth-v2-illustration div,
+body[data-theme="light"] .auth-v2-register .auth-v2-benefits span,
+body[data-theme="light"] .auth-v2-otp .auth-v2-illustration div {
+  border-color: rgba(99, 102, 241, 0.18);
+  background: rgba(255, 255, 255, 0.72);
+  color: #0b1b3f;
+  box-shadow:
+    0 16px 42px rgba(31, 41, 91, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.88);
+}
+
+html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-register .auth-v2-benefits span b,
+html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-otp .auth-v2-illustration span,
+html[data-theme="light"] .auth-v2-register .auth-v2-benefits span b,
+html[data-theme="light"] .auth-v2-otp .auth-v2-illustration span,
+body[data-theme="light"] .auth-v2-register .auth-v2-benefits span b,
+body[data-theme="light"] .auth-v2-otp .auth-v2-illustration span {
+  background: linear-gradient(135deg, rgba(79, 70, 229, 0.14), rgba(14, 165, 233, 0.14));
+  color: #3650a3;
+}
+
+html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-otp .auth-v2-illustration strong,
+html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-register .auth-v2-benefits span,
+html[data-theme="light"] .auth-v2-otp .auth-v2-illustration strong,
+html[data-theme="light"] .auth-v2-register .auth-v2-benefits span,
+body[data-theme="light"] .auth-v2-otp .auth-v2-illustration strong,
+body[data-theme="light"] .auth-v2-register .auth-v2-benefits span {
+  color: #0b1b3f;
+}
+
+html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-register > .auth-v2-card,
+html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-otp .auth-v2-card,
+html[data-theme="light"] .auth-v2-register > .auth-v2-card,
+html[data-theme="light"] .auth-v2-otp .auth-v2-card,
+body[data-theme="light"] .auth-v2-register > .auth-v2-card,
+body[data-theme="light"] .auth-v2-otp .auth-v2-card {
+  border-color: rgba(99, 102, 241, 0.22);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.86), rgba(247, 250, 255, 0.76)),
+    radial-gradient(circle at 16% 4%, rgba(79, 70, 229, 0.1), transparent 32%);
+  box-shadow:
+    0 32px 88px rgba(31, 41, 91, 0.18),
+    0 0 70px rgba(124, 58, 237, 0.11),
+    inset 0 1px 0 rgba(255, 255, 255, 0.94);
+  -webkit-backdrop-filter: blur(32px) saturate(165%);
+  backdrop-filter: blur(32px) saturate(165%);
+}
+
+html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-register > .auth-v2-card,
+html[data-theme="light"] .auth-v2-register > .auth-v2-card,
+body[data-theme="light"] .auth-v2-register > .auth-v2-card {
+  padding: clamp(20px, 2.2vw, 30px);
+}
+
+html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-otp .auth-v2-card,
+html[data-theme="light"] .auth-v2-otp .auth-v2-card,
+body[data-theme="light"] .auth-v2-otp .auth-v2-card {
+  padding: clamp(22px, 2.6vw, 32px);
+}
+
+html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-register .auth-v2-heading span,
+html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-otp .auth-v2-heading span,
+html[data-theme="light"] .auth-v2-register .auth-v2-heading span,
+html[data-theme="light"] .auth-v2-otp .auth-v2-heading span,
+body[data-theme="light"] .auth-v2-register .auth-v2-heading span,
+body[data-theme="light"] .auth-v2-otp .auth-v2-heading span {
+  color: #4f46e5;
+}
+
+html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-register .auth-v2-heading h2,
+html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-otp .auth-v2-heading h2,
+html[data-theme="light"] .auth-v2-register .auth-v2-heading h2,
+html[data-theme="light"] .auth-v2-otp .auth-v2-heading h2,
+body[data-theme="light"] .auth-v2-register .auth-v2-heading h2,
+body[data-theme="light"] .auth-v2-otp .auth-v2-heading h2 {
+  color: #0b1b3f !important;
+}
+
+html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-register .auth-v2-heading p,
+html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-otp .auth-v2-heading p,
+html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-register .auth-v2-bottom,
+html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-otp .auth-v2-bottom,
+html[data-theme="light"] .auth-v2-register .auth-v2-heading p,
+html[data-theme="light"] .auth-v2-otp .auth-v2-heading p,
+html[data-theme="light"] .auth-v2-register .auth-v2-bottom,
+html[data-theme="light"] .auth-v2-otp .auth-v2-bottom,
+body[data-theme="light"] .auth-v2-register .auth-v2-heading p,
+body[data-theme="light"] .auth-v2-otp .auth-v2-heading p,
+body[data-theme="light"] .auth-v2-register .auth-v2-bottom,
+body[data-theme="light"] .auth-v2-otp .auth-v2-bottom {
+  color: #52637f !important;
+}
+
+html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-register .auth-v2-field input,
+html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-otp .auth-v2-field input,
+html[data-theme="light"] .auth-v2-register .auth-v2-field input,
+html[data-theme="light"] .auth-v2-otp .auth-v2-field input,
+body[data-theme="light"] .auth-v2-register .auth-v2-field input,
+body[data-theme="light"] .auth-v2-otp .auth-v2-field input {
+  border-color: rgba(99, 102, 241, 0.2) !important;
+  background: rgba(255, 255, 255, 0.92) !important;
+  color: #0b1b3f !important;
+  box-shadow:
+    0 12px 30px rgba(31, 41, 91, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95);
+}
+
+html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-register .auth-v2-field input:hover,
+html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-otp .auth-v2-field input:hover,
+html[data-theme="light"] .auth-v2-register .auth-v2-field input:hover,
+html[data-theme="light"] .auth-v2-otp .auth-v2-field input:hover,
+body[data-theme="light"] .auth-v2-register .auth-v2-field input:hover,
+body[data-theme="light"] .auth-v2-otp .auth-v2-field input:hover {
+  border-color: rgba(79, 70, 229, 0.36) !important;
+}
+
+html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-register .auth-v2-field input:focus,
+html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-otp .auth-v2-field input:focus,
+html[data-theme="light"] .auth-v2-register .auth-v2-field input:focus,
+html[data-theme="light"] .auth-v2-otp .auth-v2-field input:focus,
+body[data-theme="light"] .auth-v2-register .auth-v2-field input:focus,
+body[data-theme="light"] .auth-v2-otp .auth-v2-field input:focus {
+  border-color: rgba(79, 70, 229, 0.72) !important;
+  background: #ffffff !important;
+  transform: translateY(-1px);
+  box-shadow:
+    0 0 0 4px rgba(79, 70, 229, 0.13),
+    0 16px 40px rgba(37, 99, 235, 0.13) !important;
+}
+
+html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-register .auth-v2-submit,
+html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-otp .auth-v2-submit,
+html[data-theme="light"] .auth-v2-register .auth-v2-submit,
+html[data-theme="light"] .auth-v2-otp .auth-v2-submit,
+body[data-theme="light"] .auth-v2-register .auth-v2-submit,
+body[data-theme="light"] .auth-v2-otp .auth-v2-submit {
+  border-color: rgba(255, 255, 255, 0.56) !important;
+  background: linear-gradient(135deg, #4f46e5 0%, #6d5df6 46%, #0ea5e9 100%) !important;
+  color: #ffffff !important;
+  box-shadow:
+    0 18px 44px rgba(79, 70, 229, 0.28),
+    0 0 34px rgba(14, 165, 233, 0.16);
+}
+
+html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-register .auth-v2-submit:hover:not(:disabled),
+html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-otp .auth-v2-submit:hover:not(:disabled),
+html[data-theme="light"] .auth-v2-register .auth-v2-submit:hover:not(:disabled),
+html[data-theme="light"] .auth-v2-otp .auth-v2-submit:hover:not(:disabled),
+body[data-theme="light"] .auth-v2-register .auth-v2-submit:hover:not(:disabled),
+body[data-theme="light"] .auth-v2-otp .auth-v2-submit:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow:
+    0 22px 52px rgba(79, 70, 229, 0.32),
+    0 0 42px rgba(14, 165, 233, 0.2);
+}
+
+html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-register .auth-v2-submit:active:not(:disabled),
+html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-otp .auth-v2-submit:active:not(:disabled),
+html[data-theme="light"] .auth-v2-register .auth-v2-submit:active:not(:disabled),
+html[data-theme="light"] .auth-v2-otp .auth-v2-submit:active:not(:disabled),
+body[data-theme="light"] .auth-v2-register .auth-v2-submit:active:not(:disabled),
+body[data-theme="light"] .auth-v2-otp .auth-v2-submit:active:not(:disabled) {
+  transform: translateY(0) scale(0.99);
+}
+
+html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-register .auth-v2-ghost,
+html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-otp .auth-v2-ghost,
+html[data-theme="light"] .auth-v2-register .auth-v2-ghost,
+html[data-theme="light"] .auth-v2-otp .auth-v2-ghost,
+body[data-theme="light"] .auth-v2-register .auth-v2-ghost,
+body[data-theme="light"] .auth-v2-otp .auth-v2-ghost {
+  border-color: rgba(99, 102, 241, 0.2) !important;
+  background: rgba(255, 255, 255, 0.72) !important;
+  color: #273b86 !important;
+  box-shadow: 0 12px 30px rgba(31, 41, 91, 0.08);
+}
+
+html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-register .auth-v2-ghost:hover:not(:disabled),
+html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-otp .auth-v2-ghost:hover:not(:disabled),
+html[data-theme="light"] .auth-v2-register .auth-v2-ghost:hover:not(:disabled),
+html[data-theme="light"] .auth-v2-otp .auth-v2-ghost:hover:not(:disabled),
+body[data-theme="light"] .auth-v2-register .auth-v2-ghost:hover:not(:disabled),
+body[data-theme="light"] .auth-v2-otp .auth-v2-ghost:hover:not(:disabled) {
+  border-color: rgba(79, 70, 229, 0.34) !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+  transform: translateY(-1px);
+}
+
+html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-register .auth-v2-stepper button,
+html[data-theme="light"] .auth-v2-register .auth-v2-stepper button,
+body[data-theme="light"] .auth-v2-register .auth-v2-stepper button {
+  border-color: rgba(99, 102, 241, 0.18);
+  background: rgba(255, 255, 255, 0.68);
+  color: #42536f;
+  box-shadow: 0 10px 28px rgba(31, 41, 91, 0.07);
+}
+
+html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-register .auth-v2-stepper button.is-active,
+html[data-theme="light"] .auth-v2-register .auth-v2-stepper button.is-active,
+body[data-theme="light"] .auth-v2-register .auth-v2-stepper button.is-active {
+  border-color: rgba(79, 70, 229, 0.36);
+  background: linear-gradient(135deg, rgba(79, 70, 229, 0.96), rgba(14, 165, 233, 0.88));
+  color: #ffffff;
+  box-shadow:
+    0 16px 38px rgba(79, 70, 229, 0.24),
+    0 0 28px rgba(14, 165, 233, 0.15);
+}
+
+html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-register .auth-v2-stepper button.is-active strong,
+html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-register .auth-v2-stepper button.is-active span,
+html[data-theme="light"] .auth-v2-register .auth-v2-stepper button.is-active strong,
+html[data-theme="light"] .auth-v2-register .auth-v2-stepper button.is-active span,
+body[data-theme="light"] .auth-v2-register .auth-v2-stepper button.is-active strong,
+body[data-theme="light"] .auth-v2-register .auth-v2-stepper button.is-active span {
+  color: #ffffff;
+}
+
+html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-register .auth-v2-stepper button.is-done,
+html[data-theme="light"] .auth-v2-register .auth-v2-stepper button.is-done,
+body[data-theme="light"] .auth-v2-register .auth-v2-stepper button.is-done {
+  border-color: rgba(14, 165, 233, 0.28);
+  background: rgba(239, 246, 255, 0.86);
+}
+
+html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-register .auth-v2-role-grid button,
+html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-register .auth-v2-verify,
+html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-register .auth-v2-role-title,
+html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-register .auth-v2-review div,
+html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-register .auth-v2-terms,
+html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-otp .auth-v2-contact-card,
+html[data-theme="light"] .auth-v2-register .auth-v2-role-grid button,
+html[data-theme="light"] .auth-v2-register .auth-v2-verify,
+html[data-theme="light"] .auth-v2-register .auth-v2-role-title,
+html[data-theme="light"] .auth-v2-register .auth-v2-review div,
+html[data-theme="light"] .auth-v2-register .auth-v2-terms,
+html[data-theme="light"] .auth-v2-otp .auth-v2-contact-card,
+body[data-theme="light"] .auth-v2-register .auth-v2-role-grid button,
+body[data-theme="light"] .auth-v2-register .auth-v2-verify,
+body[data-theme="light"] .auth-v2-register .auth-v2-role-title,
+body[data-theme="light"] .auth-v2-register .auth-v2-review div,
+body[data-theme="light"] .auth-v2-register .auth-v2-terms,
+body[data-theme="light"] .auth-v2-otp .auth-v2-contact-card {
+  border-color: rgba(99, 102, 241, 0.18) !important;
+  background: rgba(255, 255, 255, 0.68) !important;
+  color: #0b1b3f !important;
+  box-shadow:
+    0 12px 32px rgba(31, 41, 91, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.84);
+}
+
+html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-register .auth-v2-role-grid button.is-active,
+html[data-theme="light"] .auth-v2-register .auth-v2-role-grid button.is-active,
+body[data-theme="light"] .auth-v2-register .auth-v2-role-grid button.is-active {
+  border-color: rgba(79, 70, 229, 0.4) !important;
+  background:
+    linear-gradient(135deg, rgba(79, 70, 229, 0.12), rgba(14, 165, 233, 0.12)),
+    rgba(255, 255, 255, 0.86) !important;
+  box-shadow:
+    0 16px 38px rgba(79, 70, 229, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-register .auth-v2-verify.is-ok,
+html[data-theme="light"] .auth-v2-register .auth-v2-verify.is-ok,
+body[data-theme="light"] .auth-v2-register .auth-v2-verify.is-ok {
+  border-color: rgba(16, 185, 129, 0.34) !important;
+  background: rgba(236, 253, 245, 0.78) !important;
+}
+
+html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-otp .auth-v2-otp-boxes input,
+html[data-theme="light"] .auth-v2-otp .auth-v2-otp-boxes input,
+body[data-theme="light"] .auth-v2-otp .auth-v2-otp-boxes input {
+  height: clamp(64px, 7vw, 82px) !important;
+  border: 1px solid rgba(99, 102, 241, 0.24) !important;
+  border-radius: 20px !important;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.94), rgba(240, 247, 255, 0.82)) !important;
+  color: #0b1b3f !important;
+  font-size: clamp(1.75rem, 4vw, 2.4rem) !important;
+  box-shadow:
+    0 14px 34px rgba(31, 41, 91, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95);
+}
+
+html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-otp .auth-v2-otp-boxes input:hover,
+html[data-theme="light"] .auth-v2-otp .auth-v2-otp-boxes input:hover,
+body[data-theme="light"] .auth-v2-otp .auth-v2-otp-boxes input:hover {
+  border-color: rgba(79, 70, 229, 0.42) !important;
+}
+
+html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-otp .auth-v2-otp-boxes input:focus,
+html[data-theme="light"] .auth-v2-otp .auth-v2-otp-boxes input:focus,
+body[data-theme="light"] .auth-v2-otp .auth-v2-otp-boxes input:focus {
+  border-color: rgba(79, 70, 229, 0.78) !important;
+  background: #ffffff !important;
+  transform: translateY(-2px) scale(1.02);
+  box-shadow:
+    0 0 0 4px rgba(79, 70, 229, 0.14),
+    0 18px 42px rgba(37, 99, 235, 0.16),
+    0 0 28px rgba(14, 165, 233, 0.16) !important;
+}
+
+/* Desktop light auth fit pass: no page scroll, compact spacing, brighter premium surfaces. */
+@media (min-width: 1024px) {
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-login,
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-recovery,
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-register,
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-otp,
+  body[data-theme="light"] .auth-v2-login,
+  body[data-theme="light"] .auth-v2-recovery,
+  body[data-theme="light"] .auth-v2-register,
+  body[data-theme="light"] .auth-v2-otp {
+    min-height: 100vh !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
+    overflow: hidden !important;
+    gap: 16px !important;
+    padding: 16px !important;
+  }
+
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-login .auth-v2-art,
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-register .auth-v2-onboarding,
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-otp .auth-v2-art,
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-recovery .auth-v2-art,
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-login .auth-v2-form-zone,
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-otp .auth-v2-form-zone,
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-recovery .auth-v2-form-zone,
+  body[data-theme="light"] .auth-v2-login .auth-v2-art,
+  body[data-theme="light"] .auth-v2-register .auth-v2-onboarding,
+  body[data-theme="light"] .auth-v2-otp .auth-v2-art,
+  body[data-theme="light"] .auth-v2-recovery .auth-v2-art,
+  body[data-theme="light"] .auth-v2-login .auth-v2-form-zone,
+  body[data-theme="light"] .auth-v2-otp .auth-v2-form-zone,
+  body[data-theme="light"] .auth-v2-recovery .auth-v2-form-zone {
+    min-height: 0 !important;
+    height: calc(100vh - 32px) !important;
+    max-height: calc(100vh - 32px) !important;
+    overflow: hidden !important;
+  }
+
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-login .auth-v2-art,
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-register .auth-v2-onboarding,
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-otp .auth-v2-art,
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-recovery .auth-v2-art,
+  body[data-theme="light"] .auth-v2-login .auth-v2-art,
+  body[data-theme="light"] .auth-v2-register .auth-v2-onboarding,
+  body[data-theme="light"] .auth-v2-otp .auth-v2-art,
+  body[data-theme="light"] .auth-v2-recovery .auth-v2-art {
+    grid-template-rows: auto minmax(130px, 0.86fr) auto auto !important;
+    gap: clamp(8px, 1.1vh, 12px) !important;
+    padding: clamp(16px, 1.65vw, 24px) !important;
+  }
+
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-login .auth-v2-form-zone,
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-otp .auth-v2-form-zone,
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-recovery .auth-v2-form-zone,
+  body[data-theme="light"] .auth-v2-login .auth-v2-form-zone,
+  body[data-theme="light"] .auth-v2-otp .auth-v2-form-zone,
+  body[data-theme="light"] .auth-v2-recovery .auth-v2-form-zone {
+    display: grid !important;
+    place-items: center !important;
+    padding: clamp(12px, 1.4vw, 18px) !important;
+    background:
+      radial-gradient(circle at 18% 16%, rgba(37, 99, 235, 0.1), transparent 28%),
+      radial-gradient(circle at 82% 78%, rgba(168, 85, 247, 0.1), transparent 30%),
+      linear-gradient(145deg, rgba(255, 255, 255, 0.54), rgba(239, 246, 255, 0.44)) !important;
+  }
+
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-login .auth-v2-card,
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-recovery .auth-v2-card,
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-register > .auth-v2-card,
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-otp .auth-v2-card,
+  body[data-theme="light"] .auth-v2-login .auth-v2-card,
+  body[data-theme="light"] .auth-v2-recovery .auth-v2-card,
+  body[data-theme="light"] .auth-v2-register > .auth-v2-card,
+  body[data-theme="light"] .auth-v2-otp .auth-v2-card {
+    max-height: calc(100vh - 64px) !important;
+    overflow: hidden !important;
+    padding: clamp(16px, 1.7vw, 24px) !important;
+    border-color: rgba(99, 102, 241, 0.2) !important;
+    background:
+      linear-gradient(145deg, rgba(255, 255, 255, 0.88), rgba(248, 251, 255, 0.76)),
+      radial-gradient(circle at 14% 0%, rgba(79, 70, 229, 0.09), transparent 30%),
+      radial-gradient(circle at 92% 100%, rgba(14, 165, 233, 0.08), transparent 32%) !important;
+    box-shadow:
+      0 22px 64px rgba(31, 41, 91, 0.16),
+      0 0 54px rgba(124, 58, 237, 0.09),
+      inset 0 1px 0 rgba(255, 255, 255, 0.94) !important;
+  }
+
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-login .auth-v2-card,
+  body[data-theme="light"] .auth-v2-login .auth-v2-card {
+    width: min(100%, 500px) !important;
+  }
+
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-recovery .auth-v2-card,
+  body[data-theme="light"] .auth-v2-recovery .auth-v2-card {
+    width: min(100%, 500px) !important;
+  }
+
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-register > .auth-v2-card,
+  body[data-theme="light"] .auth-v2-register > .auth-v2-card {
+    width: min(100%, 780px) !important;
+  }
+
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-otp .auth-v2-card,
+  body[data-theme="light"] .auth-v2-otp .auth-v2-card {
+    width: min(100%, 500px) !important;
+  }
+
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .nexora-login-stage,
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .nexora-auth-visual,
+  body[data-theme="light"] .nexora-login-stage,
+  body[data-theme="light"] .nexora-auth-visual {
+    width: min(100%, clamp(220px, 26vh, 330px)) !important;
+    max-height: 31vh !important;
+  }
+
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-login .nexora-hero-mark,
+  body[data-theme="light"] .auth-v2-login .nexora-hero-mark {
+    width: clamp(180px, 24vh, 280px) !important;
+  }
+
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-login .auth-v2-art-copy h1,
+  body[data-theme="light"] .auth-v2-login .auth-v2-art-copy h1 {
+    font-size: clamp(34px, 5.4vh, 52px) !important;
+    line-height: 0.98 !important;
+  }
+
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-register .auth-v2-art-copy h1,
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-otp .auth-v2-art-copy h1,
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-recovery .auth-v2-art-copy h1,
+  body[data-theme="light"] .auth-v2-register .auth-v2-art-copy h1,
+  body[data-theme="light"] .auth-v2-otp .auth-v2-art-copy h1,
+  body[data-theme="light"] .auth-v2-recovery .auth-v2-art-copy h1 {
+    font-size: clamp(30px, 4.9vh, 46px) !important;
+    line-height: 1 !important;
+  }
+
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-login .auth-v2-art-copy p,
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-register .auth-v2-art-copy p,
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-otp .auth-v2-art-copy p,
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-recovery .auth-v2-art-copy p,
+  body[data-theme="light"] .auth-v2-login .auth-v2-art-copy p,
+  body[data-theme="light"] .auth-v2-register .auth-v2-art-copy p,
+  body[data-theme="light"] .auth-v2-otp .auth-v2-art-copy p,
+  body[data-theme="light"] .auth-v2-recovery .auth-v2-art-copy p {
+    max-width: 620px !important;
+    font-size: clamp(0.88rem, 1.5vh, 1rem) !important;
+    line-height: 1.42 !important;
+  }
+
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-login .auth-v2-illustration,
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-register .auth-v2-benefits,
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-otp .auth-v2-illustration,
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-recovery .auth-v2-illustration,
+  body[data-theme="light"] .auth-v2-login .auth-v2-illustration,
+  body[data-theme="light"] .auth-v2-register .auth-v2-benefits,
+  body[data-theme="light"] .auth-v2-otp .auth-v2-illustration,
+  body[data-theme="light"] .auth-v2-recovery .auth-v2-illustration {
+    gap: 8px !important;
+    grid-template-columns: repeat(auto-fit, minmax(112px, 1fr)) !important;
+  }
+
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-login .auth-v2-illustration div,
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-register .auth-v2-benefits span,
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-otp .auth-v2-illustration div,
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-recovery .auth-v2-illustration div,
+  body[data-theme="light"] .auth-v2-login .auth-v2-illustration div,
+  body[data-theme="light"] .auth-v2-register .auth-v2-benefits span,
+  body[data-theme="light"] .auth-v2-otp .auth-v2-illustration div,
+  body[data-theme="light"] .auth-v2-recovery .auth-v2-illustration div {
+    min-height: 54px !important;
+    padding: 10px 11px !important;
+    border-color: rgba(99, 102, 241, 0.16) !important;
+    background: rgba(255, 255, 255, 0.78) !important;
+    color: #0b1b3f !important;
+    box-shadow:
+      0 10px 26px rgba(31, 41, 91, 0.08),
+      inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+  }
+
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-heading,
+  body[data-theme="light"] .auth-v2-heading {
+    margin-bottom: 2px !important;
+  }
+
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-heading h2,
+  body[data-theme="light"] .auth-v2-heading h2 {
+    font-size: clamp(28px, 4.4vh, 40px) !important;
+    line-height: 1 !important;
+  }
+
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-heading p,
+  body[data-theme="light"] .auth-v2-heading p {
+    margin-top: 6px !important;
+    font-size: 0.92rem !important;
+    line-height: 1.35 !important;
+  }
+
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-field,
+  body[data-theme="light"] .auth-v2-field {
+    gap: 6px !important;
+    margin-top: 10px !important;
+  }
+
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-field input,
+  body[data-theme="light"] .auth-v2-field input {
+    min-height: 46px !important;
+    padding: 10px 13px !important;
+  }
+
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-login .auth-v2-field input,
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-recovery .auth-v2-field input,
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-register .auth-v2-field input,
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-otp .auth-v2-field input,
+  body[data-theme="light"] .auth-v2-login .auth-v2-field input,
+  body[data-theme="light"] .auth-v2-recovery .auth-v2-field input,
+  body[data-theme="light"] .auth-v2-register .auth-v2-field input,
+  body[data-theme="light"] .auth-v2-otp .auth-v2-field input {
+    border-color: rgba(99, 102, 241, 0.2) !important;
+    background: rgba(255, 255, 255, 0.94) !important;
+    color: #0b1b3f !important;
+    box-shadow:
+      0 8px 22px rgba(31, 41, 91, 0.07),
+      inset 0 1px 0 rgba(255, 255, 255, 0.95) !important;
+  }
+
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-login .auth-v2-field input:focus,
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-recovery .auth-v2-field input:focus,
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-register .auth-v2-field input:focus,
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-otp .auth-v2-field input:focus,
+  body[data-theme="light"] .auth-v2-login .auth-v2-field input:focus,
+  body[data-theme="light"] .auth-v2-recovery .auth-v2-field input:focus,
+  body[data-theme="light"] .auth-v2-register .auth-v2-field input:focus,
+  body[data-theme="light"] .auth-v2-otp .auth-v2-field input:focus {
+    border-color: rgba(79, 70, 229, 0.72) !important;
+    box-shadow:
+      0 0 0 4px rgba(79, 70, 229, 0.12),
+      0 12px 32px rgba(37, 99, 235, 0.12) !important;
+  }
+
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-submit,
+  body[data-theme="light"] .auth-v2-submit {
+    min-height: 46px !important;
+    margin-top: 10px !important;
+    color: #ffffff !important;
+    border-color: rgba(255, 255, 255, 0.58) !important;
+    background: linear-gradient(135deg, #4f46e5 0%, #6d5df6 46%, #0ea5e9 100%) !important;
+    box-shadow:
+      0 14px 34px rgba(79, 70, 229, 0.26),
+      0 0 24px rgba(14, 165, 233, 0.14) !important;
+  }
+
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-submit:hover:not(:disabled),
+  body[data-theme="light"] .auth-v2-submit:hover:not(:disabled) {
+    transform: translateY(-1px) !important;
+  }
+
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-login .auth-v2-row,
+  body[data-theme="light"] .auth-v2-login .auth-v2-row {
+    margin-top: 10px !important;
+  }
+
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-social-label,
+  body[data-theme="light"] .auth-v2-social-label {
+    margin: 10px 0 8px !important;
+  }
+
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-social,
+  body[data-theme="light"] .auth-v2-social {
+    gap: 8px !important;
+  }
+
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-social-wrap,
+  body[data-theme="light"] .auth-v2-social-wrap {
+    display: block;
+    width: 100%;
+  }
+
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-social-wrap.is-disabled,
+  body[data-theme="light"] .auth-v2-social-wrap.is-disabled {
+    cursor: not-allowed;
+  }
+
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-social-wrap.is-disabled .auth-v2-social-btn,
+  body[data-theme="light"] .auth-v2-social-wrap.is-disabled .auth-v2-social-btn {
+    opacity: 0.6;
+    pointer-events: none;
+  }
+
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-social button,
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-otp-action,
+  body[data-theme="light"] .auth-v2-social button,
+  body[data-theme="light"] .auth-v2-otp-action {
+    min-height: 44px !important;
+    padding: 9px 12px !important;
+    background: rgba(255, 255, 255, 0.78) !important;
+  }
+
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-bottom,
+  body[data-theme="light"] .auth-v2-bottom {
+    margin-top: 10px !important;
+  }
+
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-register .auth-v2-stepper,
+  body[data-theme="light"] .auth-v2-register .auth-v2-stepper {
+    gap: 8px !important;
+    margin: 12px 0 10px !important;
+  }
+
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-register .auth-v2-stepper button,
+  body[data-theme="light"] .auth-v2-register .auth-v2-stepper button {
+    min-height: 58px !important;
+    padding: 9px !important;
+  }
+
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-register .auth-v2-step-section,
+  body[data-theme="light"] .auth-v2-register .auth-v2-step-section {
+    gap: 10px !important;
+    min-height: 170px !important;
+  }
+
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-register .auth-v2-role-grid--cards button,
+  body[data-theme="light"] .auth-v2-register .auth-v2-role-grid--cards button {
+    min-height: 62px !important;
+    padding: 10px !important;
+  }
+
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-step-actions,
+  body[data-theme="light"] .auth-v2-step-actions {
+    gap: 10px !important;
+    margin-top: 10px !important;
+  }
+
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-otp .auth-v2-otp-boxes,
+  body[data-theme="light"] .auth-v2-otp .auth-v2-otp-boxes {
+    gap: 9px !important;
+    margin: 16px 0 8px !important;
+  }
+
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-otp .auth-v2-otp-boxes input,
+  body[data-theme="light"] .auth-v2-otp .auth-v2-otp-boxes input {
+    height: clamp(54px, 7vh, 66px) !important;
+    border-radius: 16px !important;
+  }
+}
+
+@media (min-width: 1024px) and (min-height: 900px) {
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-login,
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-recovery,
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-register,
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-otp,
+  body[data-theme="light"] .auth-v2-login,
+  body[data-theme="light"] .auth-v2-recovery,
+  body[data-theme="light"] .auth-v2-register,
+  body[data-theme="light"] .auth-v2-otp {
+    gap: 20px !important;
+    padding: 20px !important;
+  }
+
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-login .auth-v2-art,
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-register .auth-v2-onboarding,
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-otp .auth-v2-art,
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-recovery .auth-v2-art,
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-login .auth-v2-form-zone,
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-otp .auth-v2-form-zone,
+  html:not([data-theme="dark"]) body:not([data-theme="dark"]) .auth-v2-recovery .auth-v2-form-zone,
+  body[data-theme="light"] .auth-v2-login .auth-v2-art,
+  body[data-theme="light"] .auth-v2-register .auth-v2-onboarding,
+  body[data-theme="light"] .auth-v2-otp .auth-v2-art,
+  body[data-theme="light"] .auth-v2-recovery .auth-v2-art,
+  body[data-theme="light"] .auth-v2-login .auth-v2-form-zone,
+  body[data-theme="light"] .auth-v2-otp .auth-v2-form-zone,
+  body[data-theme="light"] .auth-v2-recovery .auth-v2-form-zone {
+    height: calc(100vh - 40px) !important;
+    max-height: calc(100vh - 40px) !important;
+  }
+}
+
+.auth-v2-social-wrap {
+  display: block;
+  width: 100%;
+}
+
+.auth-v2-social-wrap.is-disabled {
+  cursor: not-allowed;
+}
+
+.auth-v2-social-wrap.is-disabled .auth-v2-social-btn {
+  opacity: 0.6;
+  pointer-events: none;
+}

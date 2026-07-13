@@ -6,6 +6,7 @@ import "./styles/premium-redesign.css";
 import "./styles/professional-light-theme.css";
 import "./styles/public-v2.css";
 import "./styles/enterprise-ux-optimization.css";
+import "./styles/tenant-dashboard-responsive.css";
 import { BRAND } from "./config/brand";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AccessDeniedPage from "./pages/AccessDeniedPage";
@@ -17,6 +18,7 @@ const LoginPage = lazyPage(() => import("./pages/LoginPage"));
 const RegisterPage = lazyPage(() => import("./pages/RegisterPage"));
 const ChairmanRegisterPage = lazyPage(() => import("./pages/ChairmanRegisterPage"));
 const OAuthCompleteProfilePage = lazyPage(() => import("./pages/OAuthCompleteProfilePage"));
+const OAuthPopupCallbackPage = lazyPage(() => import("./pages/OAuthPopupCallbackPage"));
 const VerifyOtpPage = lazyPage(() => import("./pages/VerifyOtpPage"));
 const ForgotPasswordPage = lazyPage(() => import("./pages/ForgotPasswordPage"));
 const PremiumLandingPage = lazyPage(() => import("./pages/PremiumLandingPage"));
@@ -72,6 +74,15 @@ const SuperAdminSocietyDetailsPage = lazyPage(() => import("./pages/SuperAdminSo
 const SuperAdminChairmanRegistrationsPage = lazyPage(() => import("./pages/SuperAdminChairmanRegistrationsPage"));
 const NotFoundPage = lazyPage(() => import("./pages/NotFoundPage"));
 const SecurityRouter = lazyPage(() => import("./security/SecurityRouter"));
+// Tenant Dashboard Pages
+const TenantMainDashboard = lazyPage(() => import("./pages/tenant/TenantMainDashboard"));
+const TenantResidence = lazyPage(() => import("./pages/tenant/TenantResidence"));
+const TenantFamilyMembers = lazyPage(() => import("./pages/tenant/TenantFamilyMembers"));
+const TenantVisitors = lazyPage(() => import("./pages/tenant/TenantVisitors"));
+const TenantAmenities = lazyPage(() => import("./pages/tenant/TenantAmenities"));
+const TenantParking = lazyPage(() => import("./pages/tenant/TenantParking"));
+const TenantCommunity = lazyPage(() => import("./pages/tenant/TenantCommunity"));
+const TenantSettings = lazyPage(() => import("./pages/tenant/TenantSettings"));
 
 function RouteFallback() {
   return (
@@ -98,6 +109,7 @@ function App() {
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/chairman/register" element={<ChairmanRegisterPage />} />
       <Route path="/auth/complete-profile" element={<OAuthCompleteProfilePage />} />
+      <Route path="/oauth/popup-callback" element={<OAuthPopupCallbackPage />} />
       <Route path="/verify-otp" element={<VerifyOtpPage />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/access-denied" element={<AccessDeniedPage />} />
@@ -217,6 +229,21 @@ function App() {
       </Route>
 
       <Route element={<ProtectedRoute allowedRoles={["resident"]} />}>
+        <Route path="/resident" element={<ResidentDashboardRouterPage />} />
+        <Route path="/tenant" element={<DashboardLayout basePath="/tenant" isTenantDashboard={true} />}>
+          <Route index element={<Navigate to="dashboard" replace />} />
+          <Route path="dashboard" element={<TenantMainDashboard />} />
+          <Route path="residence" element={<TenantResidence />} />
+          <Route path="family-members" element={<TenantFamilyMembers />} />
+          <Route path="visitors" element={<TenantVisitors />} />
+          <Route path="billing" element={<BillingPage />} />
+          <Route path="complaints" element={<ComplaintsPage />} />
+          <Route path="documents" element={<DocumentsPage />} />
+          <Route path="amenities" element={<TenantAmenities />} />
+          <Route path="parking" element={<TenantParking />} />
+          <Route path="community" element={<TenantCommunity />} />
+          <Route path="settings" element={<TenantSettings />} />
+        </Route>
         <Route path="/resident/*" element={<ResidentDashboardRouterPage />} />
       </Route>
 

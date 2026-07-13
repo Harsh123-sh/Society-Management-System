@@ -58,14 +58,20 @@ function getRoleTheme(role) {
   return themes[role] || themes.resident;
 }
 
-function DashboardLayout({ basePath = "/admin" }) {
+function DashboardLayout({ basePath = "/admin", isTenantDashboard = false }) {
   const { t } = useTranslation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const navigate = useNavigate();
-  const role = getStoredRole();
+  let role = getStoredRole();
   const user = getStoredUser();
   const residentType = user?.resident_type || null;
+  
+  // Override role to "resident" for tenant dashboard to use correct sidebar navigation
+  if (isTenantDashboard) {
+    role = "resident";
+  }
+  
   const roleTheme = getRoleTheme(role);
   const isLeadershipRole = role === "admin" || role === "secretary";
 

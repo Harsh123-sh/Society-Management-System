@@ -1,6 +1,6 @@
 const express = require("express");
-const rateLimit = require("express-rate-limit");
 const authController = require("../controllers/authController");
+const { createRateLimiter } = require("../utils/rateLimiter");
 const superAdminController = require("../controllers/superAdminController");
 const superAdminAuthController = require("../controllers/superAdminAuthController");
 const { requireSuperAdmin } = require("../middleware/superAdminMiddleware");
@@ -12,26 +12,16 @@ const {
 	superAdminResetPasswordValidation,
 } = require("../validators/requestValidators");
 
-const forgotPasswordLimiter = rateLimit({
-	windowMs: Number(process.env.AUTH_RATE_LIMIT_WINDOW_MS || 15 * 60 * 1000),
+const forgotPasswordLimiter = createRateLimiter({
+	windowMs: Number(process.env.AUTH_RATE_LIMIT_WINDOW_MS || 60 * 60 * 1000),
 	max: Number(process.env.SUPER_ADMIN_FORGOT_RATE_LIMIT_MAX || 5),
-	standardHeaders: true,
-	legacyHeaders: false,
-	message: {
-		success: false,
-		message: "Too many requests, please try again later",
-	},
+	message: "Too many attempts. Please wait a few minutes and try again.",
 });
 
-const superAdminLoginLimiter = rateLimit({
+const superAdminLoginLimiter = createRateLimiter({
 	windowMs: Number(process.env.AUTH_RATE_LIMIT_WINDOW_MS || 15 * 60 * 1000),
 	max: Number(process.env.AUTH_RATE_LIMIT_MAX || 20),
-	standardHeaders: true,
-	legacyHeaders: false,
-	message: {
-		success: false,
-		message: "Too many authentication attempts, please try later",
-	},
+	message: "Too many attempts. Please wait a few minutes and try again.",
 });
 
 const router = express.Router();

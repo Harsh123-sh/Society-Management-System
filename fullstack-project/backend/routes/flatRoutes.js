@@ -1,5 +1,6 @@
 const express = require("express");
 const flatController = require("../controllers/flatController");
+const structureController = require("../controllers/societyStructureController");
 const { authenticateToken } = require("../middleware/authMiddleware");
 const { authorizeRoles } = require("../middleware/roleMiddleware");
 const validationMiddleware = require("../middleware/validationMiddleware");
@@ -14,9 +15,29 @@ const router = express.Router();
 
 router.use(authenticateToken);
 
+router.get(
+  "/",
+  authorizeRoles("admin", "secretary", "super_admin"),
+  (req, res, next) => {
+    if (req.query.floorId || req.query.floor_id || req.query.towerId || req.query.wingId) {
+      return structureController.listFlats(req, res, next);
+    }
+    return next();
+  },
+  flatListQueryValidation,
+  validationMiddleware,
+  flatController.getFlats
+);
+
 router.post(
   "/",
-  authorizeRoles("admin", "secretary"),
+  authorizeRoles("admin", "secretary", "super_admin"),
+  (req, res, next) => {
+    if (req.body.floorId || req.body.floor_id || req.body.towerId || req.body.wingId || req.body.houseNumber) {
+      return structureController.createFlat(req, res, next);
+    }
+    return next();
+  },
   addFlatValidation,
   validationMiddleware,
   flatController.addFlat
@@ -26,12 +47,10 @@ router.post(
   authorizeRoles("admin", "secretary"),
   flatController.createFlatsBulk
 );
-router.get(
-  "/",
-  authorizeRoles("admin", "secretary"),
-  flatListQueryValidation,
-  validationMiddleware,
-  flatController.getFlats
+router.post(
+  "/generate",
+  authorizeRoles("admin", "secretary", "super_admin"),
+  structureController.generateFlats
 );
 router.get(
   "/history",
@@ -63,10 +82,15 @@ router.patch(
 );
 router.patch(
   "/:id",
-  authorizeRoles("admin", "secretary"),
+  authorizeRoles("admin", "secretary", "super_admin"),
   idParamValidation,
   validationMiddleware,
-  flatController.updateFlat
+  (req, res, next) => {
+    if (req.body.houseNumber || req.body.house_number || req.body.bedrooms || req.body.areaSqft || req.body.area_sqft) {
+      return structureController.updateFlat(req, res, next);
+    }
+    return flatController.updateFlat(req, res, next);
+  }
 );
 router.post(
   "/:id/archive",
@@ -77,10 +101,15 @@ router.post(
 );
 router.delete(
   "/:id",
-  authorizeRoles("admin", "secretary"),
+  authorizeRoles("admin", "secretary", "super_admin"),
   idParamValidation,
   validationMiddleware,
-  flatController.deleteFlat
+  (req, res, next) => {
+    if (req.query.structure === "true" || req.user?.role === "super_admin") {
+      return structureController.deleteFlat(req, res, next);
+    }
+    return flatController.deleteFlat(req, res, next);
+  }
 );
 
 module.exports = router;

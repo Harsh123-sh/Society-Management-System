@@ -318,6 +318,11 @@ export async function oauthLogin(payload) {
   return data;
 }
 
+export async function socialLogin(provider, payload) {
+  const { data } = await api.post(`/auth/social/${provider}`, payload);
+  return data;
+}
+
 export async function fetchOAuthConfig() {
   const { data } = await api.get("/auth/oauth/config");
   return data;

@@ -1,3 +1,5 @@
+import plugin from 'tailwindcss/plugin';
+
 /** @type {import('tailwindcss').Config} */
 export default {
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
@@ -229,7 +231,7 @@ export default {
 
   plugins: [
     // Custom plugin for advanced utilities
-    require('tailwindcss/plugin')(function({ addUtilities, theme }) {
+    plugin(function({ addUtilities, theme }) {
       const utilities = {
         // ==========================================
         // GLASS MORPHISM UTILITIES
@@ -242,18 +244,24 @@ export default {
 
         '.glass-lg': {
           backgroundColor: 'rgba(255, 255, 255, 0.90)',
-          '@dark': { backgroundColor: 'rgba(17, 17, 17, 0.90)' },
           backdropFilter: 'blur(16px)',
           border: '1px solid rgba(255, 255, 255, 0.6)',
-          '@dark': { border: '1px solid rgba(255, 255, 255, 0.10)' },
         },
 
         '.glass-sm': {
           backgroundColor: 'rgba(255, 255, 255, 0.70)',
-          '@dark': { backgroundColor: 'rgba(17, 17, 17, 0.70)' },
           backdropFilter: 'blur(8px)',
           border: '1px solid rgba(255, 255, 255, 0.4)',
-          '@dark': { border: '1px solid rgba(255, 255, 255, 0.08)' },
+        },
+
+        '.dark .glass-lg, [data-theme="dark"] .glass-lg': {
+          backgroundColor: 'rgba(17, 17, 17, 0.90)',
+          border: '1px solid rgba(255, 255, 255, 0.10)',
+        },
+
+        '.dark .glass-sm, [data-theme="dark"] .glass-sm': {
+          backgroundColor: 'rgba(17, 17, 17, 0.70)',
+          border: '1px solid rgba(255, 255, 255, 0.08)',
         },
 
         // ==========================================
@@ -394,7 +402,9 @@ export default {
         '.backdrop-blur-glass': {
           backdropFilter: 'blur(12px)',
           backgroundColor: 'rgba(0, 0, 0, 0.2)',
-          '@dark': { backgroundColor: 'rgba(0, 0, 0, 0.6)' },
+        },
+        '.dark .backdrop-blur-glass, [data-theme="dark"] .backdrop-blur-glass': {
+          backgroundColor: 'rgba(0, 0, 0, 0.6)',
         },
         '.btn-theme-outline': {
           padding: '0.5rem 1rem',

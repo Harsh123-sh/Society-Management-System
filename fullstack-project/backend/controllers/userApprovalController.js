@@ -433,7 +433,8 @@ exports.approveUser = async (req, res) => {
 
     const target = await getApprovalTarget(approvalId);
     if (!target || Number(target.society_id) !== Number(societyId)) {
-      return res.status(404).json({ message: "Approval not found" });
+      console.error("[approveUser] Approval not found", { approvalId, societyId });
+      return res.status(404).json({ message: "Request not found" });
     }
 
     const authorization = getApprovalAuthorization({
@@ -447,6 +448,36 @@ exports.approveUser = async (req, res) => {
     }
 
     const approval = await UserApprovalModel.approveUser(approvalId, userId, comments);
+
+    // If the target is an operational/resident approval, run the residence assignment flow
+    const role = String(target.role || "").toLowerCase();
+    if (["owner", "tenant", "resident"].includes(role)) {
+      try {
+        const processed = await UserApprovalModel.processResidenceApproval(approvalId, userId, comments);
+        if (!processed) {
+          console.error("[approveUser] Residence approval processing returned empty", { approvalId, userId });
+          return res.status(500).json({ message: "Database update failed" });
+        }
+
+        // Log activity
+        try {
+          const userModel = require("../models/userModel");
+          await userModel.logUserActivity({ userId, action: "approve_residence", entityType: "user_approval", entityId: approvalId, metadata: { approverId: userId, approvalId } });
+        } catch (e) {
+          console.warn("[approveUser] activity log failed", e.message);
+        }
+
+        console.log("[approveUser] Resident approved successfully", { approvalId, approverId: userId });
+        return res.json({ message: "Resident approved successfully", approval: processed });
+      } catch (err) {
+        console.error("[approveUser] Residence approval error", { approvalId, approverId: userId, code: err.code, message: err.message });
+        if (err.code === "REQUEST_NOT_FOUND") return res.status(404).json({ message: "Request not found" });
+        if (err.code === "RESIDENT_NOT_FOUND") return res.status(404).json({ message: "Resident not found" });
+        if (err.code === "FLAT_NOT_FOUND") return res.status(404).json({ message: "Flat not found" });
+        if (err.code === "FLAT_OCCUPIED") return res.status(409).json({ message: "Flat already occupied" });
+        return res.status(500).json({ message: "Database update failed" });
+      }
+    }
 
     if (!approval) {
       return res.status(404).json({ message: "Approval not found" });

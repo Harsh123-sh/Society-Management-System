@@ -196,6 +196,165 @@ class UserApprovalModel {
     }
   }
 
+  // Process residence approval with transactional assignment to flat
+  static async processResidenceApproval(approvalId, approvedBy, comments = null) {
+    const connection = await db.getConnection();
+    try {
+      await connection.beginTransaction();
+
+      const [approvalRows] = await connection.query(
+        `SELECT ua.id, ua.user_id, ua.society_id, ua.status, ua.documents_json
+         FROM user_approvals ua
+         WHERE ua.id = ?
+         LIMIT 1
+         FOR UPDATE`,
+        [approvalId]
+      );
+
+      const approval = approvalRows[0] || null;
+      if (!approval) {
+        await connection.rollback();
+        const err = new Error("Request not found");
+        err.code = "REQUEST_NOT_FOUND";
+        throw err;
+      }
+
+      if (String(approval.status).toLowerCase() !== "pending") {
+        await connection.rollback();
+        const err = new Error("Request is not pending");
+        err.code = "REQUEST_NOT_PENDING";
+        throw err;
+      }
+
+      const [userRows] = await connection.query(
+        `SELECT id, flat_id, flat_number, resident_type, society_id, status
+         FROM users
+         WHERE id = ?
+         LIMIT 1
+         FOR UPDATE`,
+        [approval.user_id]
+      );
+
+      const user = userRows[0] || null;
+      if (!user) {
+        await connection.rollback();
+        const err = new Error("Resident not found");
+        err.code = "RESIDENT_NOT_FOUND";
+        throw err;
+      }
+
+      // Determine flat
+      let flat = null;
+      if (user.flat_id) {
+        const [flatRows] = await connection.query(
+          `SELECT * FROM flats WHERE id = ? AND society_id = ? LIMIT 1 FOR UPDATE`,
+          [user.flat_id, user.society_id]
+        );
+        flat = flatRows[0] || null;
+      } else if (user.flat_number) {
+        const [flatRows] = await connection.query(
+          `SELECT * FROM flats WHERE society_id = ? AND flat_number = ? LIMIT 1 FOR UPDATE`,
+          [user.society_id, user.flat_number]
+        );
+        flat = flatRows[0] || null;
+      }
+
+      if (!flat) {
+        await connection.rollback();
+        const err = new Error("Flat not found");
+        err.code = "FLAT_NOT_FOUND";
+        throw err;
+      }
+
+      // Check occupancy
+      const [activeRows] = await connection.query(
+        `SELECT id FROM flat_residents WHERE flat_id = ? AND is_active = TRUE LIMIT 1 FOR UPDATE`,
+        [flat.id]
+      );
+
+      if (activeRows.length > 0) {
+        await connection.rollback();
+        const err = new Error("Flat already occupied");
+        err.code = "FLAT_OCCUPIED";
+        throw err;
+      }
+
+      // Insert assignment
+      const moveInDate = new Date();
+      const { rows: insertResult } = await connection.query(
+        `INSERT INTO flat_residents (flat_id, resident_id, move_in_date, is_active, assigned_by)
+         VALUES (?, ?, ?, TRUE, ?)
+         RETURNING id`,
+        [flat.id, user.id, moveInDate, approvedBy]
+      );
+
+      // Update flat occupancy/status
+      const occupancyValue = user.resident_type === "tenant" ? "tenant_occupied" : "owner_occupied";
+      const updateParts = [];
+      const updateParams = [];
+      // prefer occupancy_status column if present
+      updateParts.push("status = 'occupied'");
+      updateParams.push(flat.id);
+
+      // Try to set occupancy_status if column exists
+      try {
+        await connection.query(`UPDATE flats SET occupancy_status = ? WHERE id = ?`, [occupancyValue, flat.id]);
+      } catch (e) {
+        // ignore if column doesn't exist
+      }
+
+      await connection.query(`UPDATE flats SET status = 'occupied' WHERE id = ?`, [flat.id]);
+
+      // Update user record
+      await connection.query(
+        `UPDATE users SET flat_id = ?, flat_number = ?, status = 'active', is_verified = TRUE, approved_by = ?, approved_at = NOW(), approval_status = 'approved' WHERE id = ?`,
+        [flat.id, flat.flat_number || user.flat_number || null, approvedBy, user.id]
+      );
+
+      // If owner, ensure owner_properties mapping exists
+      if (String(user.resident_type).toLowerCase() === "owner") {
+        try {
+          await connection.query(
+            `INSERT INTO owner_properties (user_id, flat_id, living_start_date)
+             VALUES (?, ?, ?)
+             ON CONFLICT (flat_id) DO UPDATE SET user_id = EXCLUDED.user_id, living_start_date = EXCLUDED.living_start_date`,
+            [user.id, flat.id, moveInDate]
+          );
+        } catch (e) {
+          // ignore if owner_properties table absent
+        }
+      }
+
+      // Mark approval approved
+      await connection.query(
+        `UPDATE user_approvals SET status = 'approved', approved_by = ?, approval_comments = ?, approved_at = NOW(), updated_at = NOW() WHERE id = ?`,
+        [approvedBy, comments || null, approvalId]
+      );
+
+      // Activity log
+      try {
+        await connection.query(
+          `INSERT INTO activity_logs (user_id, action, entity_type, entity_id, metadata)
+           VALUES (?, 'approve_residence', 'user_approval', ?, ?::jsonb)`,
+          [approvedBy || null, approvalId, JSON.stringify({ approvedBy, approvalId, userId: user.id, flatId: flat.id })]
+        );
+      } catch (e) {
+        // ignore logging errors
+      }
+
+      await connection.commit();
+
+      return this.getApprovalById(approvalId);
+    } catch (error) {
+      try {
+        await connection.rollback();
+      } catch (e) {}
+      throw error;
+    } finally {
+      connection.release();
+    }
+  }
+
   // Reject user
   static async rejectUser(approvalId, rejectedBy, reason) {
     try {

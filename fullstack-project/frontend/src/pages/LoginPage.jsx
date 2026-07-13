@@ -4,8 +4,7 @@ import { motion } from "framer-motion";
 import AlertMessage from "../components/AlertMessage";
 import BrandLogo from "../components/BrandLogo";
 import NexoraAuthVisual from "../components/NexoraAuthVisual";
-import { fetchCurrentUser, getApiMessage, loginUser } from "../services/authApi";
-import { getBackendBaseUrl } from "../services/runtimeUrls";
+import { fetchCurrentUser, fetchOAuthConfig, getApiMessage, loginUser, socialLogin } from "../services/authApi";
 import {
   clearAuthSession,
   clearSuperAdminSession,
@@ -20,6 +19,15 @@ import {
 } from "../utils/session";
 
 const Motion = motion;
+
+function hasOAuthClientId(value) {
+  const normalized = String(value || "").trim();
+  const normalizedLower = normalized.toLowerCase();
+  if (!normalized) return false;
+  if (["null", "undefined", "test", "demo", "placeholder"].includes(normalizedLower)) return false;
+  if (normalizedLower.includes("_here") || normalizedLower.includes("-here")) return false;
+  return !normalizedLower.includes("your_") && !normalizedLower.includes("your-");
+}
 
 function resolveSocietyCode(selectedSociety, formSocietyCode = "") {
   const typedCode = String(formSocietyCode || "").trim();
@@ -56,12 +64,26 @@ export default function LoginPage() {
   const [remember, setRemember] = useState(true);
   const [loading, setLoading] = useState(false);
   const [oauthLoading, setOauthLoading] = useState("");
+  const [oauthConfig, setOauthConfig] = useState(null);
   const [alert, setAlert] = useState({ type: "", message: "" });
   const [unverifiedEmail, setUnverifiedEmail] = useState(null);
   const token = localStorage.getItem("token");
   const storedRole = getStoredRole();
 
   useEffect(() => clearSuperAdminSession(), []);
+  useEffect(() => {
+    let active = true;
+    fetchOAuthConfig()
+      .then((response) => {
+        if (active) setOauthConfig(response.data || response);
+      })
+      .catch(() => {
+        if (active) setOauthConfig({ google: { enabled: false }, microsoft: { enabled: false } });
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const societyCode = params.get("societyCode");
@@ -214,57 +236,103 @@ export default function LoginPage() {
       });
   }
 
-  function requestBackendOAuthResult(provider) {
-    const params = new URLSearchParams();
-    const societyCode = loginSocietyCode;
-    if (societyCode) params.set("societyCode", societyCode);
+  function getOAuthRedirectUri() {
+    return `${window.location.origin}/oauth/popup-callback`;
+  }
+
+  function buildProviderOAuthUrl(provider) {
+    const redirectUri = getOAuthRedirectUri();
+    const state = crypto.randomUUID ? crypto.randomUUID() : String(Date.now());
+    sessionStorage.setItem(`oauthState:${provider}`, state);
+
+    if (provider === "google") {
+      const params = new URLSearchParams({
+        client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+        redirect_uri: redirectUri,
+        response_type: "token",
+        scope: "openid email profile",
+        prompt: "select_account",
+        state,
+      });
+      return `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
+    }
+
+    const params = new URLSearchParams({
+      client_id: import.meta.env.VITE_MICROSOFT_CLIENT_ID,
+      redirect_uri: redirectUri,
+      response_type: "token",
+      response_mode: "fragment",
+      scope: "openid profile email User.Read",
+      prompt: "select_account",
+      state,
+    });
+    return `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?${params.toString()}`;
+  }
+
+  function requestProviderAccessToken(provider) {
     const popup = window.open(
-      `${getBackendBaseUrl()}/api/auth/${provider}${params.toString() ? `?${params.toString()}` : ""}`,
+      buildProviderOAuthUrl(provider),
       `nexora${provider}OAuth`,
       "width=520,height=680,menubar=no,toolbar=no,status=no"
     );
-    if (!popup) return Promise.reject(new Error(`${provider === "microsoft" ? "Microsoft" : "Google"} login popup was blocked.`));
+    if (!popup) return Promise.reject(new Error(`${providerLabel(provider)} login popup was blocked.`));
 
     return new Promise((resolve, reject) => {
       const timeout = window.setTimeout(() => {
         window.removeEventListener("message", handleMessage);
         popup.close();
-        reject(new Error(`${provider === "microsoft" ? "Microsoft" : "Google"} login failed.`));
+        reject(new Error(`${providerLabel(provider)} login failed.`));
       }, 120000);
 
       function handleMessage(event) {
-        if (event.origin !== getBackendBaseUrl() || event.data?.type !== "nexora-backend-oauth-callback") return;
+        if (event.origin !== window.location.origin || event.data?.type !== "nexora-frontend-oauth-token") return;
+        const expectedState = sessionStorage.getItem(`oauthState:${provider}`);
+        sessionStorage.removeItem(`oauthState:${provider}`);
         window.clearTimeout(timeout);
         window.removeEventListener("message", handleMessage);
-        if (!event.data.success) {
-          const error = new Error(event.data.message || `${provider === "microsoft" ? "Microsoft" : "Google"} login failed.`);
-          error.code = event.data.code;
-          error.missing = event.data.missing || [];
-          error.warnings = event.data.warnings || [];
-          error.debugMessage = event.data.debugMessage || "";
-          reject(error);
+        popup.close();
+
+        if (!event.data.success || !event.data.accessToken) {
+          reject(new Error(event.data.errorDescription || event.data.error || `${providerLabel(provider)} login failed.`));
           return;
         }
-        resolve(event.data);
+        if (expectedState && event.data.state !== expectedState) {
+          reject(new Error("OAuth state mismatch. Please try again."));
+          return;
+        }
+        resolve(event.data.accessToken);
       }
 
       window.addEventListener("message", handleMessage);
     });
   }
 
+  function providerLabel(provider) {
+    return provider === "microsoft" ? "Microsoft" : "Google";
+  }
+
   async function handleOAuthLogin(provider) {
-    const providerLabel = provider === "microsoft" ? "Microsoft" : "Google";
+    const label = providerLabel(provider);
+    if (!isOAuthProviderReady(provider)) {
+      setAlert({ type: "error", message: `${label} login is not configured yet.` });
+      return;
+    }
     setAlert({ type: "", message: "" });
     setOauthLoading(provider);
     clearAuthSession();
     clearSelectedSociety();
     try {
-      const response = await requestBackendOAuthResult(provider);
+      const providerAccessToken = await requestProviderAccessToken(provider);
+      const response = await socialLogin(provider, {
+        provider,
+        accessToken: providerAccessToken,
+        societyCode: loginSocietyCode,
+      });
       completeOAuthLogin(response);
     } catch (error) {
       const message = error?.response
-        ? getApiMessage(error, `${providerLabel} login failed.`)
-        : error?.message || `${providerLabel} login failed.`;
+        ? getApiMessage(error, `${label} login failed.`)
+        : error?.message || `${label} login failed.`;
       const devHint = import.meta.env.DEV && error?.code === "OAUTH_CONFIGURATION_MISSING" && error?.missing?.length
         ? ` Developer setup: add ${error.missing.join(", ")} in backend .env and restart the backend.`
         : "";
@@ -280,6 +348,24 @@ export default function LoginPage() {
     }
   }
 
+  const frontendOAuthConfig = {
+    google: hasOAuthClientId(import.meta.env.VITE_GOOGLE_CLIENT_ID),
+    microsoft: hasOAuthClientId(import.meta.env.VITE_MICROSOFT_CLIENT_ID),
+  };
+  function isOAuthProviderReady(provider) {
+    return Boolean(frontendOAuthConfig[provider] && oauthConfig?.[provider]?.socialEnabled);
+  }
+  function getOAuthUnavailableMessage(provider) {
+    if (provider === "google") return "Google login is not configured yet.";
+    if (provider === "microsoft") return "Microsoft login is not configured yet.";
+    return "Social login is not configured yet.";
+  }
+  function handleUnavailableOAuthClick(provider) {
+    if (isOAuthProviderReady(provider) || oauthDisabled) return;
+    setAlert({ type: "error", message: getOAuthUnavailableMessage(provider) });
+  }
+  const googleReady = isOAuthProviderReady("google");
+  const microsoftReady = isOAuthProviderReady("microsoft");
   const oauthDisabled = Boolean(oauthLoading || loading);
 
   return (
@@ -296,12 +382,6 @@ export default function LoginPage() {
           <h1>Manage Your Community Smarter</h1>
           <p>One intelligent platform to manage residents, visitors, security, maintenance, billing, and society operations.</p>
         </Motion.div>
-        <div className="auth-v2-illustration">
-          <div><span>✓</span><strong>Secure</strong></div>
-          <div><span>✓</span><strong>Multi-Society</strong></div>
-          <div><span>✓</span><strong>AI Powered</strong></div>
-          <div><span>✓</span><strong>Real-Time</strong></div>
-        </div>
         <div className="auth-v2-illustration auth-v2-illustration-premium">
           <div><span>&check;</span><strong>Secure Access</strong></div>
           <div><span>&check;</span><strong>Multi-Society</strong></div>
@@ -340,16 +420,20 @@ export default function LoginPage() {
           </button>
           <div className="auth-v2-social-label"><span />Continue With<span /></div>
           <div className="auth-v2-social">
-            <button type="button" className="auth-v2-social-btn" disabled={oauthDisabled} onClick={() => handleOAuthLogin("google")}>
-              <span className="auth-v2-provider-icon auth-v2-provider-icon--google" aria-hidden="true">G</span>
-              <strong>{oauthLoading === "google" ? "Connecting..." : "Continue with Google"}</strong>
-              {oauthLoading === "google" ? <i aria-hidden="true" /> : null}
-            </button>
-            <button type="button" className="auth-v2-social-btn" disabled={oauthDisabled} onClick={() => handleOAuthLogin("microsoft")}>
-              <span className="auth-v2-provider-icon auth-v2-provider-icon--microsoft" aria-hidden="true"><b /><b /><b /><b /></span>
-              <strong>{oauthLoading === "microsoft" ? "Connecting..." : "Continue with Microsoft"}</strong>
-              {oauthLoading === "microsoft" ? <i aria-hidden="true" /> : null}
-            </button>
+            <span className={!googleReady ? "auth-v2-social-wrap is-disabled" : "auth-v2-social-wrap"} title={!googleReady ? getOAuthUnavailableMessage("google") : undefined} onClick={() => handleUnavailableOAuthClick("google")}>
+              <button type="button" className="auth-v2-social-btn" disabled={oauthDisabled || !googleReady} onClick={() => handleOAuthLogin("google")}>
+                <span className="auth-v2-provider-icon auth-v2-provider-icon--google" aria-hidden="true">G</span>
+                <strong>{oauthLoading === "google" ? "Connecting..." : googleReady ? "Continue with Google" : "Google not configured"}</strong>
+                {oauthLoading === "google" ? <i aria-hidden="true" /> : null}
+              </button>
+            </span>
+            <span className={!microsoftReady ? "auth-v2-social-wrap is-disabled" : "auth-v2-social-wrap"} title={!microsoftReady ? getOAuthUnavailableMessage("microsoft") : undefined} onClick={() => handleUnavailableOAuthClick("microsoft")}>
+              <button type="button" className="auth-v2-social-btn" disabled={oauthDisabled || !microsoftReady} onClick={() => handleOAuthLogin("microsoft")}>
+                <span className="auth-v2-provider-icon auth-v2-provider-icon--microsoft" aria-hidden="true"><b /><b /><b /><b /></span>
+                <strong>{oauthLoading === "microsoft" ? "Connecting..." : microsoftReady ? "Continue with Microsoft" : "Microsoft not configured"}</strong>
+                {oauthLoading === "microsoft" ? <i aria-hidden="true" /> : null}
+              </button>
+            </span>
           </div>
           <p className="auth-v2-bottom">New here? <Link to="/register">Create account</Link></p>
         </Motion.form>

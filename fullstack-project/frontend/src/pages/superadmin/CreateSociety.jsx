@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { createSuperAdminSociety, getApiMessage } from "../../services/authApi";
+import SocietyStructureWizard from "../../components/superadmin/SocietyStructureWizard";
 
 function normalizeSocietyCode(value) {
   return String(value || "").trim().toUpperCase().replace(/[^A-Z0-9-]/g, "");
@@ -18,10 +19,12 @@ export default function CreateSociety({ onCreated }) {
     subscription_plan: "starter",
     default_language: "en",
     status: "pending_chairman_registration",
+    configureStructure: false,
   };
   const [form, setForm] = useState(emptyForm);
   const [loading, setLoading] = useState(false);
   const [feedback, setFeedback] = useState({ type: "", message: "" });
+  const [createdSociety, setCreatedSociety] = useState(null);
 
   const societyCodeHint = useMemo(() => {
     const value = normalizeSocietyCode(form.societyCode);
@@ -86,8 +89,10 @@ export default function CreateSociety({ onCreated }) {
         status: "pending_chairman_registration",
       });
       setFeedback({ type: "success", message: res?.message || "Society created successfully." });
+      const society = res?.data?.society || null;
+      setCreatedSociety(society);
       setForm(emptyForm);
-      if (onCreated) onCreated(res?.data?.society || null);
+      if (onCreated) onCreated(society);
     } catch (err) {
       setFeedback({ type: "error", message: getApiMessage(err, "Failed to create society.") });
       console.error(err);
@@ -132,6 +137,12 @@ export default function CreateSociety({ onCreated }) {
             <option value="gu">Gujarati</option>
           </select>
         </label>
+        <label className="sa-form-wide">
+          <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <input type="checkbox" checked={form.configureStructure} onChange={(e) => updateField("configureStructure", e.target.checked)} />
+            Configure Society Structure Now
+          </span>
+        </label>
         <label>Status<input value="Pending Chairman Registration" disabled /></label>
         {feedback.message ? <p role="status" className={`sa-feedback ${feedback.type}`}>{feedback.message}</p> : null}
         <div className="sa-form-wide" style={{ marginTop: 4 }}>
@@ -140,6 +151,11 @@ export default function CreateSociety({ onCreated }) {
         </div>
       </form>
       </section>
+      {createdSociety && form.configureStructure ? (
+        <section className="sa-panel" style={{ marginTop: 16 }}>
+          <SocietyStructureWizard society={createdSociety} onClose={() => setCreatedSociety(null)} onSaved={() => setCreatedSociety(null)} />
+        </section>
+      ) : null}
     </div>
   );
 }

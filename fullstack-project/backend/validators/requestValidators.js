@@ -34,20 +34,6 @@ const registerValidation = [
     .withMessage("Society code is required")
     .isLength({ min: 2, max: 30 })
     .withMessage("Society code must be between 2 and 30 characters"),
-  body("flatNumber")
-    .if((value, { req }) => ["owner", "tenant"].includes(req.body.role))
-    .trim()
-    .notEmpty()
-    .withMessage("Flat number is required for resident roles")
-    .isLength({ min: 1, max: 40 })
-    .withMessage("Flat number must be between 1 and 40 characters"),
-  body("wing")
-    .if((value, { req }) => ["owner", "tenant"].includes(req.body.role))
-    .trim()
-    .notEmpty()
-    .withMessage("Wing is required for resident roles")
-    .isLength({ min: 1, max: 40 })
-    .withMessage("Wing must be between 1 and 40 characters"),
 ];
 
 const loginValidation = [

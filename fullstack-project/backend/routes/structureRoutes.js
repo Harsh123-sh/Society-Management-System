@@ -1,29 +1,38 @@
 const express = require("express");
-const router = express.Router();
-const structureController = require("../controllers/structureController");
+const structureController = require("../controllers/societyStructureController");
 const { authenticateToken } = require("../middleware/authMiddleware");
-const { resolveSocietyContext, requireSocietyContext } = require("../middleware/multiTenantMiddleware");
+const { authorizeRoles } = require("../middleware/roleMiddleware");
 
-// All routes require authentication and society context
+const router = express.Router();
+
 router.use(authenticateToken);
-router.use(resolveSocietyContext);
-router.use(requireSocietyContext);
+router.use(authorizeRoles("admin", "secretary", "super_admin"));
 
-// ============ TOWERS ============
+router.get("/tree", structureController.getSocietyStructure);
 router.get("/towers", structureController.listTowers);
 router.post("/towers", structureController.createTower);
 router.put("/towers/:id", structureController.updateTower);
 router.delete("/towers/:id", structureController.deleteTower);
 
-// ============ BLOCKS ============
-router.get("/blocks", structureController.listBlocks);
-router.post("/blocks", structureController.createBlock);
+router.get("/wings", structureController.listWings);
+router.post("/wings", structureController.createWing);
+router.put("/wings/:id", structureController.updateWing);
+router.delete("/wings/:id", structureController.deleteWing);
 
-// ============ FLOORS ============
 router.get("/floors", structureController.listFloors);
 router.post("/floors", structureController.createFloor);
+router.put("/floors/:id", structureController.updateFloor);
+router.delete("/floors/:id", structureController.deleteFloor);
 
-// ============ COMPLETE TREE ============
-router.get("/tree", structureController.getStructureTree);
+router.get("/flats", structureController.listFlats);
+router.post("/flats", structureController.createFlat);
+router.post("/flats/generate", structureController.generateFlats);
+router.put("/flats/:id", structureController.updateFlat);
+router.delete("/flats/:id", structureController.deleteFlat);
+
+router.get("/gates", structureController.listGates);
+router.post("/gates", structureController.createGate);
+router.put("/gates/:id", structureController.updateGate);
+router.delete("/gates/:id", structureController.deleteGate);
 
 module.exports = router;

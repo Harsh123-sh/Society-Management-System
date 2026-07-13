@@ -128,15 +128,17 @@ const residentOwnerNav = [
 ];
 
 const residentTenantNav = [
-  { labelKey: "nav.dashboard", to: "" },
-  { labelKey: "nav.messages", to: "chat" },
-  { labelKey: "nav.payments", to: "billing" },
-  { labelKey: "nav.aiAssistant", to: "ai-assistant" },
-  { labelKey: "nav.complaints", to: "complaints" },
-  { labelKey: "nav.visitors", to: "visitors" },
-  { labelKey: "nav.notices", to: "notices" },
-  { labelKey: "nav.documents", to: "documents" },
-  { labelKey: "nav.profile", to: "profile" },
+  { label: "Dashboard", to: "", icon: "dashboard" },
+  { label: "My Residence", to: "residence", icon: "property" },
+  { label: "Family Members", to: "family-members", icon: "residents" },
+  { label: "Visitors", to: "visitors", icon: "visitors" },
+  { label: "💳 Payments", to: "billing", icon: "billing" },
+  { label: "📝 Complaints", to: "complaints", icon: "complaints" },
+  { label: "📄 Documents", to: "documents", icon: "documents" },
+  { label: "🎯 Amenities", to: "amenities", icon: "facilities" },
+  { label: "🚗 Parking", to: "parking", icon: "parking" },
+  { label: "👥 Community", to: "community", icon: "communication" },
+  { label: "⚙️ Settings", to: "settings", icon: "settings" },
 ];
 
 function buildPath(basePath, childPath) {
@@ -151,13 +153,15 @@ function Sidebar({ open, onClose, role = "resident", basePath = "/resident", col
   const { t } = useTranslation();
   const user = getStoredUser();
   const residentType = user?.resident_type || "owner";
+  const isTenantDashboard = basePath === "/tenant";
   const staffSocietyName = user?.societyName || user?.society_name || "";
   const staffSocietyCode = user?.societyCode || user?.society_code || "";
   const staffRoleLabel = user?.designation || user?.staffRole || getRoleLabel(user?.role || role, t);
 
   let navItems = navByRole[role] || [{ label: "Dashboard", to: "" }];
   if (role === "resident") {
-    navItems = residentType === "tenant" ? residentTenantNav : residentOwnerNav;
+    // Always use tenant nav for tenant dashboard, regardless of user type
+    navItems = isTenantDashboard ? residentTenantNav : (residentType === "tenant" ? residentTenantNav : residentOwnerNav);
   }
 
   const isLeadershipRole = ["admin", "secretary"].includes(role);

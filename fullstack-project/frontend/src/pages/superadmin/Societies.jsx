@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Modal from "../../components/superadmin/Modal";
+import SocietyStructureWizard from "../../components/superadmin/SocietyStructureWizard";
 import "../../styles/superadmin.css";
 import { superAdminApi } from "../../services/authApi";
 import { API_BASE_URL } from "../../config/api";
@@ -31,6 +32,8 @@ export default function Societies() {
   const [editOpen, setEditOpen] = useState(false);
   const [editForm, setEditForm] = useState({ name: "", code: "" });
   const [editSaving, setEditSaving] = useState(false);
+  const [structureSociety, setStructureSociety] = useState(null);
+  const [structureOpen, setStructureOpen] = useState(false);
   const [notice, setNotice] = useState({ type: "", message: "" });
 
   async function load() {
@@ -221,6 +224,7 @@ export default function Societies() {
                   <div className="sa-row-actions">
                   <button onClick={() => openDetails(r)} className="sa-btn">View</button>
                   <button onClick={() => openEdit(r)} className="sa-btn sa-btn-ghost">Edit</button>
+                  <button onClick={() => { setStructureSociety(r); setStructureOpen(true); }} className="sa-btn">Manage Structure</button>
                   <button onClick={async () => { if (!confirm('Suspend society?')) return; await superAdminApi.patch(`/super-admin/societies/${r.id}`, { status: 'suspended' }); setNotice({ type: 'success', message: 'Society suspended.' }); load(); }} className="sa-btn sa-btn-ghost">Suspend</button>
                   <button onClick={async () => { if (!confirm('Delete society? The record will be marked deleted, not physically removed.')) return; await superAdminApi.delete(`/super-admin/societies/${r.id}`); setNotice({ type: 'success', message: 'Society deleted.' }); load(); }} className="sa-btn sa-btn-danger">Delete</button>
                   <button onClick={() => { setAssignSociety(r); setAssignModalOpen(true); setAssignEmail(''); }} className="sa-btn">Assign Chairman</button>
@@ -267,6 +271,16 @@ export default function Societies() {
               <button className="sa-btn sa-btn-ghost" type="button" onClick={() => { setEditOpen(false); setEditSociety(null); }}>Cancel</button>
             </div>
           </form>
+        ) : null}
+      </Modal>
+
+      <Modal title={structureSociety ? `Society Structure - ${structureSociety.society_name || structureSociety.name}` : 'Society Structure'} visible={structureOpen} onClose={() => { setStructureOpen(false); setStructureSociety(null); }}>
+        {structureSociety ? (
+          <SocietyStructureWizard
+            society={structureSociety}
+            onClose={() => { setStructureOpen(false); setStructureSociety(null); }}
+            onSaved={() => { setNotice({ type: 'success', message: 'Society structure published.' }); setStructureOpen(false); setStructureSociety(null); load(); }}
+          />
         ) : null}
       </Modal>
 
